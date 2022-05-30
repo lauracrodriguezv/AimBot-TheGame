@@ -8,6 +8,7 @@
 
 class UCameraComponent;
 class USpringArmComponent;
+class ABPE_Weapon;
 /**
  * 
  */
@@ -19,10 +20,10 @@ class BESTPROJECTEVER_API ABPE_PlayerCharacter : public ABPE_BaseCharacter
 protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UCameraComponent* CameraComponent;
+	TObjectPtr<UCameraComponent> CameraComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USpringArmComponent* SpringArmComponent;
+	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
 public:
 
@@ -38,6 +39,12 @@ protected:
 
 	/** Base lookup rate, in deg/sec. Other scaling may affect final lookup rate. */
 	float BaseLookUpRate;
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Inventory
+
+	UPROPERTY(ReplicatedUsing=OnRep_OverlappingWeapon)
+	TObjectPtr<ABPE_Weapon> OverlappingWeapon;
 
 protected:
 
@@ -56,8 +63,21 @@ protected:
 
 	virtual void AddControllerPitchInput(float Value) override;
 
+	//------------------------------------------------------------------------------------------------------------------
+
+	/** [client] overlapping weapon rep handler */
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon);
+
+	/** [client and server] overlapping weapon handler */
+	void OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon);
+
 public:
 	
+	/** [server] overlapping weapon handler */
+	void SetOverlappingWeapon(ABPE_Weapon* Weapon);
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

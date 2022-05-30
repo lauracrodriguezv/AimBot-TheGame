@@ -20,7 +20,7 @@ public:
 protected:
 
 	UPROPERTY(BlueprintReadOnly, Category="Character")
-	ABPE_BaseCharacter* CharacterOwner;
+	TObjectPtr<ABPE_BaseCharacter> CharacterOwner;
 
 	UPROPERTY(BlueprintReadOnly, Category="Movement")
 	float Speed;

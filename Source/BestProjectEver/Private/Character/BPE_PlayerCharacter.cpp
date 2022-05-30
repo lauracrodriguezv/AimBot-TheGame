@@ -28,12 +28,6 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::MoveForward(float Value)
 {
 	if(Controller != nullptr && Value != 0.0f)

@@ -18,10 +18,12 @@ class BESTPROJECTEVER_API ABPE_PlayerCharacter : public ABPE_BaseCharacter
 	GENERATED_BODY()
 
 protected:
-	
+
+	/** Third person camera*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
 
+	/** Camera boom */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
@@ -31,8 +33,9 @@ public:
 
 protected:
 
+	/** Camera can be inverted or normal */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
-	bool bIsLookInversion;
+	bool bIsLookInverted;
 	
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	float BaseTurnRate;
@@ -42,14 +45,15 @@ protected:
 
 	
 	//------------------------------------------------------------------------------------------------------------------
-	// Weapon
+	// Inventory
 
+	/** set when character is over the pickup area of the weapon */
 	UPROPERTY(ReplicatedUsing=OnRep_OverlappingWeapon)
 	TObjectPtr<ABPE_Weapon> OverlappingWeapon;
 
-	/** Set if overlapping weapon is valid and client press EquipWeapon */
+	/** Set if overlapping weapon is valid or there are weapons in the inventory and client press EquipWeapon */
 	UPROPERTY(Replicated)
-	TObjectPtr<ABPE_Weapon> EquippedWeapon;
+	TObjectPtr<ABPE_Weapon> CurrentWeapon;
 
 protected:
 
@@ -78,7 +82,7 @@ protected:
 	/** [client] equip overlapping weapon*/
 	void EquipWeapon();
 
-	/** equip weapon */
+	/** [server] equip weapon */
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_EquipWeapon(ABPE_Weapon* WeaponToEquip);
 	
@@ -86,7 +90,8 @@ protected:
 	void SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_Weapon* LastWeapon);
 	
 	//------------------------------------------------------------------------------------------------------------------
-
+	//
+	
 	/** [client] overlapping weapon rep handler */
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon);

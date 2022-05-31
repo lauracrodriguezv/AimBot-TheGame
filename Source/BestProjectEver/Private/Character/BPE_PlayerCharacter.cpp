@@ -15,7 +15,8 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	PrimaryActorTick.bCanEverTick = false;
 	
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
-	SpringArmComponent->SetupAttachment(RootComponent);
+	SpringArmComponent->SetupAttachment(GetMesh());
+	SpringArmComponent->TargetArmLength = 600.f;
 	SpringArmComponent->bUsePawnControlRotation = true;
 	
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
@@ -28,7 +29,7 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
-	bIsLookInversion = true;
+	bIsLookInverted = true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -70,7 +71,7 @@ void ABPE_PlayerCharacter::LookUpAtRate(float Value)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::AddControllerPitchInput(float Value)
 {
-	Super::AddControllerPitchInput(bIsLookInversion ? -Value : Value);
+	Super::AddControllerPitchInput(bIsLookInverted ? -Value : Value);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -92,7 +93,7 @@ void ABPE_PlayerCharacter::EquipWeapon()
 	{
 		if(HasAuthority())
 		{
-			SetEquippedWeapon(OverlappingWeapon, EquippedWeapon);
+			SetEquippedWeapon(OverlappingWeapon, CurrentWeapon);
 		}
 		else
 		{
@@ -104,7 +105,7 @@ void ABPE_PlayerCharacter::EquipWeapon()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Server_EquipWeapon_Implementation(ABPE_Weapon* WeaponToEquip)
 {
-	SetEquippedWeapon(WeaponToEquip, EquippedWeapon);
+	SetEquippedWeapon(WeaponToEquip, CurrentWeapon);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -127,12 +128,12 @@ void ABPE_PlayerCharacter::SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_We
 	
 	if(IsValid(WeaponToEquip))
 	{
-		EquippedWeapon = WeaponToEquip;
-		EquippedWeapon->SetState(EWeaponState::Equipped);
+		CurrentWeapon = WeaponToEquip;
+		CurrentWeapon->SetState(EWeaponState::Equipped);
 		
 		/** Attach the weapon on the socket is replicated to the clients */
-		EquippedWeapon->SetOwner(this);
-		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
+		CurrentWeapon->SetOwner(this);
+		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
 	}
 }
 
@@ -194,5 +195,5 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
-	DOREPLIFETIME(ABPE_PlayerCharacter, EquippedWeapon);
+	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
 }

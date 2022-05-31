@@ -12,6 +12,7 @@ ABPE_Weapon::ABPE_Weapon()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	SetReplicatingMovement(true);
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
@@ -109,9 +110,9 @@ void ABPE_Weapon::OnSetWeaponState()
 void ABPE_Weapon::SetWeaponParametersOnNewState(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
 		ECollisionEnabled::Type PickupAreaTypeCollision)
 {
-	//WeaponMesh->SetSimulatePhysics(bEnableMeshPhysics);
-	//WeaponMesh->SetEnableGravity(bEnableMeshPhysics);
-	//WeaponMesh->SetCollisionEnabled(MeshTypeCollision);
+	WeaponMesh->SetSimulatePhysics(bEnableMeshPhysics);
+	WeaponMesh->SetEnableGravity(bEnableMeshPhysics);
+	WeaponMesh->SetCollisionEnabled(MeshTypeCollision);
 	
 	PickupArea->SetCollisionEnabled(PickupAreaTypeCollision);
 

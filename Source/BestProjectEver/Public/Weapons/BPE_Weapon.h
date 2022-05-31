@@ -13,10 +13,18 @@ class UWidgetComponent;
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
 {
-	Idle		UMETA(DisplayName = "Idle"),
-	Firing		UMETA(DisplayName = "Firing"),
+	Idle,
+	Firing,
 	Reloading	UMETA(DisplayName = "Reloading"),
 	Equipped	UMETA(DisplayName = "Equipped")
+};
+
+UENUM(BlueprintType)
+enum class EWeaponColorType : uint8
+{
+	Yellow		UMETA(DisplayName = "Yellow"),
+	Blue		UMETA(DisplayName = "Blue"),
+	Red			UMETA(DisplayName = "Red")
 };
 
 UCLASS()
@@ -47,6 +55,10 @@ protected:
 	/** current weapon state */
 	UPROPERTY(ReplicatedUsing=OnRep_WeaponState)
 	EWeaponState CurrentState;
+
+	/**  */
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	EWeaponColorType ColorType;
 	
 protected:
 	

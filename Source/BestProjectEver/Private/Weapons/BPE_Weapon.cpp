@@ -6,6 +6,7 @@
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Net/UnrealNetwork.h"
 
 ABPE_Weapon::ABPE_Weapon()
 {
@@ -14,9 +15,12 @@ ABPE_Weapon::ABPE_Weapon()
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	SetRootComponent(WeaponMesh);
-	WeaponMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
-	WeaponMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	WeaponMesh->SetCollisionResponseToAllChannels(ECR_Block);
+	WeaponMesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	WeaponMesh->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WeaponMesh->SetSimulatePhysics(false);
+	WeaponMesh->SetEnableGravity(false);
 	
 	PickupArea = CreateDefaultSubobject<USphereComponent>(TEXT("PickupArea"));
 	PickupArea->SetupAttachment(RootComponent);
@@ -69,12 +73,73 @@ void ABPE_Weapon::OnPlayerEndOverlap(UPrimitiveComponent* OverlappedComponent, A
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnRep_WeaponState()
+{
+	OnSetWeaponState();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnSetWeaponState()
+{
+	switch (CurrentState)
+	{
+	case EWeaponState::Idle:
+		{
+			const ECollisionEnabled::Type PickupAreaTypeCollision = HasAuthority()?
+				ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision;
+			
+			SetWeaponParametersOnNewState(ECollisionEnabled::QueryAndPhysics, true,
+				PickupAreaTypeCollision);
+			break;
+		}
+	case EWeaponState::Equipped:
+		{
+			SetWeaponParametersOnNewState(ECollisionEnabled::NoCollision, false,
+				ECollisionEnabled::NoCollision);
+			break;
+		}
+	default:
+		{
+			break;
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::SetWeaponParametersOnNewState(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
+		ECollisionEnabled::Type PickupAreaTypeCollision)
+{
+	//WeaponMesh->SetSimulatePhysics(bEnableMeshPhysics);
+	//WeaponMesh->SetEnableGravity(bEnableMeshPhysics);
+	//WeaponMesh->SetCollisionEnabled(MeshTypeCollision);
+	
+	PickupArea->SetCollisionEnabled(PickupAreaTypeCollision);
+
+	SetWidgetVisibility(false);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::SetState(EWeaponState State)
+{
+	CurrentState = State;
+	OnSetWeaponState();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::SetWidgetVisibility(bool bShowWidget)
 {
 	if(IsValid(PickupWidget))
 	{
 		PickupWidget->SetVisibility(bShowWidget);
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABPE_Weapon, CurrentState);
 }
 
 

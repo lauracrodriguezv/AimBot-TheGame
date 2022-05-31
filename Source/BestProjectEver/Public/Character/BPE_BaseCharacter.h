@@ -17,6 +17,12 @@ public:
 
 protected:
 
+	/** socket or bone name for attaching weapon mesh */
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	FName WeaponSocketName;
+	
+protected:
+
 	virtual void BeginPlay() override;
 
 public:	

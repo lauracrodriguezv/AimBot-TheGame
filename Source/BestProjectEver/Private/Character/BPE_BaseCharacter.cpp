@@ -7,6 +7,8 @@
 ABPE_BaseCharacter::ABPE_BaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	WeaponSocketName = "SCK_Weapon";
 }
 
 //----------------------------------------------------------------------------------------------------------------------

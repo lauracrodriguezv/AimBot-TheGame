@@ -40,11 +40,16 @@ protected:
 	/** Base lookup rate, in deg/sec. Other scaling may affect final lookup rate. */
 	float BaseLookUpRate;
 
+	
 	//------------------------------------------------------------------------------------------------------------------
-	// Inventory
+	// Weapon
 
 	UPROPERTY(ReplicatedUsing=OnRep_OverlappingWeapon)
 	TObjectPtr<ABPE_Weapon> OverlappingWeapon;
+
+	/** Set if overlapping weapon is valid and client press EquipWeapon */
+	UPROPERTY(Replicated)
+	TObjectPtr<ABPE_Weapon> EquippedWeapon;
 
 protected:
 
@@ -63,6 +68,19 @@ protected:
 
 	virtual void AddControllerPitchInput(float Value) override;
 
+	//------------------------------------------------------------------------------------------------------------------
+	// Weapon
+
+	/** [client] equip overlapping weapon*/
+	void EquipWeapon();
+
+	/** equip weapon */
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_EquipWeapon(ABPE_Weapon* WeaponToEquip);
+	
+	/** [server] equip overlapping weapon */
+	void SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_Weapon* LastWeapon);
+	
 	//------------------------------------------------------------------------------------------------------------------
 
 	/** [client] overlapping weapon rep handler */

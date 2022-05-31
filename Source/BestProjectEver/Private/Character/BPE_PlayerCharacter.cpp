@@ -72,6 +72,57 @@ void ABPE_PlayerCharacter::AddControllerPitchInput(float Value)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::EquipWeapon()
+{
+	if(IsValid(OverlappingWeapon))
+	{
+		if(HasAuthority())
+		{
+			SetEquippedWeapon(OverlappingWeapon, EquippedWeapon);
+		}
+		else
+		{
+			Server_EquipWeapon(OverlappingWeapon);
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Server_EquipWeapon_Implementation(ABPE_Weapon* WeaponToEquip)
+{
+	SetEquippedWeapon(WeaponToEquip, EquippedWeapon);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_EquipWeapon_Validate(ABPE_Weapon* WeaponToEquip)
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_Weapon* LastWeapon)
+{
+	if(IsValid(LastWeapon))
+	{
+		LastWeapon->SetState(EWeaponState::Idle);
+		const FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
+		LastWeapon->DetachFromActor(DetachRules);
+		LastWeapon->SetOwner(nullptr);
+	}
+	
+	if(IsValid(WeaponToEquip))
+	{
+		EquippedWeapon = WeaponToEquip;
+		
+		/** Attach the weapon on the socket is replicated to the clients */
+		EquippedWeapon->SetOwner(this);
+		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
+		
+		EquippedWeapon->SetState(EWeaponState::Equipped);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnRep_OverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon)
 {
 	OnSetOverlappingWeapon(LastOverlappingWeapon);
@@ -114,6 +165,11 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAxis("TurnRate", this, &ABPE_PlayerCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &ABPE_PlayerCharacter::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ABPE_PlayerCharacter::LookUpAtRate);
+
+	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump",IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("Equip",IE_Pressed, this, &ABPE_PlayerCharacter::EquipWeapon);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -121,4 +177,5 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(ABPE_PlayerCharacter, EquippedWeapon);
 }

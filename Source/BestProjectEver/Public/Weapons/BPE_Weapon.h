@@ -10,16 +10,14 @@
 class USphereComponent;
 class UWidgetComponent;
 
-namespace EWeaponState
+UENUM(BlueprintType)
+enum class EWeaponState : uint8
 {
-	enum Type
-	{
-		Idle,
-		Firing,
-		Reloading,
-		Equipping,
-	};
-}
+	Idle		UMETA(DisplayName = "Idle"),
+	Firing		UMETA(DisplayName = "Firing"),
+	Reloading	UMETA(DisplayName = "Reloading"),
+	Equipped	UMETA(DisplayName = "Equipped")
+};
 
 UCLASS()
 class BESTPROJECTEVER_API ABPE_Weapon : public AActor
@@ -47,7 +45,8 @@ protected:
 	TObjectPtr<UWidgetComponent> PickupWidget;
 	
 	/** current weapon state */
-	EWeaponState::Type CurrentState;
+	UPROPERTY(ReplicatedUsing=OnRep_WeaponState)
+	EWeaponState CurrentState;
 	
 protected:
 	
@@ -62,14 +61,28 @@ protected:
 	virtual void OnPlayerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
 
+	UFUNCTION()
+	void OnRep_WeaponState();
+
+	void OnSetWeaponState();
+
+	void SetWeaponParametersOnNewState(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
+		ECollisionEnabled::Type PickupAreaTypeCollision);
+
 public:
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Reading data
 	
 	/** get current weapon state */
-	EWeaponState::Type GetCurrentState() const { return CurrentState; }
+	EWeaponState GetCurrentState() const { return CurrentState; }
+
+	/** set weapon state */
+	void SetState(EWeaponState State);
 
 	/* Called from the server and also from the client with a replicate variable*/
 	void SetWidgetVisibility(bool bShowWidget);
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 };

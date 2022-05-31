@@ -87,6 +87,31 @@ void ABPE_PlayerCharacter::EndCrouch()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::StartWeaponFire()
+{
+	if(IsValid(CurrentWeapon))
+	{
+		if (HasAuthority())
+		{
+			Server_StartFire();
+		}
+		else
+		{
+			OnStartFire();
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::StopWeaponFire()
+{
+	if (IsValid(CurrentWeapon) && HasAuthority())
+	{
+		CurrentWeapon->StopFire();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipWeapon()
 {
 	if(IsValid(OverlappingWeapon))
@@ -160,6 +185,24 @@ void ABPE_PlayerCharacter::OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWe
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Server_StartFire_Implementation()
+{
+	OnStartFire();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_StartFire_Validate()
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnStartFire()
+{
+	CurrentWeapon->StartFire();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 {
 	ABPE_Weapon* LastOverlappingWeapon = OverlappingWeapon;
@@ -186,6 +229,9 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ABPE_PlayerCharacter::StartCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this,  &ABPE_PlayerCharacter::EndCrouch);
+
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABPE_PlayerCharacter::StartWeaponFire);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this,  &ABPE_PlayerCharacter::StopWeaponFire);
 
 	PlayerInputComponent->BindAction("Equip",IE_Pressed, this, &ABPE_PlayerCharacter::EquipWeapon);
 }

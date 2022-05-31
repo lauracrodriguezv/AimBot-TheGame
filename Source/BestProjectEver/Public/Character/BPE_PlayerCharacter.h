@@ -75,6 +75,10 @@ protected:
 	void StartCrouch();
 
 	void EndCrouch();
+
+	void StartWeaponFire();
+
+	void StopWeaponFire();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Weapon
@@ -98,6 +102,14 @@ protected:
 
 	/** [client and server] overlapping weapon handler */
 	void OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon);
+
+	//------------------------------------------------------------------------------------------------------------------
+	//RPCs
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StartFire();
+	
+	void OnStartFire();
 
 public:
 	

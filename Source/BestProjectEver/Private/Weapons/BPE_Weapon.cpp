@@ -7,6 +7,9 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Engine/SkeletalMeshSocket.h"
+#include "Kismet/GameplayStatics.h"
+#include "Weapons/BPE_Projectile.h"
 
 ABPE_Weapon::ABPE_Weapon()
 {
@@ -32,6 +35,11 @@ ABPE_Weapon::ABPE_Weapon()
 	PickupWidget->SetupAttachment(RootComponent);
 
 	CurrentState = EWeaponState::Idle;
+	RoundsPerMinute = 600.0f;
+	LastFireTime = 0.0f;
+	ShotDistance = 10000.f;
+
+	bCanFire = true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -49,6 +57,13 @@ void ABPE_Weapon::BeginPlay()
 	}
 
 	SetWidgetVisibility(false);
+
+	TimeBetweenShots = 60 / RoundsPerMinute;
+}
+
+void ABPE_Weapon::SetOwner(AActor* NewOwner)
+{
+	Super::SetOwner(NewOwner);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -117,6 +132,94 @@ void ABPE_Weapon::SetWeaponParametersOnNewState(ECollisionEnabled::Type MeshType
 	PickupArea->SetCollisionEnabled(PickupAreaTypeCollision);
 
 	SetWidgetVisibility(false);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::Fire()
+{
+	if(IsValid(WeaponMesh) && IsValid(ProjectileBullet))
+	{
+		const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(FName("SCK_MuzzleFlash"));
+		if(IsValid(MuzzleSocket))
+		{
+			const FTransform SocketTransform = MuzzleSocket->GetSocketTransform(WeaponMesh);
+
+			TraceUnderCrosshairs(HitTarget);
+			const FVector BulletDirection = HitTarget.ImpactPoint - SocketTransform.GetLocation();
+			const FRotator BulletRotation = BulletDirection.Rotation();
+			
+			FActorSpawnParameters SpawnParameters;
+			SpawnParameters.Owner = GetOwner();
+			SpawnParameters.Instigator = Cast<APawn>(GetOwner());
+			
+			GetWorld()->SpawnActor<ABPE_Projectile>(ProjectileBullet, SocketTransform.GetLocation(), BulletRotation, SpawnParameters);
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutTraceHitResult)
+{
+	FVector2D ViewportSize;
+	if(IsValid(GEngine) && IsValid(GEngine->GameViewport))
+	{
+		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
+
+	const FVector2D CrosshairLocation(ViewportSize.X / 2, ViewportSize.Y / 2);
+	FVector CrosshairWorldPosition;
+	FVector CrosshairWorldDirection;
+
+	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0),
+		CrosshairLocation, CrosshairWorldPosition, CrosshairWorldDirection);
+
+	if(bScreenToWorld)
+	{
+		FVector Start = CrosshairWorldPosition;
+		if(IsValid(OwnerCharacter))
+		{
+			const float DistanceToCharacter = (OwnerCharacter->GetActorLocation() - Start).Size();
+			Start += CrosshairWorldDirection * (DistanceToCharacter + 100.0f);
+		}
+		const FVector End = Start + CrosshairWorldDirection * ShotDistance;
+
+		GetWorld()->LineTraceSingleByChannel(OutTraceHitResult, Start, End, ECC_Visibility);
+		
+		if(!OutTraceHitResult.bBlockingHit)
+		{
+			OutTraceHitResult.ImpactPoint = End;
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::StopFire()
+{
+	if(bIsAutomatic)
+	{
+		GetWorldTimerManager().ClearTimer(TimerHandle_AutoFire);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::EnableFire()
+{
+	bCanFire = true;
+	if(bIsAutomatic)
+	{
+		Fire();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::StartFire()
+{
+	if(bCanFire)
+	{
+		bCanFire = false;
+		Fire();
+		GetWorldTimerManager().SetTimer(TimerHandle_AutoFire, this, &ABPE_Weapon::Fire, TimeBetweenShots, true, 0.15);		
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

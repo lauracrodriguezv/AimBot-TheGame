@@ -72,6 +72,18 @@ void ABPE_PlayerCharacter::AddControllerPitchInput(float Value)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::StartCrouch()
+{
+	Crouch();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::EndCrouch()
+{
+	UnCrouch();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipWeapon()
 {
 	if(IsValid(OverlappingWeapon))
@@ -105,6 +117,7 @@ void ABPE_PlayerCharacter::SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_We
 	if(IsValid(LastWeapon))
 	{
 		LastWeapon->SetState(EWeaponState::Idle);
+		
 		const FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
 		LastWeapon->DetachFromActor(DetachRules);
 		LastWeapon->SetOwner(nullptr);
@@ -113,12 +126,11 @@ void ABPE_PlayerCharacter::SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_We
 	if(IsValid(WeaponToEquip))
 	{
 		EquippedWeapon = WeaponToEquip;
+		EquippedWeapon->SetState(EWeaponState::Equipped);
 		
 		/** Attach the weapon on the socket is replicated to the clients */
 		EquippedWeapon->SetOwner(this);
 		EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
-		
-		EquippedWeapon->SetState(EWeaponState::Equipped);
 	}
 }
 
@@ -168,6 +180,9 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump",IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ABPE_PlayerCharacter::StartCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this,  &ABPE_PlayerCharacter::EndCrouch);
 
 	PlayerInputComponent->BindAction("Equip",IE_Pressed, this, &ABPE_PlayerCharacter::EquipWeapon);
 }

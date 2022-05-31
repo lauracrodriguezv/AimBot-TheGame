@@ -68,6 +68,10 @@ protected:
 
 	virtual void AddControllerPitchInput(float Value) override;
 
+	void StartCrouch();
+
+	void EndCrouch();
+	
 	//------------------------------------------------------------------------------------------------------------------
 	// Weapon
 

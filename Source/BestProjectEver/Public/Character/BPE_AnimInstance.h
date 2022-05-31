@@ -30,6 +30,9 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category="Movement")
 	bool bIsInAir;
+
+	UPROPERTY(BlueprintReadOnly, Category="Movement")
+	bool bIsCrouched;
 	
 public:
 	

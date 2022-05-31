@@ -24,6 +24,8 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 	bIsLookInversion = true;

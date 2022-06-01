@@ -111,6 +111,12 @@ protected:
 	
 	void OnStartFire();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StopFire();
+
+	/** [server] call weapon's fire function */
+	void OnStopFire();
+
 public:
 	
 	/** [server] overlapping weapon handler */
@@ -120,3 +126,4 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };
+

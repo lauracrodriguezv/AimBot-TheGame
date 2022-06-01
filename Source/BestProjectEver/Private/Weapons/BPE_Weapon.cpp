@@ -40,6 +40,7 @@ ABPE_Weapon::ABPE_Weapon()
 	ShotDistance = 10000.f;
 
 	bCanFire = true;
+	bIsAutomatic = true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -195,10 +196,7 @@ void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutTraceHitResult)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::StopFire()
 {
-	if(bIsAutomatic)
-	{
-		GetWorldTimerManager().ClearTimer(TimerHandle_AutoFire);
-	}
+	GetWorldTimerManager().ClearTimer(TimerHandle_AutoFire);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

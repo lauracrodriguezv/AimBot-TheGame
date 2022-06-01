@@ -93,11 +93,11 @@ void ABPE_PlayerCharacter::StartWeaponFire()
 	{
 		if (HasAuthority())
 		{
-			Server_StartFire();
+			OnStartFire();
 		}
 		else
 		{
-			OnStartFire();
+			Server_StartFire();
 		}
 	}
 }
@@ -105,9 +105,16 @@ void ABPE_PlayerCharacter::StartWeaponFire()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::StopWeaponFire()
 {
-	if (IsValid(CurrentWeapon) && HasAuthority())
+	if(IsValid(CurrentWeapon))
 	{
-		CurrentWeapon->StopFire();
+		if(HasAuthority())
+		{
+			OnStopFire();
+		}
+		else
+		{
+			Server_StopFire();
+		}
 	}
 }
 
@@ -200,6 +207,27 @@ bool ABPE_PlayerCharacter::Server_StartFire_Validate()
 void ABPE_PlayerCharacter::OnStartFire()
 {
 	CurrentWeapon->StartFire();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Server_StopFire_Implementation()
+{
+	OnStopFire();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_StopFire_Validate()
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnStopFire()
+{
+	if (IsValid(CurrentWeapon))
+	{
+		CurrentWeapon->StopFire();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

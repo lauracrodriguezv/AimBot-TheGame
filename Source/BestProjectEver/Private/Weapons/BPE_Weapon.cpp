@@ -203,9 +203,13 @@ void ABPE_Weapon::StopFire()
 void ABPE_Weapon::EnableFire()
 {
 	bCanFire = true;
-	if(bIsAutomatic)
+	if(bIsAutomatic && CurrentState == EWeaponState::Firing)
 	{
 		Fire();
+	}
+	else
+	{
+		StopFire();
 	}
 }
 
@@ -216,7 +220,7 @@ void ABPE_Weapon::StartFire()
 	{
 		bCanFire = false;
 		Fire();
-		GetWorldTimerManager().SetTimer(TimerHandle_AutoFire, this, &ABPE_Weapon::Fire, TimeBetweenShots, true, 0.15);		
+		GetWorldTimerManager().SetTimer(TimerHandle_AutoFire, this, &ABPE_Weapon::EnableFire, TimeBetweenShots, true, 0.15);		
 	}
 }
 

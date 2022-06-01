@@ -206,6 +206,7 @@ bool ABPE_PlayerCharacter::Server_StartFire_Validate()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnStartFire()
 {
+	CurrentWeapon->SetState(EWeaponState::Firing);
 	CurrentWeapon->StartFire();
 }
 
@@ -226,7 +227,7 @@ void ABPE_PlayerCharacter::OnStopFire()
 {
 	if (IsValid(CurrentWeapon))
 	{
-		CurrentWeapon->StopFire();
+		CurrentWeapon->SetState(EWeaponState::Equipped);
 	}
 }
 

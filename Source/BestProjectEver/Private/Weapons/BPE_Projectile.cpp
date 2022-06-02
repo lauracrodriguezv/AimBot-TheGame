@@ -4,13 +4,18 @@
 #include "Weapons/BPE_Projectile.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 ABPE_Projectile::ABPE_Projectile()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	SetReplicatingMovement(true);
 
+	InitialSpeed = 15'000;
+	
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	SetRootComponent(CollisionBox);
 	CollisionBox->SetCollisionObjectType(ECC_WorldDynamic);
@@ -22,18 +27,43 @@ ABPE_Projectile::ABPE_Projectile()
 	
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	ProjectileMovementComponent->SetIsReplicated(true);
+	ProjectileMovementComponent->InitialSpeed = InitialSpeed;
+	ProjectileMovementComponent->MaxSpeed = InitialSpeed;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Projectile::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UE_LOG(LogTemp, Warning, TEXT("Fire"));
+	if (HasAuthority())
+	{
+		CollisionBox->OnComponentHit.AddDynamic(this, &ABPE_Projectile::OnHit);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Projectile::Tick(float DeltaTime)
+void ABPE_Projectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, const FHitResult& Hit)
 {
-	Super::Tick(DeltaTime);
-
+	Destroy();
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Projectile::Destroyed()
+{
+	Super::Destroyed();
+
+	if (ImpactParticles)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
+	}
+	if (ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+	}
+}
+
 

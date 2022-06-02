@@ -4,6 +4,7 @@
 #include "Character/BPE_AnimInstance.h"
 
 #include "Character/BPE_BaseCharacter.h"
+#include "Character/BPE_PlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -22,6 +23,7 @@ void UBPE_AnimInstance::NativeInitializeAnimation()
 void UBPE_AnimInstance::InitializeReferences()
 {
 	CharacterOwner = Cast<ABPE_BaseCharacter>(TryGetPawnOwner());
+	PlayerOwner = Cast<ABPE_PlayerCharacter>(TryGetPawnOwner());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -43,5 +45,9 @@ void UBPE_AnimInstance::UpdateCharacterVariables()
 		bIsInAir = CharacterOwner->GetCharacterMovement()->IsFalling();
 		bIsAccelerating = CharacterOwner->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.0f;
 		bIsCrouched = CharacterOwner->GetCharacterMovement()->IsCrouching();
+		if(IsValid(PlayerOwner))
+		{
+			bIsWeaponEquipped = PlayerOwner->IsEquipped();	
+		}
 	}
 }

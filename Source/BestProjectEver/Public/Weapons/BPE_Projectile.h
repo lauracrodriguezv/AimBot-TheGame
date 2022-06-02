@@ -8,6 +8,8 @@
 
 class UBoxComponent;
 class UProjectileMovementComponent;
+class USoundCue;
+class UParticleSystem;
 
 UCLASS()
 class BESTPROJECTEVER_API ABPE_Projectile : public AActor
@@ -20,12 +22,30 @@ public:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	UBoxComponent* CollisionBox;
+	//------------------------------------------------------------------------------------------------------------------
+	// Components
 
-	UPROPERTY(VisibleAnywhere, Category = Movement)
-	UProjectileMovementComponent* ProjectileMovementComponent;
+	/** to apply damage and destroy on hit event */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UBoxComponent> CollisionBox;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	TObjectPtr<UProjectileMovementComponent> ProjectileMovementComponent;
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Effects
+	
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	TObjectPtr<UParticleSystem> ImpactParticles;
+
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	TObjectPtr<USoundCue> ImpactSound;
+
+	/** Initial speed of projectile */
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float InitialSpeed;
+
+	/** Damage applied on hit event */
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	float Damage;
 
@@ -33,8 +53,9 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-public:	
-	
-	virtual void Tick(float DeltaTime) override;
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	/** to perform effects */ 
+	virtual void Destroyed() override;
 };

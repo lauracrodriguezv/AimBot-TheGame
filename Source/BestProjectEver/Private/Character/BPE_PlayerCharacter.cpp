@@ -12,7 +12,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	SpringArmComponent->SetupAttachment(GetMesh());
@@ -27,15 +27,29 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 	
-	BaseTurnRate = 45.f;
-	BaseLookUpRate = 45.f;
+	BaseTurnRate = 45.0f;
+	BaseLookUpRate = 45.0f;
 	bIsLookInverted = true;
+
+	bIsAiming = false;
+	DefaultWalkSpeed = 600.0f;
+	AimWalkSpeed = 100.0f;
+	ZoomOutInterpSpeed =  20.0f;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	DefaultFOV = CameraComponent->FieldOfView;
+	CurrentFOV = DefaultFOV;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::MoveForward(float Value)
 {
-	if(Controller != nullptr && Value != 0.0f)
+	if(IsValid(Controller)  && Value != 0.0f)
 	{
 		const FRotator YawRotation (0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector Direction (FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
@@ -46,7 +60,7 @@ void ABPE_PlayerCharacter::MoveForward(float Value)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::MoveRight(float Value)
 {
-	if(Controller != nullptr && Value != 0.0f)
+	if(IsValid(Controller) && Value != 0.0f)
 	{
 		const FRotator YawRotation (0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector Direction (FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y));
@@ -117,6 +131,81 @@ void ABPE_PlayerCharacter::StopWeaponFire()
 		}
 	}
 }
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Server_StartFire_Implementation()
+{
+	OnStartFire();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_StartFire_Validate()
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnStartFire()
+{
+	CurrentWeapon->SetState(EWeaponState::Firing);
+	CurrentWeapon->StartFire();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Server_StopFire_Implementation()
+{
+	OnStopFire();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_StopFire_Validate()
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnStopFire()
+{
+	if(CurrentWeapon->GetCurrentState() == EWeaponState::Firing)
+	{
+		CurrentWeapon->SetState(EWeaponState::Equipped);	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Aim()
+{
+	if(IsValid(CurrentWeapon))
+	{
+		bIsAiming = !bIsAiming;
+		if(HasAuthority())
+		{
+			SetAiming();
+		}
+		else
+		{
+			Server_SetAiming(bIsAiming);
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Server_SetAiming_Implementation(bool bIsPlayerAiming)
+{
+	bIsAiming = bIsPlayerAiming;
+	SetAiming();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_SetAiming_Validate(bool bIsPlayerAiming)
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::SetAiming()
+{
+	GetCharacterMovement()->MaxWalkSpeed = bIsAiming? AimWalkSpeed : DefaultWalkSpeed;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipWeapon()
@@ -164,8 +253,8 @@ void ABPE_PlayerCharacter::SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_We
 		CurrentWeapon->SetState(EWeaponState::Equipped);
 		
 		/** Attach the weapon on the socket is replicated to the clients */
-		CurrentWeapon->SetOwner(this);
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
+		CurrentWeapon->SetOwner(this);
 	}
 }
 
@@ -192,49 +281,35 @@ void ABPE_PlayerCharacter::OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWe
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::Server_StartFire_Implementation()
+void ABPE_PlayerCharacter::InterpolateFieldOfView(float DeltaSeconds)
 {
-	OnStartFire();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool ABPE_PlayerCharacter::Server_StartFire_Validate()
-{
-	return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::OnStartFire()
-{
-	CurrentWeapon->SetState(EWeaponState::Firing);
-	CurrentWeapon->StartFire();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::Server_StopFire_Implementation()
-{
-	OnStopFire();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool ABPE_PlayerCharacter::Server_StopFire_Validate()
-{
-	return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::OnStopFire()
-{
-	if (IsValid(CurrentWeapon))
+	if (bIsAiming)
 	{
-		CurrentWeapon->SetState(EWeaponState::Equipped);
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, CurrentWeapon->GetZoomedFOV(), DeltaSeconds, CurrentWeapon->GetZoomInterpSpeed());
+	}
+	else
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaSeconds, ZoomOutInterpSpeed);
+	}
+	
+	CameraComponent->SetFieldOfView(CurrentFOV);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	if(IsValid(CurrentWeapon))
+	{
+		InterpolateFieldOfView(DeltaSeconds);
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 {
-	ABPE_Weapon* LastOverlappingWeapon = OverlappingWeapon;
+	const TObjectPtr<ABPE_Weapon> LastOverlappingWeapon = OverlappingWeapon;
 	OverlappingWeapon = Weapon;
 
 	OnSetOverlappingWeapon(LastOverlappingWeapon);	
@@ -263,6 +338,10 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Fire", IE_Released, this,  &ABPE_PlayerCharacter::StopWeaponFire);
 
 	PlayerInputComponent->BindAction("Equip",IE_Pressed, this, &ABPE_PlayerCharacter::EquipWeapon);
+
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABPE_PlayerCharacter::Aim);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ABPE_PlayerCharacter::Aim);
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -271,4 +350,16 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::IsEquipped() const 
+{
+	return IsValid(CurrentWeapon);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+FTransform ABPE_PlayerCharacter::GetCameraTransform() const
+{
+	return CameraComponent->GetComponentTransform();
 }

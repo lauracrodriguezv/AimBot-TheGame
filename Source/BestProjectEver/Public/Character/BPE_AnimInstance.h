@@ -21,18 +21,24 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category="Character")
 	TObjectPtr<ABPE_BaseCharacter> CharacterOwner;
-
+	
+	UPROPERTY(BlueprintReadOnly, Category="Character")
+	TObjectPtr<ABPE_BaseCharacter> PlayerOwner;
+	
 	UPROPERTY(BlueprintReadOnly, Category="Movement")
 	float Speed;
 	
 	UPROPERTY(BlueprintReadOnly, Category="Movement")
-	bool bIsAccelerating;
+	uint8 bIsAccelerating : 1;
 	
 	UPROPERTY(BlueprintReadOnly, Category="Movement")
-	bool bIsInAir;
+	uint8 bIsInAir : 1;
 
 	UPROPERTY(BlueprintReadOnly, Category="Movement")
-	bool bIsCrouched;
+	uint8 bIsCrouched : 1;
+
+	UPROPERTY(BlueprintReadOnly, Category="Movement")
+	uint8 bIsWeaponEquipped : 1;
 	
 public:
 	

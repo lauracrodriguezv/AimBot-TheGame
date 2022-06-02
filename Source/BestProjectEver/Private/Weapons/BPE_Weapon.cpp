@@ -9,11 +9,12 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Kismet/GameplayStatics.h"
+#include "Weapons/BPE_Casing.h"
 #include "Weapons/BPE_Projectile.h"
 
 ABPE_Weapon::ABPE_Weapon()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 	SetReplicatingMovement(true);
 
@@ -36,18 +37,28 @@ ABPE_Weapon::ABPE_Weapon()
 
 	CurrentState = EWeaponState::Idle;
 	RoundsPerMinute = 600.0f;
-	LastFireTime = 0.0f;
-	ShotDistance = 10000.f;
+	ShotDistance = 10000.0f;
 
+	MuzzleFlashSocketName = "SCK_MuzzleFlash";
+	AmmoEjectSocketName = "SCK_AmmoEject";
+	
 	bCanFire = true;
 	bIsAutomatic = true;
+
+	ZoomedFOV = 30.0f;
+	ZoomInterpSpeed = 20.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	InitializeReferences();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::InitializeReferences()
+{
 	/** check if we are on the server to enable PickupArea collision*/
 	if(HasAuthority())
 	{
@@ -60,11 +71,6 @@ void ABPE_Weapon::BeginPlay()
 	SetWidgetVisibility(false);
 
 	TimeBetweenShots = 60 / RoundsPerMinute;
-}
-
-void ABPE_Weapon::SetOwner(AActor* NewOwner)
-{
-	Super::SetOwner(NewOwner);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -83,7 +89,7 @@ void ABPE_Weapon::OnPlayerEndOverlap(UPrimitiveComponent* OverlappedComponent, A
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	ABPE_PlayerCharacter* OverlappedCharacter  = Cast<ABPE_PlayerCharacter>(OtherActor);
-	if(IsValid(OverlappedCharacter ))
+	if(IsValid(OverlappedCharacter))
 	{
 		OverlappedCharacter->SetOverlappingWeapon(nullptr);
 	}
@@ -138,60 +144,60 @@ void ABPE_Weapon::SetWeaponParametersOnNewState(ECollisionEnabled::Type MeshType
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::Fire()
 {
-	if(IsValid(WeaponMesh) && IsValid(ProjectileBullet))
+	if(IsValid(WeaponMesh) && IsValid(BulletClass))
 	{
-		const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(FName("SCK_MuzzleFlash"));
+		const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(MuzzleFlashSocketName);
 		if(IsValid(MuzzleSocket))
 		{
 			const FTransform SocketTransform = MuzzleSocket->GetSocketTransform(WeaponMesh);
 
-			TraceUnderCrosshairs(HitTarget);
-			const FVector BulletDirection = HitTarget.ImpactPoint - SocketTransform.GetLocation();
+			TraceUnderCrosshairs();
+			
+			const FVector BulletDirection = HitTarget - SocketTransform.GetLocation();
 			const FRotator BulletRotation = BulletDirection.Rotation();
 			
 			FActorSpawnParameters SpawnParameters;
 			SpawnParameters.Owner = GetOwner();
 			SpawnParameters.Instigator = Cast<APawn>(GetOwner());
 			
-			GetWorld()->SpawnActor<ABPE_Projectile>(ProjectileBullet, SocketTransform.GetLocation(), BulletRotation, SpawnParameters);
+			GetWorld()->SpawnActor<ABPE_Projectile>(BulletClass, SocketTransform.GetLocation(), BulletRotation, SpawnParameters);
+			Multicast_PlayFireEffects(HitTarget);
 		}
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutTraceHitResult)
+void ABPE_Weapon::TraceUnderCrosshairs()
 {
-	FVector2D ViewportSize;
-	if(IsValid(GEngine) && IsValid(GEngine->GameViewport))
+	TObjectPtr<ABPE_PlayerCharacter> PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
+
+	if(IsValid(PlayerOwner))
 	{
-		GEngine->GameViewport->GetViewportSize(ViewportSize);
-	}
+		FTransform CameraLocation = PlayerOwner->GetCameraTransform();
 
-	const FVector2D CrosshairLocation(ViewportSize.X / 2, ViewportSize.Y / 2);
-	FVector CrosshairWorldPosition;
-	FVector CrosshairWorldDirection;
-
-	bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, 0),
-		CrosshairLocation, CrosshairWorldPosition, CrosshairWorldDirection);
-
-	if(bScreenToWorld)
-	{
-		FVector Start = CrosshairWorldPosition;
-		if(IsValid(OwnerCharacter))
-		{
-			const float DistanceToCharacter = (OwnerCharacter->GetActorLocation() - Start).Size();
-			Start += CrosshairWorldDirection * (DistanceToCharacter + 100.0f);
-		}
-		const FVector End = Start + CrosshairWorldDirection * ShotDistance;
-
-		GetWorld()->LineTraceSingleByChannel(OutTraceHitResult, Start, End, ECC_Visibility);
+		FVector ShotDirection = CameraLocation.Rotator().Vector();
 		
-		if(!OutTraceHitResult.bBlockingHit)
-		{
-			OutTraceHitResult.ImpactPoint = End;
-		}
+		FVector TraceStart = CameraLocation.GetLocation();
+		const float DistanceToPlayer = (PlayerOwner->GetActorLocation() - TraceStart).Size();
+		const float ExtraDistance = 100.0f;
+		
+		/** This additional distance is to prevent the shoot hit something behind the character */
+		TraceStart += ShotDirection * (DistanceToPlayer + ExtraDistance);
+		
+		FVector TraceEnd = CameraLocation.GetLocation() + (ShotDirection * ShotDistance);
+
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(Owner);
+		QueryParams.AddIgnoredActor(this);
+		QueryParams.bTraceComplex = true;
+
+		FHitResult HitResult;
+		GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation.GetLocation(), TraceEnd, ECC_Visibility);
+		DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::White, true, 10.0f, 1.0f, 10.0f);
+		HitTarget = HitResult.ImpactPoint;	
 	}
 }
+
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::StopFire()
@@ -200,7 +206,7 @@ void ABPE_Weapon::StopFire()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::EnableFire()
+void ABPE_Weapon::HandleReFiring()
 {
 	bCanFire = true;
 	if(bIsAutomatic && CurrentState == EWeaponState::Firing)
@@ -214,13 +220,59 @@ void ABPE_Weapon::EnableFire()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::SetOwner(AActor* NewOwner)
+{
+	Super::SetOwner(NewOwner);
+	OwnerCharacter = Cast<ABPE_BaseCharacter>(NewOwner);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::Multicast_PlayFireEffects_Implementation(const FVector ImpactPoint)
+{
+	if (IsValid(FireAnimation))
+	{
+		WeaponMesh->PlayAnimation(FireAnimation, false);
+	}
+
+	/* to debug */
+	const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(MuzzleFlashSocketName);
+	const FTransform SocketTransform = MuzzleSocket->GetSocketTransform(WeaponMesh);
+	DrawDebugLine(GetWorld(), SocketTransform.GetLocation(), ImpactPoint, FColor::White, true, 3.0f, 1.0f, 4.0f);
+	/* ... */
+	
+	if (IsValid(CasingClass))
+	{
+		const USkeletalMeshSocket* AmmoEjectSocket = WeaponMesh->GetSocketByName(AmmoEjectSocketName);
+		if (IsValid(AmmoEjectSocket))
+		{
+			const FTransform AmmoSocketTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh);
+
+			GetWorld()->SpawnActor<ABPE_Casing>(CasingClass, AmmoSocketTransform.GetLocation(), AmmoSocketTransform.Rotator());
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_Weapon::Multicast_PlayFireEffects_Validate(const FVector ImpactPoint)
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::StartFire()
 {
 	if(bCanFire)
 	{
 		bCanFire = false;
 		Fire();
-		GetWorldTimerManager().SetTimer(TimerHandle_AutoFire, this, &ABPE_Weapon::EnableFire, TimeBetweenShots, true, 0.15);		
+		GetWorldTimerManager().SetTimer(TimerHandle_AutoFire, this, &ABPE_Weapon::HandleReFiring,
+			TimeBetweenShots, true, TimeBetweenShots);		
 	}
 }
 

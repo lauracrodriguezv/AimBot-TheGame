@@ -18,7 +18,7 @@ class BESTPROJECTEVER_API ABPE_PlayerCharacter : public ABPE_BaseCharacter
 	GENERATED_BODY()
 
 protected:
-
+	
 	/** Third person camera*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<UCameraComponent> CameraComponent;
@@ -32,10 +32,13 @@ public:
 	ABPE_PlayerCharacter();
 
 protected:
-
+	
 	/** Camera can be inverted or normal */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
-	bool bIsLookInverted;
+	uint8 bIsLookInverted : 1;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Aiming")
+	uint8 bIsAiming : 1;
 	
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	float BaseTurnRate;
@@ -43,6 +46,22 @@ protected:
 	/** Base lookup rate, in deg/sec. Other scaling may affect final lookup rate. */
 	float BaseLookUpRate;
 
+	/** Walk speed reference to decrease when is aiming */
+	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	float DefaultWalkSpeed;
+
+	/** The maximum ground speed when is aiming */
+	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	float AimWalkSpeed;
+
+	/** the default horizontal field of view of the camera component */
+	float DefaultFOV;
+	
+	/** current field of view when is interpolating for aiming */
+	float CurrentFOV;
+
+	/** speed to return to DefaultFOV from CurrentFOV */
+	float ZoomOutInterpSpeed;
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Inventory
@@ -57,6 +76,8 @@ protected:
 
 protected:
 
+	virtual void BeginPlay() override;
+	
 	//------------------------------------------------------------------------------------------------------------------
 	// Input handlers
 	
@@ -76,14 +97,19 @@ protected:
 
 	void EndCrouch();
 
+	/** [client] call the server to perform fire */
 	void StartWeaponFire();
 
+	/** [client] call the server to perform stop fire */
 	void StopWeaponFire();
+
+	/** [client] call the server to perform aiming state */
+	void Aim();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Weapon
 
-	/** [client] equip overlapping weapon*/
+	/** [client] equip overlapping weapon on the server */
 	void EquipWeapon();
 
 	/** [server] equip weapon */
@@ -93,8 +119,11 @@ protected:
 	/** [server] equip overlapping weapon */
 	void SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_Weapon* LastWeapon);
 	
-	//------------------------------------------------------------------------------------------------------------------
-	//
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetAiming(bool bIsPlayerAiming);
+
+	/** [server] set aim walk speed */
+	void SetAiming();
 	
 	/** [client] overlapping weapon rep handler */
 	UFUNCTION()
@@ -103,12 +132,10 @@ protected:
 	/** [client and server] overlapping weapon handler */
 	void OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon);
 
-	//------------------------------------------------------------------------------------------------------------------
-	//RPCs
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_StartFire();
-	
+
+	/** [server] call weapon's stop fire function */
 	void OnStartFire();
 
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -117,7 +144,13 @@ protected:
 	/** [server] call weapon's fire function */
 	void OnStopFire();
 
+	/** [local] set the camera field of view depending on bIsAiming */
+	UFUNCTION()
+	void InterpolateFieldOfView(float DeltaSeconds);
+
 public:
+
+	virtual void Tick(float DeltaSeconds) override;
 	
 	/** [server] overlapping weapon handler */
 	void SetOverlappingWeapon(ABPE_Weapon* Weapon);
@@ -125,5 +158,11 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/** for the anim instance */
+	virtual bool IsEquipped() const override;
+
+	/** [server] to set the trace start of the weapon line trace when is firing from the server */
+	FTransform GetCameraTransform() const;
 };
 

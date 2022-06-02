@@ -18,8 +18,14 @@ void ABPE_BaseCharacter::BeginPlay()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::Tick(float DeltaTime)
+void ABPE_BaseCharacter::Tick(float DeltaSeconds)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(DeltaSeconds);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_BaseCharacter::IsEquipped() const 
+{
+	return true;
 }
 

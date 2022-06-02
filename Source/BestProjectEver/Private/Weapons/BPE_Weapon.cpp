@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Weapons/BPE_Casing.h"
 #include "Weapons/BPE_Projectile.h"
+#include "Sound/SoundCue.h"
 
 ABPE_Weapon::ABPE_Weapon()
 {
@@ -47,6 +48,9 @@ ABPE_Weapon::ABPE_Weapon()
 
 	ZoomedFOV = 30.0f;
 	ZoomInterpSpeed = 20.0f;
+
+	ShootType = EShootType::LineTrace;
+	MinDistanceToImpactPoint = 300.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -93,6 +97,55 @@ void ABPE_Weapon::OnPlayerEndOverlap(UPrimitiveComponent* OverlappedComponent, A
 	{
 		OverlappedCharacter->SetOverlappingWeapon(nullptr);
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::ShootWithLineTrace(const FVector& ImpactPoint)
+{
+	Multicast_PlayImpactFireEffects(ImpactPoint);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::ShootWithBullets(const FVector& ImpactPoint)
+{
+	if(IsValid(WeaponMesh) && IsValid(BulletClass))
+	{
+		const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(MuzzleFlashSocketName);
+		if(IsValid(MuzzleSocket))
+		{
+			const FTransform SocketTransform = MuzzleSocket->GetSocketTransform(WeaponMesh);
+			
+			const FVector BulletDirection = ImpactPoint - SocketTransform.GetLocation();
+			const FRotator BulletRotation = BulletDirection.Rotation();
+
+			FActorSpawnParameters SpawnParameters;
+			SpawnParameters.Owner = GetOwner();
+			SpawnParameters.Instigator = Cast<APawn>(GetOwner());
+			
+			GetWorld()->SpawnActor<ABPE_Projectile>(BulletClass, SocketTransform.GetLocation(), BulletRotation, SpawnParameters);
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::ShootWithLineTraceAndBullet(const FVector& TraceStart, const FVector& ImpactPoint)
+{
+	const float TraceLength = (ImpactPoint - TraceStart).Size();
+	if(TraceLength < MinDistanceToImpactPoint)
+	{
+		ShootWithLineTrace(ImpactPoint);
+	}
+	else
+	{
+		ShootWithBullets(ImpactPoint);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::SetState(EWeaponState State)
+{
+	CurrentState = State;
+	OnSetWeaponState();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -144,65 +197,85 @@ void ABPE_Weapon::SetWeaponParametersOnNewState(ECollisionEnabled::Type MeshType
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::Fire()
 {
-	if(IsValid(WeaponMesh) && IsValid(BulletClass))
-	{
-		const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(MuzzleFlashSocketName);
-		if(IsValid(MuzzleSocket))
-		{
-			const FTransform SocketTransform = MuzzleSocket->GetSocketTransform(WeaponMesh);
+	FHitResult HitTarget;
+	TraceUnderCrosshairs(HitTarget);
+	
+	Multicast_PlayMuzzleFireEffects(HitTarget.ImpactPoint);
 
-			TraceUnderCrosshairs();
-			
-			const FVector BulletDirection = HitTarget - SocketTransform.GetLocation();
-			const FRotator BulletRotation = BulletDirection.Rotation();
-			
-			FActorSpawnParameters SpawnParameters;
-			SpawnParameters.Owner = GetOwner();
-			SpawnParameters.Instigator = Cast<APawn>(GetOwner());
-			
-			GetWorld()->SpawnActor<ABPE_Projectile>(BulletClass, SocketTransform.GetLocation(), BulletRotation, SpawnParameters);
-			Multicast_PlayFireEffects(HitTarget);
+	if(HitTarget.bBlockingHit)
+	{
+		switch (ShootType)
+		{
+		case (EShootType::LineTrace):
+			{
+				ShootWithLineTrace(HitTarget.ImpactPoint);
+				break;
+			}
+		case (EShootType::Bullet):
+			{
+				ShootWithBullets(HitTarget.ImpactPoint);
+				break;
+			}
+		case (EShootType::Mixed):
+			{
+				ShootWithLineTraceAndBullet(HitTarget.TraceStart, HitTarget.ImpactPoint);
+				break;
+			}
+		default:
+			{
+				break;
+			}
 		}
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::TraceUnderCrosshairs()
+void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& HitResult)
 {
-	TObjectPtr<ABPE_PlayerCharacter> PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
+	ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
 
 	if(IsValid(PlayerOwner))
 	{
-		FTransform CameraLocation = PlayerOwner->GetCameraTransform();
+		FVector EyeLocation;
+		FRotator EyeRotation;
+		PlayerOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
-		FVector ShotDirection = CameraLocation.Rotator().Vector();
+		FVector ShotDirection = EyeRotation.Vector();
 		
-		FVector TraceStart = CameraLocation.GetLocation();
+		FVector TraceStart = EyeLocation;
 		const float DistanceToPlayer = (PlayerOwner->GetActorLocation() - TraceStart).Size();
-		const float ExtraDistance = 100.0f;
+		const float ExtraDistance = 10.0f;
 		
 		/** This additional distance is to prevent the shoot hit something behind the character */
 		TraceStart += ShotDirection * (DistanceToPlayer + ExtraDistance);
 		
-		FVector TraceEnd = CameraLocation.GetLocation() + (ShotDirection * ShotDistance);
+		FVector TraceEnd = EyeLocation + (ShotDirection * ShotDistance);
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(Owner);
 		QueryParams.AddIgnoredActor(this);
 		QueryParams.bTraceComplex = true;
 
-		FHitResult HitResult;
-		GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation.GetLocation(), TraceEnd, ECC_Visibility);
-		DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::White, true, 10.0f, 1.0f, 10.0f);
-		HitTarget = HitResult.ImpactPoint;	
+		GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility);
 	}
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::StopFire()
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle_AutoFire);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::StartFire()
+{
+	if(bCanFire)
+	{
+		bCanFire = false;
+		Fire();
+		GetWorldTimerManager().SetTimer(TimerHandle_AutoFire, this, &ABPE_Weapon::HandleReFiring,
+			TimeBetweenShots, true, TimeBetweenShots);		
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -233,18 +306,12 @@ void ABPE_Weapon::SetOwner(AActor* NewOwner)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::Multicast_PlayFireEffects_Implementation(const FVector ImpactPoint)
+void ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Implementation(const FVector ImpactPoint)
 {
 	if (IsValid(FireAnimation))
 	{
 		WeaponMesh->PlayAnimation(FireAnimation, false);
 	}
-
-	/* to debug */
-	const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(MuzzleFlashSocketName);
-	const FTransform SocketTransform = MuzzleSocket->GetSocketTransform(WeaponMesh);
-	DrawDebugLine(GetWorld(), SocketTransform.GetLocation(), ImpactPoint, FColor::White, true, 3.0f, 1.0f, 4.0f);
-	/* ... */
 	
 	if (IsValid(CasingClass))
 	{
@@ -259,28 +326,28 @@ void ABPE_Weapon::Multicast_PlayFireEffects_Implementation(const FVector ImpactP
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_Weapon::Multicast_PlayFireEffects_Validate(const FVector ImpactPoint)
+void ABPE_Weapon::Multicast_PlayImpactFireEffects_Implementation(const FVector ImpactPoint)
+{
+	if (ImpactParticles)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, ImpactPoint);
+	}
+	if (ImpactSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, ImpactPoint);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_Weapon::Multicast_PlayImpactFireEffects_Validate(const FVector ImpactPoint)
 {
 	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::StartFire()
+bool ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Validate(const FVector ImpactPoint)
 {
-	if(bCanFire)
-	{
-		bCanFire = false;
-		Fire();
-		GetWorldTimerManager().SetTimer(TimerHandle_AutoFire, this, &ABPE_Weapon::HandleReFiring,
-			TimeBetweenShots, true, TimeBetweenShots);		
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::SetState(EWeaponState State)
-{
-	CurrentState = State;
-	OnSetWeaponState();
+	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

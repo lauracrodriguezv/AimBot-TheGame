@@ -2,10 +2,12 @@
 
 
 #include "Weapons/BPE_Projectile.h"
+
 #include "Components/BoxComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
+#include "Weapons/BPE_Weapon.h"
 
 // Sets default values
 ABPE_Projectile::ABPE_Projectile()
@@ -14,7 +16,7 @@ ABPE_Projectile::ABPE_Projectile()
 	bReplicates = true;
 	SetReplicatingMovement(true);
 
-	InitialSpeed = 15'000;
+	InitialSpeed = 3'500.0f;
 	
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	SetRootComponent(CollisionBox);
@@ -27,7 +29,6 @@ ABPE_Projectile::ABPE_Projectile()
 	
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	ProjectileMovementComponent->SetIsReplicated(true);
 	ProjectileMovementComponent->InitialSpeed = InitialSpeed;
 	ProjectileMovementComponent->MaxSpeed = InitialSpeed;
 }
@@ -36,9 +37,8 @@ ABPE_Projectile::ABPE_Projectile()
 void ABPE_Projectile::BeginPlay()
 {
 	Super::BeginPlay();
-
-	UE_LOG(LogTemp, Warning, TEXT("Fire"));
-	if (HasAuthority())
+	
+	if(HasAuthority())
 	{
 		CollisionBox->OnComponentHit.AddDynamic(this, &ABPE_Projectile::OnHit);
 	}

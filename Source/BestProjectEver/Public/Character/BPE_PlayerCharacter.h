@@ -71,7 +71,7 @@ protected:
 	TObjectPtr<ABPE_Weapon> OverlappingWeapon;
 
 	/** Set if overlapping weapon is valid or there are weapons in the inventory and client press EquipWeapon */
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentWeapon)
 	TObjectPtr<ABPE_Weapon> CurrentWeapon;
 
 protected:
@@ -129,6 +129,10 @@ protected:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon);
 
+	/** [client] overlapping weapon rep handler */
+	UFUNCTION()
+	void OnRep_CurrentWeapon();
+
 	/** [client and server] overlapping weapon handler */
 	void OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon);
 
@@ -162,7 +166,6 @@ public:
 	/** for the anim instance */
 	virtual bool IsEquipped() const override;
 
-	/** [server] to set the trace start of the weapon line trace when is firing from the server */
-	FTransform GetCameraTransform() const;
+	virtual FVector GetPawnViewLocation() const override;
 };
 

@@ -13,6 +13,7 @@ class ABPE_Projectile;
 class UAnimationAsset;
 class ABPE_BaseCharacter;
 class ABPE_Casing;
+class USoundCue;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -29,6 +30,14 @@ enum class EWeaponColorType : uint8
 	Yellow,
 	Blue,
 	Red
+};
+
+UENUM(BlueprintType)
+enum class EShootType : uint8
+{
+	LineTrace,
+	Bullet,
+	Mixed
 };
 
 UCLASS()
@@ -58,17 +67,17 @@ protected:
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon Data
-
+	
 	TObjectPtr<ABPE_BaseCharacter> OwnerCharacter;
 	
-	/** bullet class that the weapon spawn */
-	UPROPERTY(EditAnywhere, Category = Weapon)
-	TSubclassOf<ABPE_Projectile> BulletClass;
+	/** Camera can be inverted or normal */
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
+    uint8 bIsLookInverted : 1;
 	
 	/** current weapon state */
 	UPROPERTY(ReplicatedUsing=OnRep_WeaponState)
 	EWeaponState CurrentState;
-
+	
 	/** to determine which enemy it can apply damage */
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon State")
 	EWeaponColorType ColorType;
@@ -107,10 +116,7 @@ protected:
 
 	/** Handle for efficient management of Firing timer */
 	FTimerHandle TimerHandle_AutoFire;
-
-	/** impact point location of the fire line trace */
-	FVector HitTarget;
-
+	
 	/** weapon animation */
 	UPROPERTY(EditAnywhere, Category = " Effects")
 	TObjectPtr<UAnimationAsset> FireAnimation;
@@ -118,6 +124,25 @@ protected:
 	/** spawned actor for ammo FX */
 	UPROPERTY(EditAnywhere, Category = "Effects")
 	TSubclassOf<ABPE_Casing> CasingClass;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	TObjectPtr<UParticleSystem> ImpactParticles;
+
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	TObjectPtr<USoundCue> ImpactSound;
+
+	//------------------------------------------------------------------------------------------------------------------
+	//Shoot Type
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon State")
+	EShootType ShootType;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon State")
+	TSubclassOf<ABPE_Projectile> BulletClass;
+
+	/** min distance to spawn a bullet to be replicated */
+	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "ShootType == EShootType::Mixed"), Category = "Weapon State")
+	float MinDistanceToImpactPoint;
 
 protected:
 	
@@ -134,6 +159,18 @@ protected:
 	UFUNCTION()
 	virtual void OnPlayerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
+
+	//------------------------------------------------------------------------------------------------------------------
+	//Shoot Type
+
+	/* [server] spawn effects in impact point with a multicast */ 
+	void ShootWithLineTrace(const FVector& ImpactPoint);
+
+	/* [server] spawn bullets, the initial projectile speed might be slow because of replication */ 
+	void ShootWithBullets(const FVector& ImpactPoint);
+
+	/* [server] spawn a bullet depending on MinDistanceToImpactPoint */ 
+	void ShootWithLineTraceAndBullet(const FVector& TraceStart, const FVector& ImpactPoint);
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon state
@@ -157,7 +194,7 @@ protected:
 	virtual void Fire();
 
 	/** [server] perform trace to set hit target */
-	void TraceUnderCrosshairs();
+	void TraceUnderCrosshairs(FHitResult& HitResult);
 
 	/** [server] prevent to spawn multiple times fire button and fire again if it is on firing state and is automatic */
 	void HandleReFiring();
@@ -166,7 +203,10 @@ protected:
 	//Effects 
 	
 	UFUNCTION(NetMulticast, Unreliable, WithValidation)
-	void Multicast_PlayFireEffects(const FVector ImpactPoint);
+	void Multicast_PlayMuzzleFireEffects(const FVector ImpactPoint);
+
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+	void Multicast_PlayImpactFireEffects(const FVector ImpactPoint);
 
 public:
 	

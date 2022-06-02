@@ -255,7 +255,26 @@ void ABPE_PlayerCharacter::SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_We
 		/** Attach the weapon on the socket is replicated to the clients */
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
 		CurrentWeapon->SetOwner(this);
+
+		bUseControllerRotationYaw = true;
+		GetCharacterMovement()->bOrientRotationToMovement = false;
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
+{
+	const TObjectPtr<ABPE_Weapon> LastOverlappingWeapon = OverlappingWeapon;
+	OverlappingWeapon = Weapon;
+
+	OnSetOverlappingWeapon(LastOverlappingWeapon);	
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnRep_CurrentWeapon()
+{
+	bUseControllerRotationYaw = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -307,15 +326,6 @@ void ABPE_PlayerCharacter::Tick(float DeltaSeconds)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
-{
-	const TObjectPtr<ABPE_Weapon> LastOverlappingWeapon = OverlappingWeapon;
-	OverlappingWeapon = Weapon;
-
-	OnSetOverlappingWeapon(LastOverlappingWeapon);	
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -359,7 +369,11 @@ bool ABPE_PlayerCharacter::IsEquipped() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-FTransform ABPE_PlayerCharacter::GetCameraTransform() const
+FVector ABPE_PlayerCharacter::GetPawnViewLocation() const
 {
-	return CameraComponent->GetComponentTransform();
+	if(IsValid(CameraComponent))
+	{
+		return CameraComponent->GetComponentLocation();
+	}
+	return Super::GetPawnViewLocation();
 }

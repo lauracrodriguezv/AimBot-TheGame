@@ -40,14 +40,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	TObjectPtr<USoundCue> ImpactSound;
-
-	/** Initial speed of projectile */
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float InitialSpeed;
-
+	
 	/** Damage applied on hit event */
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	float Damage;
+
+	/** projectile initial speed of the bullet */
+	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "ShootType == EShootType::Mixed"),  meta = (ClampMax=3000.0f))
+	float InitialSpeed;
 
 protected:
 	

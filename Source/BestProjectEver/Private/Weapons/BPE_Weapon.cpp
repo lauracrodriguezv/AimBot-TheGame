@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "ImageWriteQueue/Public/ImagePixelData.h"
 #include "Kismet/GameplayStatics.h"
 #include "Weapons/BPE_Casing.h"
 #include "Weapons/BPE_Projectile.h"
@@ -54,6 +55,18 @@ ABPE_Weapon::ABPE_Weapon()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	if(IsValid(WeaponMesh) && MaterialColor.Contains(ColorType))
+	{
+		UMaterialInstanceDynamic* WeaponMaterial = WeaponMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(0,WeaponMesh->GetMaterial(0)); 
+		WeaponMaterial->SetVectorParameterValue("ColorType", FLinearColor(MaterialColor[ColorType]));
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::BeginPlay()
 {
 	Super::BeginPlay();
@@ -68,17 +81,17 @@ void ABPE_Weapon::InitializeReferences()
 	{
 		PickupArea->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 		PickupArea->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		PickupArea->OnComponentBeginOverlap.AddDynamic(this, &ABPE_Weapon::OnPlayerOverlap);
-		PickupArea->OnComponentEndOverlap.AddDynamic(this, &ABPE_Weapon::OnPlayerEndOverlap);
+		PickupArea->OnComponentBeginOverlap.AddDynamic(this, &ABPE_Weapon::OnPickupAreaOverlap);
+		PickupArea->OnComponentEndOverlap.AddDynamic(this, &ABPE_Weapon::OnPickupAreaEndOverlap);
 	}
 
 	SetWidgetVisibility(false);
 
-	TimeBetweenShots = 60 / RoundsPerMinute;
+	TimeBetweenShots = 60.0f / RoundsPerMinute;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::OnPlayerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void ABPE_Weapon::OnPickupAreaOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ABPE_PlayerCharacter* OverlappedCharacter = Cast<ABPE_PlayerCharacter>(OtherActor);
@@ -89,7 +102,7 @@ void ABPE_Weapon::OnPlayerOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::OnPlayerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void ABPE_Weapon::OnPickupAreaEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	ABPE_PlayerCharacter* OverlappedCharacter  = Cast<ABPE_PlayerCharacter>(OtherActor);
@@ -164,13 +177,13 @@ void ABPE_Weapon::OnSetWeaponState()
 			const ECollisionEnabled::Type PickupAreaTypeCollision = HasAuthority()?
 				ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision;
 			
-			SetWeaponParametersOnNewState(ECollisionEnabled::QueryAndPhysics, true,
+			UpdatePhysicsProperties(ECollisionEnabled::QueryAndPhysics, true,
 				PickupAreaTypeCollision);
 			break;
 		}
 	case EWeaponState::Equipped:
 		{
-			SetWeaponParametersOnNewState(ECollisionEnabled::NoCollision, false,
+			UpdatePhysicsProperties(ECollisionEnabled::NoCollision, false,
 				ECollisionEnabled::NoCollision);
 			break;
 		}
@@ -179,10 +192,11 @@ void ABPE_Weapon::OnSetWeaponState()
 			break;
 		}
 	}
+	SetWidgetVisibility(false);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::SetWeaponParametersOnNewState(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
+void ABPE_Weapon::UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
 		ECollisionEnabled::Type PickupAreaTypeCollision)
 {
 	WeaponMesh->SetSimulatePhysics(bEnableMeshPhysics);
@@ -190,8 +204,6 @@ void ABPE_Weapon::SetWeaponParametersOnNewState(ECollisionEnabled::Type MeshType
 	WeaponMesh->SetCollisionEnabled(MeshTypeCollision);
 	
 	PickupArea->SetCollisionEnabled(PickupAreaTypeCollision);
-
-	SetWidgetVisibility(false);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -230,9 +242,9 @@ void ABPE_Weapon::Fire()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& HitResult)
+void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult)
 {
-	ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
+	const ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
 
 	if(IsValid(PlayerOwner))
 	{
@@ -240,35 +252,40 @@ void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& HitResult)
 		FRotator EyeRotation;
 		PlayerOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
-		FVector ShotDirection = EyeRotation.Vector();
+		const FVector ShotDirection = EyeRotation.Vector();
 		
 		FVector TraceStart = EyeLocation;
 		const float DistanceToPlayer = (PlayerOwner->GetActorLocation() - TraceStart).Size();
-		const float ExtraDistance = 10.0f;
+		constexpr float ExtraDistance = 10.0f;
 		
 		/** This additional distance is to prevent the shoot hit something behind the character */
 		TraceStart += ShotDirection * (DistanceToPlayer + ExtraDistance);
 		
-		FVector TraceEnd = EyeLocation + (ShotDirection * ShotDistance);
+		const FVector TraceEnd = EyeLocation + (ShotDirection * ShotDistance);
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(Owner);
 		QueryParams.AddIgnoredActor(this);
 		QueryParams.bTraceComplex = true;
 
-		GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility);
+		GetWorld()->LineTraceSingleByChannel(OutHitResult, TraceStart, TraceEnd, ECC_Visibility);
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::StopFire()
 {
-	GetWorldTimerManager().ClearTimer(TimerHandle_AutoFire);
+	if(GetCurrentState() == EWeaponState::Firing)
+	{
+		SetState(EWeaponState::Equipped);	
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::StartFire()
 {
+	SetState(EWeaponState::Firing);
+	
 	if(bCanFire)
 	{
 		bCanFire = false;
@@ -288,7 +305,7 @@ void ABPE_Weapon::HandleReFiring()
 	}
 	else
 	{
-		StopFire();
+		GetWorldTimerManager().ClearTimer(TimerHandle_AutoFire);
 	}
 }
 
@@ -301,8 +318,18 @@ void ABPE_Weapon::Tick(float DeltaSeconds)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::SetOwner(AActor* NewOwner)
 {
-	Super::SetOwner(NewOwner);
+	Super::SetOwner(NewOwner);	
 	OwnerCharacter = Cast<ABPE_BaseCharacter>(NewOwner);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnPickup(AActor* NewOwner)
+{
+	if(IsValid(NewOwner))
+	{
+		SetOwner(NewOwner);
+		SetState(EWeaponState::Equipped);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

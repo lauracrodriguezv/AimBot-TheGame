@@ -47,7 +47,7 @@ void UBPE_AnimInstance::UpdateCharacterVariables()
 		bIsCrouched = CharacterOwner->GetCharacterMovement()->IsCrouching();
 		if(IsValid(PlayerOwner))
 		{
-			bIsWeaponEquipped = PlayerOwner->IsEquipped();	
+			bIsWeaponEquipped = PlayerOwner->IsWeaponEquipped();	
 		}
 	}
 }

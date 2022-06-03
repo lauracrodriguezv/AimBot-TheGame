@@ -146,7 +146,6 @@ bool ABPE_PlayerCharacter::Server_StartFire_Validate()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnStartFire()
 {
-	CurrentWeapon->SetState(EWeaponState::Firing);
 	CurrentWeapon->StartFire();
 }
 
@@ -165,10 +164,7 @@ bool ABPE_PlayerCharacter::Server_StopFire_Validate()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnStopFire()
 {
-	if(CurrentWeapon->GetCurrentState() == EWeaponState::Firing)
-	{
-		CurrentWeapon->SetState(EWeaponState::Equipped);	
-	}
+	CurrentWeapon->StopFire();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -179,7 +175,7 @@ void ABPE_PlayerCharacter::Aim()
 		bIsAiming = !bIsAiming;
 		if(HasAuthority())
 		{
-			SetAiming();
+			OnIsAimingChanged();
 		}
 		else
 		{
@@ -192,7 +188,7 @@ void ABPE_PlayerCharacter::Aim()
 void ABPE_PlayerCharacter::Server_SetAiming_Implementation(bool bIsPlayerAiming)
 {
 	bIsAiming = bIsPlayerAiming;
-	SetAiming();
+	OnIsAimingChanged();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -202,7 +198,7 @@ bool ABPE_PlayerCharacter::Server_SetAiming_Validate(bool bIsPlayerAiming)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::SetAiming()
+void ABPE_PlayerCharacter::OnIsAimingChanged()
 {
 	GetCharacterMovement()->MaxWalkSpeed = bIsAiming? AimWalkSpeed : DefaultWalkSpeed;
 }
@@ -214,7 +210,7 @@ void ABPE_PlayerCharacter::EquipWeapon()
 	{
 		if(HasAuthority())
 		{
-			SetEquippedWeapon(OverlappingWeapon, CurrentWeapon);
+			HandleEquipWeapon(OverlappingWeapon);
 		}
 		else
 		{
@@ -224,9 +220,31 @@ void ABPE_PlayerCharacter::EquipWeapon()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::EquipNextWeapon()
+{
+	if(Inventory.Num() >= 2)
+	{
+		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
+		ABPE_Weapon* NextWeapon = Inventory[(CurrentWeaponIndex + 1) % Inventory.Num()];
+		SetAsCurrentWeapon(NextWeapon);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::EquipPreviousWeapon()
+{
+	if(Inventory.Num() >= 2)
+	{
+		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
+		ABPE_Weapon* PreviousWeapon = Inventory[(CurrentWeaponIndex - 1 + Inventory.Num()) % Inventory.Num()];
+		SetAsCurrentWeapon(PreviousWeapon);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Server_EquipWeapon_Implementation(ABPE_Weapon* WeaponToEquip)
 {
-	SetEquippedWeapon(WeaponToEquip, CurrentWeapon);
+	HandleEquipWeapon(WeaponToEquip);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -236,25 +254,47 @@ bool ABPE_PlayerCharacter::Server_EquipWeapon_Validate(ABPE_Weapon* WeaponToEqui
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_Weapon* LastWeapon)
+void ABPE_PlayerCharacter::HandleEquipWeapon(ABPE_Weapon* WeaponToEquip)
 {
-	if(IsValid(LastWeapon))
+	bool bIsColorInInventory = IsValid(FindWeaponWithColorType(WeaponToEquip->GetColorType()));
+	if(bIsColorInInventory)
 	{
-		LastWeapon->SetState(EWeaponState::Idle);
-		
-		const FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
-		LastWeapon->DetachFromActor(DetachRules);
-		LastWeapon->SetOwner(nullptr);
+		/*Check the ammo to reload current weapon or add to inventory this new weapon if it is more powerful*/
+	}
+	else
+	{
+		PickupWeapon(WeaponToEquip);
+		SetAsCurrentWeapon(WeaponToEquip);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::PickupWeapon(ABPE_Weapon* NewWeapon)
+{
+	if(HasAuthority())
+	{
+		NewWeapon->OnPickup(this);
+		Inventory.AddUnique(NewWeapon);	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::SetAsCurrentWeapon(ABPE_Weapon* Weapon)
+{
+	if(IsValid(CurrentWeapon))
+	{
+		HideUnusedWeapon(CurrentWeapon);
 	}
 	
-	if(IsValid(WeaponToEquip))
+	if(IsValid(Weapon))
 	{
-		CurrentWeapon = WeaponToEquip;
-		CurrentWeapon->SetState(EWeaponState::Equipped);
-		
+		CurrentWeapon = Weapon;
+		if(CurrentWeapon->IsHidden())
+		{
+			CurrentWeapon->SetActorHiddenInGame(false);
+		}
 		/** Attach the weapon on the socket is replicated to the clients */
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
-		CurrentWeapon->SetOwner(this);
 
 		bUseControllerRotationYaw = true;
 		GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -262,9 +302,20 @@ void ABPE_PlayerCharacter::SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_We
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::HideUnusedWeapon(ABPE_Weapon* Weapon)
+{
+	if(IsValid(Weapon))
+	{
+		const FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
+		Weapon->DetachFromActor(DetachRules);
+		Weapon->SetActorHiddenInGame(true);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 {
-	const TObjectPtr<ABPE_Weapon> LastOverlappingWeapon = OverlappingWeapon;
+	ABPE_Weapon* LastOverlappingWeapon = OverlappingWeapon;
 	OverlappingWeapon = Weapon;
 
 	OnSetOverlappingWeapon(LastOverlappingWeapon);	
@@ -315,13 +366,29 @@ void ABPE_PlayerCharacter::InterpolateFieldOfView(float DeltaSeconds)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+ABPE_Weapon* ABPE_PlayerCharacter::FindWeaponWithColorType(EColorType ColorType) const 
+{
+	for (int32 i = 0; i < Inventory.Num(); i++)
+	{
+		if (Inventory[i]->GetColorType() == ColorType)
+		{
+			return Inventory[i];
+		}
+	}
+	return nullptr;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	
-	if(IsValid(CurrentWeapon))
+
+	if(IsLocallyControlled())
 	{
-		InterpolateFieldOfView(DeltaSeconds);
+		if(IsValid(CurrentWeapon))
+		{
+			InterpolateFieldOfView(DeltaSeconds);
+		}	
 	}
 }
 
@@ -352,6 +419,8 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABPE_PlayerCharacter::Aim);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ABPE_PlayerCharacter::Aim);
 
+	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &ABPE_PlayerCharacter::EquipNextWeapon);
+	PlayerInputComponent->BindAction("PreviousWeapon", IE_Released, this,  &ABPE_PlayerCharacter::EquipPreviousWeapon);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -363,7 +432,7 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_PlayerCharacter::IsEquipped() const 
+bool ABPE_PlayerCharacter::IsWeaponEquipped() const 
 {
 	return IsValid(CurrentWeapon);
 }

@@ -4,11 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "BPE_BaseCharacter.h"
+#include "BestProjectEver/ColorType.h"
 #include "BPE_PlayerCharacter.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
 class ABPE_Weapon;
+
 /**
  * 
  */
@@ -74,6 +76,10 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentWeapon)
 	TObjectPtr<ABPE_Weapon> CurrentWeapon;
 
+	/** weapons in inventory */
+	UPROPERTY(Transient, Replicated)
+	TArray<TObjectPtr<ABPE_Weapon>> Inventory;
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -105,25 +111,31 @@ protected:
 
 	/** [client] call the server to perform aiming state */
 	void Aim();
-	
-	//------------------------------------------------------------------------------------------------------------------
-	// Weapon
 
 	/** [client] equip overlapping weapon on the server */
 	void EquipWeapon();
+
+	/** [client] equip next weapon on the inventory */
+	void EquipNextWeapon();
+
+	/** [client] equip previous weapon on the inventory */
+	void EquipPreviousWeapon();
+	
+	//------------------------------------------------------------------------------------------------------------------
+	// Weapon
 
 	/** [server] equip weapon */
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_EquipWeapon(ABPE_Weapon* WeaponToEquip);
 	
 	/** [server] equip overlapping weapon */
-	void SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_Weapon* LastWeapon);
+	void HandleEquipWeapon(ABPE_Weapon* WeaponToEquip);
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetAiming(bool bIsPlayerAiming);
 
 	/** [server] set aim walk speed */
-	void SetAiming();
+	void OnIsAimingChanged();
 	
 	/** [client] overlapping weapon rep handler */
 	UFUNCTION()
@@ -152,6 +164,18 @@ protected:
 	UFUNCTION()
 	void InterpolateFieldOfView(float DeltaSeconds);
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Inventory
+
+	/** find in inventory the weapon with a specific color */
+	ABPE_Weapon* FindWeaponWithColorType(EColorType ColorType) const;
+
+	void PickupWeapon(ABPE_Weapon* NewWeapon);
+
+	void SetAsCurrentWeapon(ABPE_Weapon* Weapon);
+
+	void HideUnusedWeapon(ABPE_Weapon* Weapon);
+
 public:
 
 	virtual void Tick(float DeltaSeconds) override;
@@ -163,9 +187,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	/** for the anim instance */
-	virtual bool IsEquipped() const override;
+	/** check if current weapon is valid */
+	virtual bool IsWeaponEquipped() const override;
 
 	virtual FVector GetPawnViewLocation() const override;
 };
-

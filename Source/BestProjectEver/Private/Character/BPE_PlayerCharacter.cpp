@@ -215,6 +215,12 @@ void ABPE_PlayerCharacter::OnIsAimingChanged()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnRep_Aiming()
+{
+	OnIsAimingChanged();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipWeapon()
 {
 	if(IsValid(OverlappingWeapon))
@@ -239,7 +245,8 @@ void ABPE_PlayerCharacter::EquipNextWeapon()
 		 * the inventory there is a maximun of 3 elements
 		 */
 		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
-		ABPE_Weapon* NextWeapon = Inventory[(CurrentWeaponIndex + 1) % Inventory.Num()];
+		const int32 NextWeaponIndex = (CurrentWeaponIndex + 1) % Inventory.Num();
+		ABPE_Weapon* NextWeapon = Inventory[NextWeaponIndex];
 		Server_SetAsCurrentWeapon(NextWeapon);
 	}
 }
@@ -250,7 +257,8 @@ void ABPE_PlayerCharacter::EquipPreviousWeapon()
 	if(Inventory.Num() >= 2)
 	{
 		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
-		ABPE_Weapon* PreviousWeapon = Inventory[(CurrentWeaponIndex - 1 + Inventory.Num()) % Inventory.Num()];
+		const int32 NextWeaponIndex = (CurrentWeaponIndex - 1 + Inventory.Num()) % Inventory.Num();
+		ABPE_Weapon* PreviousWeapon = Inventory[NextWeaponIndex];
 		Server_SetAsCurrentWeapon(PreviousWeapon);
 	}
 }
@@ -278,14 +286,14 @@ void ABPE_PlayerCharacter::HandleEquipWeapon(ABPE_Weapon* WeaponToEquip)
 	else
 	{
 		PickupWeapon(WeaponToEquip);
-		Server_SetAsCurrentWeapon(WeaponToEquip);
+		SetAsCurrentWeapon(WeaponToEquip);
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::PickupWeapon(ABPE_Weapon* NewWeapon)
 {
-	if(HasAuthority())
+	if(IsValid(NewWeapon) && HasAuthority())
 	{
 		NewWeapon->OnPickup(this);
 		Inventory.AddUnique(NewWeapon);
@@ -295,6 +303,18 @@ void ABPE_PlayerCharacter::PickupWeapon(ABPE_Weapon* NewWeapon)
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Server_SetAsCurrentWeapon_Implementation(ABPE_Weapon* Weapon)
+{
+	SetAsCurrentWeapon(Weapon);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_SetAsCurrentWeapon_Validate(ABPE_Weapon* Weapon)
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::SetAsCurrentWeapon(ABPE_Weapon* Weapon)
 {
 	if(IsValid(CurrentWeapon))
 	{
@@ -312,12 +332,6 @@ void ABPE_PlayerCharacter::Server_SetAsCurrentWeapon_Implementation(ABPE_Weapon*
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
 		OnCurrentWeaponChanged();
 	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool ABPE_PlayerCharacter::Server_SetAsCurrentWeapon_Validate(ABPE_Weapon* Weapon)
-{
-	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -384,7 +398,7 @@ void ABPE_PlayerCharacter::OnCurrentWeaponChanged()
 
 	PlayAnimMontage(SwapWeaponMontage, 2.0f);
 
-	if(IsLocallyControlled())
+	if(IsValid(CurrentWeapon) && IsLocallyControlled())
 	{
 		OnChangeCurrentWeapon.Broadcast(CurrentWeapon->GetColorType());
 	}
@@ -444,14 +458,11 @@ void ABPE_PlayerCharacter::InterpolateFieldOfView(float DeltaSeconds)
 void ABPE_PlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	if(IsLocallyControlled())
+	
+	if(IsValid(CurrentWeapon))
 	{
-		if(IsValid(CurrentWeapon))
-		{
-			InterpolateFieldOfView(DeltaSeconds);
-		}	
-	}
+		InterpolateFieldOfView(DeltaSeconds);
+	}	
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -482,7 +493,7 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ABPE_PlayerCharacter::Aim);
 
 	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &ABPE_PlayerCharacter::EquipNextWeapon);
-	PlayerInputComponent->BindAction("PreviousWeapon", IE_Released, this,  &ABPE_PlayerCharacter::EquipPreviousWeapon);
+	PlayerInputComponent->BindAction("PreviousWeapon", IE_Pressed, this,  &ABPE_PlayerCharacter::EquipPreviousWeapon);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

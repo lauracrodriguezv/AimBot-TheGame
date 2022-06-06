@@ -283,11 +283,10 @@ void ABPE_Weapon::StopFire()
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::StartFire()
-{
-	SetState(EWeaponState::Firing);
-	
+{	
 	if(bCanFire)
 	{
+		SetState(EWeaponState::Firing);
 		bCanFire = false;
 		Fire();
 		GetWorldTimerManager().SetTimer(TimerHandle_AutoFire, this, &ABPE_Weapon::HandleReFiring,

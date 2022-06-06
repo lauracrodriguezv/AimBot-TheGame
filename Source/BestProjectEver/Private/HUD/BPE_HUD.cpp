@@ -19,14 +19,10 @@ void ABPE_HUD::BeginPlay()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_HUD::InitializeReferences()
 {
-	APawn* PlayerPawn = GetOwningPawn();
-	if(	IsValid(PlayerPawn))
+	ABPE_PlayerCharacter* PlayerCharacter = Cast<ABPE_PlayerCharacter>( GetOwningPawn());
+	if(IsValid(PlayerCharacter))
 	{
-		ABPE_PlayerCharacter* PlayerCharacter = Cast<ABPE_PlayerCharacter>(PlayerPawn);
-		if(IsValid(PlayerCharacter))
-		{
-			PlayerCharacter->OnChangeCurrentWeapon.AddDynamic(this, &ABPE_HUD::UpdateCurrentWeaponIcon);
-		}
+		PlayerCharacter->OnChangeCurrentWeapon.AddDynamic(this, &ABPE_HUD::UpdateCurrentWeaponIcon);
 	}
 }
 

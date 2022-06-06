@@ -44,7 +44,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 	uint8 bIsLookInverted : 1;
 	
-	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Aiming")
+	UPROPERTY(ReplicatedUsing=OnRep_Aiming, BlueprintReadOnly, Category = "Aiming")
 	uint8 bIsAiming : 1;
 	
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
@@ -157,9 +157,12 @@ protected:
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetAiming(bool bIsPlayerAiming);
-
+	
 	/** [server] set aim walk speed */
 	void OnIsAimingChanged();
+
+	UFUNCTION()
+	void OnRep_Aiming();
 	
 	/** [client] overlapping weapon rep handler */
 	UFUNCTION()
@@ -202,6 +205,8 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetAsCurrentWeapon(ABPE_Weapon* Weapon);
+
+	void SetAsCurrentWeapon(ABPE_Weapon* Weapon);
 
 	/** [server] hide last weapon used */
 	void HideUnusedWeapon(ABPE_Weapon* Weapon);

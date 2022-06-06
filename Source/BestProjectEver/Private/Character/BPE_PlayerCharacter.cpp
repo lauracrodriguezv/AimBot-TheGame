@@ -183,27 +183,26 @@ void ABPE_PlayerCharacter::Aim()
 {
 	if(IsValid(CurrentWeapon))
 	{
-		bIsAiming = !bIsAiming;
 		if(HasAuthority())
 		{
+			bIsAiming = !bIsAiming;
 			OnIsAimingChanged();
 		}
 		else
 		{
-			Server_SetAiming(bIsAiming);
+			Server_SetAiming();
 		}
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::Server_SetAiming_Implementation(bool bIsPlayerAiming)
+void ABPE_PlayerCharacter::Server_SetAiming_Implementation()
 {
-	bIsAiming = bIsPlayerAiming;
-	OnIsAimingChanged();
+	Aim();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_PlayerCharacter::Server_SetAiming_Validate(bool bIsPlayerAiming)
+bool ABPE_PlayerCharacter::Server_SetAiming_Validate()
 {
 	return true;
 }
@@ -450,8 +449,10 @@ void ABPE_PlayerCharacter::InterpolateFieldOfView(float DeltaSeconds)
 	{
 		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaSeconds, ZoomOutInterpSpeed);
 	}
-	
-	CameraComponent->SetFieldOfView(CurrentFOV);
+	if(IsLocallyControlled())
+	{
+		CameraComponent->SetFieldOfView(CurrentFOV);	
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -462,7 +463,7 @@ void ABPE_PlayerCharacter::Tick(float DeltaSeconds)
 	if(IsValid(CurrentWeapon))
 	{
 		InterpolateFieldOfView(DeltaSeconds);
-	}	
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -503,7 +504,7 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
-	DOREPLIFETIME(ABPE_PlayerCharacter, bIsAiming);
+	DOREPLIFETIME_CONDITION_NOTIFY(ABPE_PlayerCharacter, bIsAiming, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, Inventory, COND_OwnerOnly);
 }
 

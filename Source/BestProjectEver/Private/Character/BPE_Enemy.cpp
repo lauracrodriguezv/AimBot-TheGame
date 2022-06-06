@@ -1,41 +1,48 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Character/BPE_BaseCharacter.h"
+#include "Character/BPE_Enemy.h"
 
-//----------------------------------------------------------------------------------------------------------------------
-ABPE_BaseCharacter::ABPE_BaseCharacter()
+#include "GameFramework/CharacterMovementComponent.h"
+
+ABPE_Enemy::ABPE_Enemy()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
-	WeaponSocketName = "SCK_Weapon";
+	EnemySpeedMap.Add(EEnemyStatus::Patrol, 300.0);
+	EnemySpeedMap.Add(EEnemyStatus::Combat, 600.0);
+	EnemySpeedMap.Add(EEnemyStatus::Investigating, 500.0);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::BeginPlay()
+void ABPE_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::StartWeaponFire()
+void ABPE_Enemy::SpawnWeapon()
 {
+	
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::StopWeaponFire()
+void ABPE_Enemy::StartWeaponFire()
 {
+	
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::Tick(float DeltaSeconds)
+void ABPE_Enemy::StopWeaponFire()
 {
-	Super::Tick(DeltaSeconds);
+	
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_BaseCharacter::IsWeaponEquipped() const 
+void ABPE_Enemy::SetEnemyStatus(EEnemyStatus NewEnemyStatus)
 {
-	return true;
+	if(EnemySpeedMap.Contains(NewEnemyStatus))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Current status %d"), NewEnemyStatus)
+		const float Speed = EnemySpeedMap[NewEnemyStatus];
+		GetCharacterMovement()->MaxWalkSpeed = Speed;
+	}
 }
-

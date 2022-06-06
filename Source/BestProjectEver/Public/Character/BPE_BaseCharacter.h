@@ -24,6 +24,10 @@ protected:
 protected:
 
 	virtual void BeginPlay() override;
+	
+	virtual void StartWeaponFire();
+	
+	virtual void StopWeaponFire();
 
 public:
 

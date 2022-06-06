@@ -128,10 +128,10 @@ protected:
 	void EndCrouch();
 
 	/** [client] call the server to perform fire */
-	void StartWeaponFire();
+	virtual void StartWeaponFire() override;
 
 	/** [client] call the server to perform stop fire */
-	void StopWeaponFire();
+	virtual void StopWeaponFire() override;
 
 	/** [client] call the server to perform aiming state */
 	void Aim();
@@ -156,7 +156,7 @@ protected:
 	void HandleEquipWeapon(ABPE_Weapon* WeaponToEquip);
 	
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_SetAiming(bool bIsPlayerAiming);
+	void Server_SetAiming();
 	
 	/** [server] set aim walk speed */
 	void OnIsAimingChanged();

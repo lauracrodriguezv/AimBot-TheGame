@@ -19,26 +19,29 @@ class BESTPROJECTEVER_API ABPE_HUD : public AHUD
 
 public:
 
-	/** Widget with all hud information */
+	/** widget with all hud information */
 	UPROPERTY(EditAnywhere, Category = "Player State")
 	TSubclassOf<UUserWidget> CharacterOverlayClass;
 
+	/** character overlay widget reference */
 	UPROPERTY(BlueprintReadOnly, Category = "Player State")
-	UBPE_CharacterOverlay* CharacterOverlay;
+	TObjectPtr<UBPE_CharacterOverlay> CharacterOverlay;
 
 protected:
 
 	virtual void BeginPlay() override;
 
-	void InitiliazeReferences();
+	void InitializeReferences();
 
 public:
 
 	virtual void DrawHUD() override;
-	
+
+	/** Create and add character overlay widget to the viewport */
 	UFUNCTION()
 	void AddCharacterOverlay();
 
+	/** update weapon icon depending on the color type of the current weapon */
 	UFUNCTION()
-	void UpdateCurrentWeapon(EColorType WeaponColorType);
+	void UpdateCurrentWeaponIcon(EColorType WeaponColorType);
 };

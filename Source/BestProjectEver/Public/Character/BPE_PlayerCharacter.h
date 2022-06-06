@@ -30,14 +30,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
-	/** weapon's inventory */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UBPE_InventoryComponent> InventoryComponent;
-
 public:
 
 	ABPE_PlayerCharacter();
 
+	/** delegate called when current weapon is set */
 	UPROPERTY(BlueprintAssignable)
 	FOnChangeCurrentWeapon OnChangeCurrentWeapon;
 
@@ -47,7 +44,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 	uint8 bIsLookInverted : 1;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Aiming")
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Aiming")
 	uint8 bIsAiming : 1;
 	
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
@@ -91,9 +88,11 @@ protected:
 	//------------------------------------------------------------------------------------------------------------------
 	// Animations
 
+	/** anim instance reference */
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimInstance> AnimInstance;
-	
+
+	/** animation played on current weapon change */
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> SwapWeaponMontage;
 	
@@ -102,8 +101,6 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	TObjectPtr<USoundCue> PickupSound;
-
-	
 
 protected:
 
@@ -172,6 +169,7 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentWeapon();
 
+	/** [server and client] called when current weapon change */
 	void OnCurrentWeaponChanged();
 
 	/** [client and server] overlapping weapon handler */
@@ -199,22 +197,29 @@ protected:
 	/** find in inventory the weapon with a specific color */
 	ABPE_Weapon* FindWeaponWithColorType(EColorType ColorType) const;
 
+	/** [server] add weapon to inventory */
 	void PickupWeapon(ABPE_Weapon* NewWeapon);
 
-	void SetAsCurrentWeapon(ABPE_Weapon* Weapon);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SetAsCurrentWeapon(ABPE_Weapon* Weapon);
 
+	/** [server] hide last weapon used */
 	void HideUnusedWeapon(ABPE_Weapon* Weapon);
 
+	/** [client] weapon inventory rep handler */
 	UFUNCTION()
 	void OnRep_Inventory();
 
+	/** [server and client] weapon inventory handler */
 	void OnInventoryChanged();
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects
-	
+
+	/** play sound cue */
 	void PlaySound(USoundCue* Sound);
 
+	/** play anim montage */
 	void PlayAnimMontage(UAnimMontage* Montage, float PlayRate = 1.0f);
 
 public:

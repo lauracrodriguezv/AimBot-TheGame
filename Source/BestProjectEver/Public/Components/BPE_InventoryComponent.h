@@ -15,6 +15,4 @@ class BESTPROJECTEVER_API UBPE_InventoryComponent : public UActorComponent
 
 public:	
 	UBPE_InventoryComponent();
-
-		
 };

@@ -237,7 +237,7 @@ void ABPE_PlayerCharacter::EquipNextWeapon()
 	{
 		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
 		ABPE_Weapon* NextWeapon = Inventory[(CurrentWeaponIndex + 1) % Inventory.Num()];
-		SetAsCurrentWeapon(NextWeapon);
+		Server_SetAsCurrentWeapon(NextWeapon);
 	}
 }
 
@@ -248,7 +248,7 @@ void ABPE_PlayerCharacter::EquipPreviousWeapon()
 	{
 		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
 		ABPE_Weapon* PreviousWeapon = Inventory[(CurrentWeaponIndex - 1 + Inventory.Num()) % Inventory.Num()];
-		SetAsCurrentWeapon(PreviousWeapon);
+		Server_SetAsCurrentWeapon(PreviousWeapon);
 	}
 }
 
@@ -275,7 +275,7 @@ void ABPE_PlayerCharacter::HandleEquipWeapon(ABPE_Weapon* WeaponToEquip)
 	else
 	{
 		PickupWeapon(WeaponToEquip);
-		SetAsCurrentWeapon(WeaponToEquip);
+		Server_SetAsCurrentWeapon(WeaponToEquip);
 	}
 }
 
@@ -291,7 +291,7 @@ void ABPE_PlayerCharacter::PickupWeapon(ABPE_Weapon* NewWeapon)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::SetAsCurrentWeapon(ABPE_Weapon* Weapon)
+void ABPE_PlayerCharacter::Server_SetAsCurrentWeapon_Implementation(ABPE_Weapon* Weapon)
 {
 	if(IsValid(CurrentWeapon))
 	{
@@ -309,6 +309,12 @@ void ABPE_PlayerCharacter::SetAsCurrentWeapon(ABPE_Weapon* Weapon)
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
 		OnCurrentWeaponChanged();
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_SetAsCurrentWeapon_Validate(ABPE_Weapon* Weapon)
+{
+	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -346,9 +352,9 @@ void ABPE_PlayerCharacter::PlaySound(USoundCue* Sound)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::PlayAnimMontage(UAnimMontage* Montage, float PlayRate)
 {
-	if(IsValid(AnimInstance) && IsValid(SwapWeaponMontage))
+	if(IsValid(AnimInstance) && IsValid(Montage))
 	{
-		AnimInstance->Montage_Play(SwapWeaponMontage, PlayRate);
+		AnimInstance->Montage_Play(Montage, PlayRate);
 	}
 }
 
@@ -483,6 +489,7 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
+	DOREPLIFETIME(ABPE_PlayerCharacter, bIsAiming);
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, Inventory, COND_OwnerOnly);
 }
 

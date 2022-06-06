@@ -187,7 +187,7 @@ protected:
 	/* [client and server] Set weapon parameters depending on the current new state */
 	void OnSetWeaponState();
 
-	/* [client and server] enable or disable collisions and pickup widget visibility depending on the weapon state */
+	/* [client and server] enable or disable collisions depending on the weapon state */
 	void UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
 		ECollisionEnabled::Type PickupAreaTypeCollision);
 
@@ -227,6 +227,7 @@ public:
 	/** get current weapon state */
 	EWeaponState GetCurrentState() const { return CurrentState; }
 
+	/** get weapon color type */
 	EColorType GetColorType() const { return ColorType; }
 
 	/** [client and server] called when character start or end overlapping pickup area if it is locally controlled*/

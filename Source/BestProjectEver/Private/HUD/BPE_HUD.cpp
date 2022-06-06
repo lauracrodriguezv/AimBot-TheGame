@@ -13,11 +13,11 @@ void ABPE_HUD::BeginPlay()
 	Super::BeginPlay();
 	
 	AddCharacterOverlay();
-	InitiliazeReferences();
+	InitializeReferences();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::InitiliazeReferences()
+void ABPE_HUD::InitializeReferences()
 {
 	APawn* PlayerPawn = GetOwningPawn();
 	if(	IsValid(PlayerPawn))
@@ -25,7 +25,7 @@ void ABPE_HUD::InitiliazeReferences()
 		ABPE_PlayerCharacter* PlayerCharacter = Cast<ABPE_PlayerCharacter>(PlayerPawn);
 		if(IsValid(PlayerCharacter))
 		{
-			PlayerCharacter->OnChangeCurrentWeapon.AddDynamic(this, &ABPE_HUD::UpdateCurrentWeapon);
+			PlayerCharacter->OnChangeCurrentWeapon.AddDynamic(this, &ABPE_HUD::UpdateCurrentWeaponIcon);
 		}
 	}
 }
@@ -48,10 +48,10 @@ void ABPE_HUD::AddCharacterOverlay()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::UpdateCurrentWeapon(EColorType WeaponColorType)
+void ABPE_HUD::UpdateCurrentWeaponIcon(EColorType WeaponColorType)
 {
 	if(IsValid(CharacterOverlay))
 	{
-		CharacterOverlay->UpdateWeaponInfo(WeaponColorType);	
+		CharacterOverlay->UpdateWeaponIcons(WeaponColorType);	
 	}
 }

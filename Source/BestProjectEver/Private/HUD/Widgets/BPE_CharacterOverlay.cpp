@@ -8,11 +8,14 @@
 void UBPE_CharacterOverlay::NativeConstruct()
 {
 	Super::NativeConstruct();
-	InitializeWeaponIcons();	
+	
+	InitializeWeaponIcons();
+	SelectedScale = FVector2D(1.0f, 1.0f);
+	NotSelectedScale = FVector2D(0.3f, 0.3f);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_CharacterOverlay::UpdateWeaponInfo(EColorType WeaponColorType)
+void UBPE_CharacterOverlay::UpdateWeaponIcons(EColorType WeaponColorType)
 {
 	if(IconsWeapon.Contains(WeaponColorType))
 	{
@@ -25,13 +28,13 @@ void UBPE_CharacterOverlay::SetIconRenderParameters(UImage* Icon)
 {
 	if(IsValid(CurrentIconSelected))
 	{
-		CurrentIconSelected->SetRenderScale(NotSelectedSize);
+		CurrentIconSelected->SetRenderScale(NotSelectedScale);
 	}
 
 	if(IsValid(Icon))
 	{
 		CurrentIconSelected = Icon;
-		CurrentIconSelected->SetRenderScale(SelectedSize);
+		CurrentIconSelected->SetRenderScale(SelectedScale);
 
 		if(CurrentIconSelected->GetRenderOpacity() < 1.0)
 		{
@@ -41,14 +44,10 @@ void UBPE_CharacterOverlay::SetIconRenderParameters(UImage* Icon)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-
 void UBPE_CharacterOverlay::InitializeWeaponIcons()
 {
-	IconsWeapon.Add(EColorType::Yellow, Yellow);
-	IconsWeapon.Add(EColorType::Blue, Blue);
-	IconsWeapon.Add(EColorType::Red, Red);
-	
-	SelectedSize = FVector2D(1.0f, 1.0f);
-	NotSelectedSize = FVector2D(0.3f, 0.3f);
+	IconsWeapon.Add(EColorType::Yellow, YellowWeapon);
+	IconsWeapon.Add(EColorType::Blue, BlueWeapon);
+	IconsWeapon.Add(EColorType::Red, RedWeapon);
 }
 

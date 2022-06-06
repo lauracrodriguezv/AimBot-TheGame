@@ -6,8 +6,10 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/BPE_Weapon.h"
+#include "Sound/SoundCue.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_PlayerCharacter::ABPE_PlayerCharacter()
@@ -41,9 +43,18 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 void ABPE_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	InitializeReference();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::InitializeReference()
+{
 	DefaultFOV = CameraComponent->FieldOfView;
 	CurrentFOV = DefaultFOV;
+	if (IsValid(GetMesh()))
+	{
+		AnimInstance = GetMesh()->GetAnimInstance();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -146,7 +157,6 @@ bool ABPE_PlayerCharacter::Server_StartFire_Validate()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnStartFire()
 {
-	CurrentWeapon->SetState(EWeaponState::Firing);
 	CurrentWeapon->StartFire();
 }
 
@@ -165,10 +175,7 @@ bool ABPE_PlayerCharacter::Server_StopFire_Validate()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnStopFire()
 {
-	if(CurrentWeapon->GetCurrentState() == EWeaponState::Firing)
-	{
-		CurrentWeapon->SetState(EWeaponState::Equipped);	
-	}
+	CurrentWeapon->StopFire();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -179,7 +186,7 @@ void ABPE_PlayerCharacter::Aim()
 		bIsAiming = !bIsAiming;
 		if(HasAuthority())
 		{
-			SetAiming();
+			OnIsAimingChanged();
 		}
 		else
 		{
@@ -192,7 +199,7 @@ void ABPE_PlayerCharacter::Aim()
 void ABPE_PlayerCharacter::Server_SetAiming_Implementation(bool bIsPlayerAiming)
 {
 	bIsAiming = bIsPlayerAiming;
-	SetAiming();
+	OnIsAimingChanged();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -202,7 +209,7 @@ bool ABPE_PlayerCharacter::Server_SetAiming_Validate(bool bIsPlayerAiming)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::SetAiming()
+void ABPE_PlayerCharacter::OnIsAimingChanged()
 {
 	GetCharacterMovement()->MaxWalkSpeed = bIsAiming? AimWalkSpeed : DefaultWalkSpeed;
 }
@@ -214,7 +221,7 @@ void ABPE_PlayerCharacter::EquipWeapon()
 	{
 		if(HasAuthority())
 		{
-			SetEquippedWeapon(OverlappingWeapon, CurrentWeapon);
+			HandleEquipWeapon(OverlappingWeapon);
 		}
 		else
 		{
@@ -224,9 +231,34 @@ void ABPE_PlayerCharacter::EquipWeapon()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::EquipNextWeapon()
+{
+	if(Inventory.Num() >= 2)
+	{
+		/** Index of by key requieres more performance than store an index, but I did it this way being concsious that in 
+		 * the inventory there is a maximun of 3 elements
+		 */
+		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
+		ABPE_Weapon* NextWeapon = Inventory[(CurrentWeaponIndex + 1) % Inventory.Num()];
+		Server_SetAsCurrentWeapon(NextWeapon);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::EquipPreviousWeapon()
+{
+	if(Inventory.Num() >= 2)
+	{
+		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
+		ABPE_Weapon* PreviousWeapon = Inventory[(CurrentWeaponIndex - 1 + Inventory.Num()) % Inventory.Num()];
+		Server_SetAsCurrentWeapon(PreviousWeapon);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Server_EquipWeapon_Implementation(ABPE_Weapon* WeaponToEquip)
 {
-	SetEquippedWeapon(WeaponToEquip, CurrentWeapon);
+	HandleEquipWeapon(WeaponToEquip);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -236,35 +268,103 @@ bool ABPE_PlayerCharacter::Server_EquipWeapon_Validate(ABPE_Weapon* WeaponToEqui
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::SetEquippedWeapon(ABPE_Weapon* WeaponToEquip, ABPE_Weapon* LastWeapon)
+void ABPE_PlayerCharacter::HandleEquipWeapon(ABPE_Weapon* WeaponToEquip)
 {
-	if(IsValid(LastWeapon))
+	bool bIsColorInInventory = IsValid(FindWeaponWithColorType(WeaponToEquip->GetColorType()));
+	if(bIsColorInInventory)
 	{
-		LastWeapon->SetState(EWeaponState::Idle);
-		
-		const FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
-		LastWeapon->DetachFromActor(DetachRules);
-		LastWeapon->SetOwner(nullptr);
+		/*Check the ammo to reload current weapon or add to inventory this new weapon if it is more powerful*/
+	}
+	else
+	{
+		PickupWeapon(WeaponToEquip);
+		Server_SetAsCurrentWeapon(WeaponToEquip);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::PickupWeapon(ABPE_Weapon* NewWeapon)
+{
+	if(HasAuthority())
+	{
+		NewWeapon->OnPickup(this);
+		Inventory.AddUnique(NewWeapon);
+		OnInventoryChanged();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Server_SetAsCurrentWeapon_Implementation(ABPE_Weapon* Weapon)
+{
+	if(IsValid(CurrentWeapon))
+	{
+		HideUnusedWeapon(CurrentWeapon);
 	}
 	
-	if(IsValid(WeaponToEquip))
+	if(IsValid(Weapon))
 	{
-		CurrentWeapon = WeaponToEquip;
-		CurrentWeapon->SetState(EWeaponState::Equipped);
-		
+		CurrentWeapon = Weapon;
+		if(CurrentWeapon->IsHidden())
+		{
+			CurrentWeapon->SetActorHiddenInGame(false);
+		}
 		/** Attach the weapon on the socket is replicated to the clients */
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
-		CurrentWeapon->SetOwner(this);
+		OnCurrentWeaponChanged();
+	}
+}
 
-		bUseControllerRotationYaw = true;
-		GetCharacterMovement()->bOrientRotationToMovement = false;
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_SetAsCurrentWeapon_Validate(ABPE_Weapon* Weapon)
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::HideUnusedWeapon(ABPE_Weapon* Weapon)
+{
+	if(IsValid(Weapon))
+	{
+		const FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
+		Weapon->DetachFromActor(DetachRules);
+		Weapon->SetActorHiddenInGame(true);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnRep_Inventory()
+{
+	OnInventoryChanged();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnInventoryChanged()
+{
+	PlaySound(PickupSound);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::PlaySound(USoundCue* Sound)
+{
+	if(IsValid(Sound))
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, Sound, GetActorLocation());
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::PlayAnimMontage(UAnimMontage* Montage, float PlayRate)
+{
+	if(IsValid(AnimInstance) && IsValid(Montage))
+	{
+		AnimInstance->Montage_Play(Montage, PlayRate);
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 {
-	const TObjectPtr<ABPE_Weapon> LastOverlappingWeapon = OverlappingWeapon;
+	ABPE_Weapon* LastOverlappingWeapon = OverlappingWeapon;
 	OverlappingWeapon = Weapon;
 
 	OnSetOverlappingWeapon(LastOverlappingWeapon);	
@@ -273,8 +373,21 @@ void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnRep_CurrentWeapon()
 {
+	OnCurrentWeaponChanged();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnCurrentWeaponChanged()
+{
 	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
+
+	PlayAnimMontage(SwapWeaponMontage, 2.0f);
+
+	if(IsLocallyControlled())
+	{
+		OnChangeCurrentWeapon.Broadcast(CurrentWeapon->GetColorType());
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -300,6 +413,19 @@ void ABPE_PlayerCharacter::OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWe
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+ABPE_Weapon* ABPE_PlayerCharacter::FindWeaponWithColorType(EColorType ColorType) const 
+{
+	for (int32 i = 0; i < Inventory.Num(); i++)
+	{
+		if (Inventory[i]->GetColorType() == ColorType)
+		{
+			return Inventory[i];
+		}
+	}
+	return nullptr;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::InterpolateFieldOfView(float DeltaSeconds)
 {
 	if (bIsAiming)
@@ -318,10 +444,13 @@ void ABPE_PlayerCharacter::InterpolateFieldOfView(float DeltaSeconds)
 void ABPE_PlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	
-	if(IsValid(CurrentWeapon))
+
+	if(IsLocallyControlled())
 	{
-		InterpolateFieldOfView(DeltaSeconds);
+		if(IsValid(CurrentWeapon))
+		{
+			InterpolateFieldOfView(DeltaSeconds);
+		}	
 	}
 }
 
@@ -352,18 +481,23 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABPE_PlayerCharacter::Aim);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ABPE_PlayerCharacter::Aim);
 
+	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &ABPE_PlayerCharacter::EquipNextWeapon);
+	PlayerInputComponent->BindAction("PreviousWeapon", IE_Released, this,  &ABPE_PlayerCharacter::EquipPreviousWeapon);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
+	DOREPLIFETIME(ABPE_PlayerCharacter, bIsAiming);
+	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, Inventory, COND_OwnerOnly);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_PlayerCharacter::IsEquipped() const 
+bool ABPE_PlayerCharacter::IsWeaponEquipped() const 
 {
 	return IsValid(CurrentWeapon);
 }

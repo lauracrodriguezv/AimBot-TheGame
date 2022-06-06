@@ -29,5 +29,5 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	virtual bool IsEquipped() const;
+	virtual bool IsWeaponEquipped() const;
 };

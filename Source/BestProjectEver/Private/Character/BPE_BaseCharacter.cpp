@@ -24,7 +24,7 @@ void ABPE_BaseCharacter::Tick(float DeltaSeconds)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_BaseCharacter::IsEquipped() const 
+bool ABPE_BaseCharacter::IsWeaponEquipped() const 
 {
 	return true;
 }

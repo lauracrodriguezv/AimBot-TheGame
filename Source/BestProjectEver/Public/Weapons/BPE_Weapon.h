@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Character/BPE_PlayerCharacter.h"
 #include "GameFramework/Actor.h"
+#include "BestProjectEver/ColorType.h"
 #include "BPE_Weapon.generated.h"
 
 class USphereComponent;
@@ -14,6 +14,7 @@ class UAnimationAsset;
 class ABPE_BaseCharacter;
 class ABPE_Casing;
 class USoundCue;
+class UMaterialInstanceConstant;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -22,14 +23,6 @@ enum class EWeaponState : uint8
 	Firing,
 	Reloading,
 	Equipped
-};
-
-UENUM(BlueprintType)
-enum class EWeaponColorType : uint8
-{
-	Yellow,
-	Blue,
-	Red
 };
 
 UENUM(BlueprintType)
@@ -49,6 +42,8 @@ public:
 	
 	ABPE_Weapon();
 
+	virtual void OnConstruction(const FTransform& Transform) override;
+
 protected:
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -66,6 +61,17 @@ protected:
 	TObjectPtr<UWidgetComponent> PickupWidget;
 
 	//------------------------------------------------------------------------------------------------------------------
+	//Weapon Type
+
+	/** to determine which enemy it can apply damage */
+	UPROPERTY(EditAnywhere, Category = "Weapon State")
+	EColorType ColorType;
+
+	/** Material based on color type */
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	TMap<EColorType, FLinearColor> MaterialColor;
+	
+	//------------------------------------------------------------------------------------------------------------------
 	//Weapon Data
 	
 	TObjectPtr<ABPE_BaseCharacter> OwnerCharacter;
@@ -77,10 +83,6 @@ protected:
 	/** current weapon state */
 	UPROPERTY(ReplicatedUsing=OnRep_WeaponState)
 	EWeaponState CurrentState;
-	
-	/** to determine which enemy it can apply damage */
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon State")
-	EWeaponColorType ColorType;
 
 	/** socket where bullet is spawned */
 	UPROPERTY(EditDefaultsOnly, Category= "Weapon State")
@@ -150,14 +152,14 @@ protected:
 
 	void InitializeReferences();
 	
-	/** [server] To set overlapping weapon on the character */
+	/** [server] called when something starts overlaps pickup area component */
 	UFUNCTION()
-	virtual void OnPlayerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	virtual void OnPickupAreaOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
-	/** [server] To set overlapping weapon on the character to nullptr */
+	/** [server] called when something stops overlaps pickup area component */
 	UFUNCTION()
-	virtual void OnPlayerEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	virtual void OnPickupAreaEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -174,6 +176,9 @@ protected:
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon state
+
+	/** [server] set weapon state */
+	void SetState(EWeaponState State);
 	
 	/** [client] called when CurrentState is set and it calls OnSetWeaponState */
 	UFUNCTION()
@@ -182,8 +187,8 @@ protected:
 	/* [client and server] Set weapon parameters depending on the current new state */
 	void OnSetWeaponState();
 
-	/* [client and server] enable or disable collisions and pickup widget visibility depending on the weapon state */
-	void SetWeaponParametersOnNewState(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
+	/* [client and server] enable or disable collisions depending on the weapon state */
+	void UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
 		ECollisionEnabled::Type PickupAreaTypeCollision);
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -194,7 +199,7 @@ protected:
 	virtual void Fire();
 
 	/** [server] perform trace to set hit target */
-	void TraceUnderCrosshairs(FHitResult& HitResult);
+	void TraceUnderCrosshairs(FHitResult& OutHitResult);
 
 	/** [server] prevent to spawn multiple times fire button and fire again if it is on firing state and is automatic */
 	void HandleReFiring();
@@ -216,12 +221,14 @@ public:
 	// Reading data
 
 	virtual void SetOwner(AActor* NewOwner) override;
+
+	void OnPickup(AActor* NewOwner);
 	
 	/** get current weapon state */
 	EWeaponState GetCurrentState() const { return CurrentState; }
 
-	/** [server] set weapon state */
-	void SetState(EWeaponState State);
+	/** get weapon color type */
+	EColorType GetColorType() const { return ColorType; }
 
 	/** [client and server] called when character start or end overlapping pickup area if it is locally controlled*/
 	void SetWidgetVisibility(bool bShowWidget);

@@ -45,9 +45,11 @@ void UBPE_AnimInstance::UpdateCharacterVariables()
 		bIsInAir = CharacterOwner->GetCharacterMovement()->IsFalling();
 		bIsAccelerating = CharacterOwner->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.0f;
 		bIsCrouched = CharacterOwner->GetCharacterMovement()->IsCrouching();
-		if(IsValid(PlayerOwner))
-		{
-			bIsWeaponEquipped = PlayerOwner->IsWeaponEquipped();	
-		}
+	}
+
+	if(IsValid(PlayerOwner))
+	{
+		bIsWeaponEquipped = PlayerOwner->IsWeaponEquipped();
+		bIsAiming = PlayerOwner->IsAiming();
 	}
 }

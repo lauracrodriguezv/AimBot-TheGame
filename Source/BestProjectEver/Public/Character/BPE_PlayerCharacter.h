@@ -10,10 +10,11 @@
 class UCameraComponent;
 class USpringArmComponent;
 class ABPE_Weapon;
+class UBPE_InventoryComponent;
+class USoundCue;
 
-/**
- * 
- */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCurrentWeapon, EColorType, WeaponColorType);
+
 UCLASS()
 class BESTPROJECTEVER_API ABPE_PlayerCharacter : public ABPE_BaseCharacter
 {
@@ -29,9 +30,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
+	/** weapon's inventory */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UBPE_InventoryComponent> InventoryComponent;
+
 public:
 
 	ABPE_PlayerCharacter();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnChangeCurrentWeapon OnChangeCurrentWeapon;
 
 protected:
 	
@@ -77,12 +85,31 @@ protected:
 	TObjectPtr<ABPE_Weapon> CurrentWeapon;
 
 	/** weapons in inventory */
-	UPROPERTY(Transient, Replicated)
+	UPROPERTY(Transient, ReplicatedUsing=OnRep_Inventory)
 	TArray<TObjectPtr<ABPE_Weapon>> Inventory;
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Animations
+
+	UPROPERTY(BlueprintReadOnly, Category = "Animation")
+	TObjectPtr<UAnimInstance> AnimInstance;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TObjectPtr<UAnimMontage> SwapWeaponMontage;
+	
+	//------------------------------------------------------------------------------------------------------------------
+	// Sounds And Effects
+	
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	TObjectPtr<USoundCue> PickupSound;
+
+	
 
 protected:
 
 	virtual void BeginPlay() override;
+
+	void InitializeReference();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Input handlers
@@ -145,6 +172,8 @@ protected:
 	UFUNCTION()
 	void OnRep_CurrentWeapon();
 
+	void OnCurrentWeaponChanged();
+
 	/** [client and server] overlapping weapon handler */
 	void OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon);
 
@@ -176,6 +205,18 @@ protected:
 
 	void HideUnusedWeapon(ABPE_Weapon* Weapon);
 
+	UFUNCTION()
+	void OnRep_Inventory();
+
+	void OnInventoryChanged();
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Sounds And Effects
+	
+	void PlaySound(USoundCue* Sound);
+
+	void PlayAnimMontage(UAnimMontage* Montage, float PlayRate = 1.0f);
+
 public:
 
 	virtual void Tick(float DeltaSeconds) override;
@@ -190,5 +231,8 @@ public:
 	/** check if current weapon is valid */
 	virtual bool IsWeaponEquipped() const override;
 
+	bool IsAiming() const { return bIsAiming; };
+
 	virtual FVector GetPawnViewLocation() const override;
 };
+

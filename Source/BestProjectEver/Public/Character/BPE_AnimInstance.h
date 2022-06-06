@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BPE_PlayerCharacter.h"
 #include "Animation/AnimInstance.h"
 #include "BPE_AnimInstance.generated.h"
 
@@ -23,7 +24,7 @@ protected:
 	TObjectPtr<ABPE_BaseCharacter> CharacterOwner;
 	
 	UPROPERTY(BlueprintReadOnly, Category="Character")
-	TObjectPtr<ABPE_BaseCharacter> PlayerOwner;
+	TObjectPtr<ABPE_PlayerCharacter> PlayerOwner;
 	
 	UPROPERTY(BlueprintReadOnly, Category="Movement")
 	float Speed;
@@ -39,6 +40,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category="Movement")
 	uint8 bIsWeaponEquipped : 1;
+
+	UPROPERTY(BlueprintReadOnly, Category="Movement")
+	uint8 bIsAiming : 1;
 	
 public:
 	

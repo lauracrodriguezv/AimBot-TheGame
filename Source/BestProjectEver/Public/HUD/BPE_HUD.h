@@ -3,10 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BestProjectEver/ColorType.h"
 #include "GameFramework/HUD.h"
 #include "BPE_HUD.generated.h"
 
-class UBPE_PlayerHUD;
+class UBPE_CharacterOverlay;
 class UUserWidget;
 /**
  * 
@@ -23,10 +24,21 @@ public:
 	TSubclassOf<UUserWidget> CharacterOverlayClass;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player State")
-	UBPE_PlayerHUD* CharacterOverlay;
+	UBPE_CharacterOverlay* CharacterOverlay;
+
+protected:
+
+	virtual void BeginPlay() override;
+
+	void InitiliazeReferences();
 
 public:
 
+	virtual void DrawHUD() override;
+	
 	UFUNCTION()
 	void AddCharacterOverlay();
+
+	UFUNCTION()
+	void UpdateCurrentWeapon(EColorType WeaponColorType);
 };

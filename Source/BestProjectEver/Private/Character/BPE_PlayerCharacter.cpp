@@ -6,8 +6,10 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/BPE_Weapon.h"
+#include "Sound/SoundCue.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_PlayerCharacter::ABPE_PlayerCharacter()
@@ -41,9 +43,18 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 void ABPE_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	InitializeReference();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::InitializeReference()
+{
 	DefaultFOV = CameraComponent->FieldOfView;
 	CurrentFOV = DefaultFOV;
+	if (IsValid(GetMesh()))
+	{
+		AnimInstance = GetMesh()->GetAnimInstance();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -274,7 +285,8 @@ void ABPE_PlayerCharacter::PickupWeapon(ABPE_Weapon* NewWeapon)
 	if(HasAuthority())
 	{
 		NewWeapon->OnPickup(this);
-		Inventory.AddUnique(NewWeapon);	
+		Inventory.AddUnique(NewWeapon);
+		OnInventoryChanged();
 	}
 }
 
@@ -295,9 +307,7 @@ void ABPE_PlayerCharacter::SetAsCurrentWeapon(ABPE_Weapon* Weapon)
 		}
 		/** Attach the weapon on the socket is replicated to the clients */
 		CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
-
-		bUseControllerRotationYaw = true;
-		GetCharacterMovement()->bOrientRotationToMovement = false;
+		OnCurrentWeaponChanged();
 	}
 }
 
@@ -313,6 +323,36 @@ void ABPE_PlayerCharacter::HideUnusedWeapon(ABPE_Weapon* Weapon)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnRep_Inventory()
+{
+	OnInventoryChanged();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnInventoryChanged()
+{
+	PlaySound(PickupSound);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::PlaySound(USoundCue* Sound)
+{
+	if(IsValid(Sound))
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, Sound, GetActorLocation());
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::PlayAnimMontage(UAnimMontage* Montage, float PlayRate)
+{
+	if(IsValid(AnimInstance) && IsValid(SwapWeaponMontage))
+	{
+		AnimInstance->Montage_Play(SwapWeaponMontage, PlayRate);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 {
 	ABPE_Weapon* LastOverlappingWeapon = OverlappingWeapon;
@@ -324,8 +364,21 @@ void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnRep_CurrentWeapon()
 {
+	OnCurrentWeaponChanged();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnCurrentWeaponChanged()
+{
 	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
+
+	PlayAnimMontage(SwapWeaponMontage, 2.0f);
+
+	if(IsLocallyControlled())
+	{
+		OnChangeCurrentWeapon.Broadcast(CurrentWeapon->GetColorType());
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -351,6 +404,19 @@ void ABPE_PlayerCharacter::OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWe
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+ABPE_Weapon* ABPE_PlayerCharacter::FindWeaponWithColorType(EColorType ColorType) const 
+{
+	for (int32 i = 0; i < Inventory.Num(); i++)
+	{
+		if (Inventory[i]->GetColorType() == ColorType)
+		{
+			return Inventory[i];
+		}
+	}
+	return nullptr;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::InterpolateFieldOfView(float DeltaSeconds)
 {
 	if (bIsAiming)
@@ -363,19 +429,6 @@ void ABPE_PlayerCharacter::InterpolateFieldOfView(float DeltaSeconds)
 	}
 	
 	CameraComponent->SetFieldOfView(CurrentFOV);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-ABPE_Weapon* ABPE_PlayerCharacter::FindWeaponWithColorType(EColorType ColorType) const 
-{
-	for (int32 i = 0; i < Inventory.Num(); i++)
-	{
-		if (Inventory[i]->GetColorType() == ColorType)
-		{
-			return Inventory[i];
-		}
-	}
-	return nullptr;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -427,8 +480,10 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
+	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, Inventory, COND_OwnerOnly);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -235,6 +235,9 @@ void ABPE_PlayerCharacter::EquipNextWeapon()
 {
 	if(Inventory.Num() >= 2)
 	{
+		/** Index of by key requieres more performance than store an index, but I did it this way being concsious that in 
+		 * the inventory there is a maximun of 3 elements
+		 */
 		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
 		ABPE_Weapon* NextWeapon = Inventory[(CurrentWeaponIndex + 1) % Inventory.Num()];
 		Server_SetAsCurrentWeapon(NextWeapon);

@@ -4,14 +4,16 @@
 #include "HUD/Widgets/BPE_CharacterOverlay.h"
 
 #include "Components/Image.h"
+#include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
 
 void UBPE_CharacterOverlay::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
 	InitializeWeaponIcons();
-	SelectedScale = FVector2D(1.0f, 1.0f);
-	NotSelectedScale = FVector2D(0.3f, 0.3f);
+	SelectedScale = FVector2D(2.0f, 2.0f);
+	NotSelectedScale = FVector2D(0.8f, 0.8f);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -21,6 +23,16 @@ void UBPE_CharacterOverlay::UpdateWeaponIcons(EColorType WeaponColorType)
 	{
 		SetIconRenderParameters(IconsWeapon[WeaponColorType]);
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_CharacterOverlay::UpdateHealthDisplay(float Health, float MaxHealth)
+{
+	const float HealthPercent = Health / MaxHealth;
+	HealthProgressBar->SetPercent(HealthPercent);
+	
+	FString Text = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
+	HealthText->SetText(FText::FromString(Text));
 }
 
 //----------------------------------------------------------------------------------------------------------------------

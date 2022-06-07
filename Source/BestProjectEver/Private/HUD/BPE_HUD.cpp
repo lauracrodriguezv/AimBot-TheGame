@@ -4,6 +4,7 @@
 #include "HUD/BPE_HUD.h"
 
 #include "Character/BPE_PlayerCharacter.h"
+#include "Components/BPE_HealthComponent.h"
 #include "HUD/Widgets/BPE_CharacterOverlay.h"
 #include "GameFramework/PlayerController.h"
 
@@ -22,7 +23,8 @@ void ABPE_HUD::InitializeReferences()
 	ABPE_PlayerCharacter* PlayerCharacter = Cast<ABPE_PlayerCharacter>( GetOwningPawn());
 	if(IsValid(PlayerCharacter))
 	{
-		PlayerCharacter->OnChangeCurrentWeapon.AddDynamic(this, &ABPE_HUD::UpdateCurrentWeaponIcon);
+		PlayerCharacter->OnChangeCurrentWeaponDelegate.AddDynamic(this, &ABPE_HUD::UpdateCurrentWeaponIcon);
+		PlayerCharacter->GetHealthComponent()->OnHealthChangeDelegate.AddDynamic(this, &ABPE_HUD::UpdateHealth);
 	}
 }
 
@@ -49,5 +51,14 @@ void ABPE_HUD::UpdateCurrentWeaponIcon(EColorType WeaponColorType)
 	if(IsValid(CharacterOverlay))
 	{
 		CharacterOverlay->UpdateWeaponIcons(WeaponColorType);	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::UpdateHealth(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth)
+{
+	if(IsValid(CharacterOverlay))
+	{
+		CharacterOverlay->UpdateHealthDisplay(CurrentHealth, MaxHealth);	
 	}
 }

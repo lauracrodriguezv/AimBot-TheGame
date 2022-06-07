@@ -9,6 +9,7 @@
 
 class UBPE_CharacterOverlay;
 class UUserWidget;
+class UBPE_HealthComponent;
 /**
  * 
  */
@@ -32,6 +33,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	void InitializeReferences();
+
+	/** update health information on character overlay widget */
+	UFUNCTION()
+	void UpdateHealth(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth);
 
 public:
 

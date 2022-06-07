@@ -6,8 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "BPE_HealthComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangeSignature, UBPE_HealthComponent*, CurrentHealthComponent,
-	AActor*, DamagedActor, float, Damage, const UDamageType*, DamageType, AController*, InstigatedBy, AActor*, DamageCauser);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHealthChangeSignature, UBPE_HealthComponent*, CurrentHealthComponent,
+	float, CurrentHealth, float, MaxHealth);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BESTPROJECTEVER_API UBPE_HealthComponent : public UActorComponent
@@ -37,10 +37,13 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser );
+	void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+		class AController* InstigatedBy, AActor* DamageCauser );
 
 	UFUNCTION()
 	void OnRep_Health();
+
+	void OnHealthChange();
 
 public:	
 

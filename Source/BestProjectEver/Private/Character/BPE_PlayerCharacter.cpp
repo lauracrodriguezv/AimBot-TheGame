@@ -401,7 +401,7 @@ void ABPE_PlayerCharacter::OnCurrentWeaponChanged()
 
 	if(IsValid(CurrentWeapon) && IsLocallyControlled())
 	{
-		OnChangeCurrentWeapon.Broadcast(CurrentWeapon->GetColorType());
+		OnChangeCurrentWeaponDelegate.Broadcast(CurrentWeapon->GetColorType());
 	}
 }
 

@@ -47,6 +47,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category="Movement")
 	uint8 bIsAiming : 1;
+
+	UPROPERTY(BlueprintReadOnly, Category="Movement")
+	uint8 bIsDead : 1;
 	
 public:
 	

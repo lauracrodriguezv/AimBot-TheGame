@@ -42,7 +42,7 @@ void UBPE_HealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damag
 		bIsDead = true;
 	}
 
-	OnHealthChangeDelegate.Broadcast(this, DamagedActor, Damage, DamageType, InstigatedBy, DamageCauser);
+	OnHealthChange();
 	UE_LOG(LogTemp, Log, TEXT("My Health Is: %f"), CurrentHealth);
 }
 
@@ -50,6 +50,13 @@ void UBPE_HealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damag
 void UBPE_HealthComponent::OnRep_Health()
 {
 	UE_LOG(LogTemp, Log, TEXT("Client My Health Is: %f"), CurrentHealth);
+	OnHealthChange();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_HealthComponent::OnHealthChange()
+{
+	OnHealthChangeDelegate.Broadcast(this, CurrentHealth, MaxHealth);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -8,6 +8,8 @@
 #include "BPE_CharacterOverlay.generated.h"
 
 class UImage;
+class UProgressBar;
+class UTextBlock;
 
 UCLASS()
 class BESTPROJECTEVER_API UBPE_CharacterOverlay : public UUserWidget
@@ -47,6 +49,15 @@ protected:
 	/** map to access the icons with the color type of the weapon */
 	TMap<EColorType, UImage*> IconsWeapon;
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Health
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UProgressBar> HealthProgressBar;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> HealthText;
+
 protected:
 
 	virtual void NativeConstruct() override;
@@ -62,4 +73,6 @@ public:
 
 	/** [local] */
 	void UpdateWeaponIcons(EColorType WeaponColorType);
+	
+	void UpdateHealthDisplay(float Health, float MaxHealth);
 };

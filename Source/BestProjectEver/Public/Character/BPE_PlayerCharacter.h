@@ -36,7 +36,7 @@ public:
 
 	/** delegate called when current weapon is set */
 	UPROPERTY(BlueprintAssignable)
-	FOnChangeCurrentWeapon OnChangeCurrentWeapon;
+	FOnChangeCurrentWeapon OnChangeCurrentWeaponDelegate;
 
 protected:
 	
@@ -244,5 +244,7 @@ public:
 	bool IsAiming() const { return bIsAiming; };
 
 	virtual FVector GetPawnViewLocation() const override;
+
+	UBPE_HealthComponent* GetHealthComponent() const { return HealthComponent; }
 };
 

@@ -4,6 +4,7 @@
 #include "Character/BPE_AnimInstance.h"
 
 #include "Character/BPE_BaseCharacter.h"
+#include "Character/BPE_Enemy.h"
 #include "Character/BPE_PlayerCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -24,6 +25,7 @@ void UBPE_AnimInstance::InitializeReferences()
 {
 	CharacterOwner = Cast<ABPE_BaseCharacter>(TryGetPawnOwner());
 	PlayerOwner = Cast<ABPE_PlayerCharacter>(TryGetPawnOwner());
+	EnemyOwner = Cast<ABPE_Enemy>(TryGetPawnOwner());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -51,5 +53,10 @@ void UBPE_AnimInstance::UpdateCharacterVariables()
 	{
 		bIsWeaponEquipped = PlayerOwner->IsWeaponEquipped();
 		bIsAiming = PlayerOwner->IsAiming();
+	}
+
+	if(IsValid(EnemyOwner))
+	{
+		bIsWeaponEquipped = EnemyOwner->IsWeaponEquipped();
 	}
 }

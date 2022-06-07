@@ -31,9 +31,6 @@ protected:
 	//------------------------------------------------------------------------------------------------------------------
 	//Enemy State
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Patrol")
-	TObjectPtr<ABPE_PathFollowing> PatrolPathReference;
-	
 	EEnemyStatus EnemyStatus;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Enemy State")
@@ -41,6 +38,9 @@ protected:
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Patrol")
+	TObjectPtr<ABPE_PathFollowing> PatrolPathReference;
 
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	TSubclassOf<ABPE_Weapon> WeaponClass;
@@ -53,16 +53,22 @@ protected:
 	virtual void BeginPlay() override;
 
 	void SpawnWeapon();
-	
+
+	UFUNCTION(BlueprintCallable)
 	virtual void StartWeaponFire() override;
 
+	UFUNCTION(BlueprintCallable)
 	virtual void StopWeaponFire() override;
+
+	void OnSetEnemyStatus(EEnemyStatus NewEnemyStatus);
 	
 public:
-
+	
 	UFUNCTION(BlueprintCallable)
 	ABPE_PathFollowing* GetPathFollowing() const { return PatrolPathReference; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetEnemyStatus(EEnemyStatus NewEnemyStatus);
+
+	virtual bool IsWeaponEquipped() const override;
 };

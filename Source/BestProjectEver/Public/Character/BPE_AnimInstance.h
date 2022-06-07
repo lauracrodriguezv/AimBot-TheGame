@@ -1,11 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BPE_PlayerCharacter.h"
 #include "Animation/AnimInstance.h"
 #include "BPE_AnimInstance.generated.h"
 
 class ABPE_BaseCharacter;
+class ABPE_Enemy;
+class ABPE_PlayerCharacter;
 /**
  * 
  */
@@ -25,6 +26,9 @@ protected:
 	
 	UPROPERTY(BlueprintReadOnly, Category="Character")
 	TObjectPtr<ABPE_PlayerCharacter> PlayerOwner;
+
+	UPROPERTY(BlueprintReadOnly, Category="Character")
+	TObjectPtr<ABPE_Enemy> EnemyOwner;
 	
 	UPROPERTY(BlueprintReadOnly, Category="Movement")
 	float Speed;

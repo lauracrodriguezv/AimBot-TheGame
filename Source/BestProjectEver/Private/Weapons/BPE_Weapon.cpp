@@ -3,6 +3,7 @@
 
 #include "Weapons/BPE_Weapon.h"
 
+#include "BestProjectEver/BestProjectEver.h"
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
@@ -52,6 +53,8 @@ ABPE_Weapon::ABPE_Weapon()
 
 	ShootType = EShootType::LineTrace;
 	MinDistanceToImpactPoint = 300.0f;
+
+	BaseDamage = 10.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -210,7 +213,8 @@ void ABPE_Weapon::UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollis
 void ABPE_Weapon::Fire()
 {
 	FHitResult HitTarget;
-	TraceUnderCrosshairs(HitTarget);
+	FVector ShootDirection;
+	TraceUnderCrosshairs(HitTarget, ShootDirection);
 	
 	Multicast_PlayMuzzleFireEffects(HitTarget.ImpactPoint);
 
@@ -238,37 +242,57 @@ void ABPE_Weapon::Fire()
 				break;
 			}
 		}
+		
+		ApplyDamage(HitTarget, ShootDirection);
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult)
+void ABPE_Weapon::ApplyDamage(const FHitResult& HitResult, FVector ShootDirection)
 {
-	const ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
-
-	if(IsValid(PlayerOwner))
+	AActor* DamagedActor = HitResult.GetActor();
+	if(IsValid(DamagedActor) && OwnerCharacter)
 	{
+		UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), BaseDamage, ShootDirection, HitResult,
+			OwnerCharacter->GetInstigatorController(),OwnerCharacter, DamageType);	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& HitFromDirection)
+{
+	if(IsValid(OwnerCharacter))
+	{
+		const ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
 		FVector EyeLocation;
 		FRotator EyeRotation;
-		PlayerOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-
-		const FVector ShotDirection = EyeRotation.Vector();
+		if(IsValid(PlayerOwner))
+		{
+			PlayerOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+		}
+		else
+		{
+			OwnerCharacter->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+		}
+		
+		HitFromDirection = EyeRotation.Vector();
 		
 		FVector TraceStart = EyeLocation;
-		const float DistanceToPlayer = (PlayerOwner->GetActorLocation() - TraceStart).Size();
-		constexpr float ExtraDistance = 10.0f;
+		const float DistanceToPlayer = (OwnerCharacter->GetActorLocation() - TraceStart).Size();
+		constexpr float ExtraDistance = 100.0f;
 		
 		/** This additional distance is to prevent the shoot hit something behind the character */
-		TraceStart += ShotDirection * (DistanceToPlayer + ExtraDistance);
+		TraceStart += HitFromDirection * (DistanceToPlayer + ExtraDistance);
 		
-		const FVector TraceEnd = EyeLocation + (ShotDirection * ShotDistance);
+		const FVector TraceEnd = EyeLocation + (HitFromDirection * ShotDistance);
 
 		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(Owner);
+		QueryParams.AddIgnoredActor(OwnerCharacter);
 		QueryParams.AddIgnoredActor(this);
+		QueryParams.AddIgnoredComponent(OwnerCharacter->GetMesh());
 		QueryParams.bTraceComplex = true;
 
-		GetWorld()->LineTraceSingleByChannel(OutHitResult, TraceStart, TraceEnd, ECC_Visibility);
+		GetWorld()->LineTraceSingleByChannel(OutHitResult, TraceStart, TraceEnd, ECC_Weapon);
 	}
 }
 

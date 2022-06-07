@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "BPE_BaseCharacter.generated.h"
 
+class UBPE_HealthComponent;
+
 UCLASS()
 class BESTPROJECTEVER_API ABPE_BaseCharacter : public ACharacter
 {
@@ -17,6 +19,9 @@ public:
 
 protected:
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
+	TObjectPtr<UBPE_HealthComponent> HealthComponent;
+	
 	UPROPERTY(EditDefaultsOnly, Category="AI")
 	uint8 TeamNumber;
 	
@@ -39,4 +44,5 @@ public:
 	virtual bool IsWeaponEquipped() const;
 
 	static bool IsFriendly(const AActor* ActorA, const AActor* ActorB);
+
 };

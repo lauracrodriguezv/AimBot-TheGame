@@ -3,11 +3,21 @@
 
 #include "Character/BPE_BaseCharacter.h"
 
+#include "BestProjectEver/BestProjectEver.h"
+#include "Components/BPE_HealthComponent.h"
+#include "Components/CapsuleComponent.h"
+
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_BaseCharacter::ABPE_BaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	HealthComponent = CreateDefaultSubobject<UBPE_HealthComponent>(TEXT("HealthComponent"));
+	HealthComponent->SetIsReplicated(true);
+	
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Weapon, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Weapon, ECR_Block);
+	
 	WeaponSocketName = "SCK_Weapon";
 }
 
@@ -57,4 +67,3 @@ bool ABPE_BaseCharacter::IsFriendly(const AActor* ActorA, const AActor* ActorB)
 	}
 	return true;
 }
-

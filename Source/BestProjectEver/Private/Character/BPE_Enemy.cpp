@@ -30,6 +30,7 @@ void ABPE_Enemy::SpawnWeapon()
 		CurrentWeapon = GetWorld()->SpawnActor<ABPE_Weapon>(WeaponClass, FVector::ZeroVector, FRotator::ZeroRotator);
 		if(IsValid(CurrentWeapon))
 		{
+			CurrentWeapon->OnPickup(this);
 			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
 		}
 	}

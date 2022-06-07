@@ -77,7 +77,7 @@ protected:
 	TObjectPtr<ABPE_BaseCharacter> OwnerCharacter;
 	
 	/** Camera can be inverted or normal */
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aiming")
     uint8 bIsLookInverted : 1;
 	
 	/** current weapon state */
@@ -98,6 +98,9 @@ protected:
 	/** true by default and when TimerHandle_AutoFire has finished */
 	uint8 bCanFire : 1;
 
+	UPROPERTY(EditDefaultsOnly, meta=(ClampMin = 0.0), Category= "Weapon State")
+	float BaseDamage;
+	
 	/** the ability of the weapon to fire specific number of shots per unit of time */
 	UPROPERTY(EditDefaultsOnly, meta=(ClampMin = 0.1), Category= "Weapon State")
 	float RoundsPerMinute;
@@ -116,6 +119,9 @@ protected:
 	/** FOV when is aiming */
 	UPROPERTY(EditAnywhere, Category = "Aiming")
 	float ZoomedFOV;
+
+	UPROPERTY(EditDefaultsOnly, Category= "Weapon State")
+	TSubclassOf<UDamageType> DamageType;
 
 	/** Handle for efficient management of Firing timer */
 	FTimerHandle TimerHandle_AutoFire;
@@ -199,8 +205,10 @@ protected:
 	UFUNCTION()
 	virtual void Fire();
 
+	void ApplyDamage(const FHitResult& HitResult, FVector ShootDirection);
+
 	/** [server] perform trace to set hit target */
-	void TraceUnderCrosshairs(FHitResult& OutHitResult);
+	void TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& HitFromDirection);
 
 	/** [server] prevent to spawn multiple times fire button and fire again if it is on firing state and is automatic */
 	void HandleReFiring();

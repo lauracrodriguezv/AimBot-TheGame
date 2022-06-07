@@ -17,6 +17,9 @@ public:
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly, Category="AI")
+	uint8 TeamNumber;
+	
 	/** socket or bone name for attaching weapon mesh */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName WeaponSocketName;
@@ -34,4 +37,6 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 	virtual bool IsWeaponEquipped() const;
+
+	static bool IsFriendly(const AActor* ActorA, const AActor* ActorB);
 };

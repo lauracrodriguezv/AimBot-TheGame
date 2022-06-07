@@ -91,7 +91,8 @@ protected:
 	/** socket where casing is spawned */
 	UPROPERTY(EditDefaultsOnly, Category= "Weapon State")
 	FName AmmoEjectSocketName;
-	
+
+	UPROPERTY(EditDefaultsOnly, Category= "Weapon State")
 	uint8 bIsAutomatic : 1;
 
 	/** true by default and when TimerHandle_AutoFire has finished */

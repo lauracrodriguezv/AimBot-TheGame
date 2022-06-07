@@ -6,11 +6,12 @@
 #include "AIModule/Classes/BehaviorTree/BlackboardComponent.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Character/BPE_Enemy.h"
+#include "Character/BPE_BaseCharacter.h"
 #include "AI/BPE_PatrolPath.h"
 
 ABPE_AIController::ABPE_AIController()
 {
-	
+	PathPatrolReferenceName = "PathPatrolReference";
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -42,5 +43,15 @@ void ABPE_AIController::InitializeReferences()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_AIController::UpdateBlackboardKeys()
 {
-	
+	PathFollowing = CharacterControlled->GetPathFollowing();
+	if(IsValid(PathFollowing))
+	{
+		BlackboardReference->SetValueAsObject(PathPatrolReferenceName, PathFollowing);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+ETeamAttitude::Type ABPE_AIController::GetTeamAttitudeTowards(const AActor& Other) const
+{
+	return ABPE_BaseCharacter::IsFriendly(GetPawn(), &Other) ? ETeamAttitude::Friendly : ETeamAttitude::Hostile;
 }

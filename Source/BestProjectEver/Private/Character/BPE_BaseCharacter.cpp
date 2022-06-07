@@ -39,3 +39,22 @@ bool ABPE_BaseCharacter::IsWeaponEquipped() const
 	return true;
 }
 
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_BaseCharacter::IsFriendly(const AActor* ActorA, const AActor* ActorB)
+{
+	if(IsValid(ActorA) && IsValid(ActorB))
+	{
+		const ABPE_BaseCharacter* CharacterA = Cast<ABPE_BaseCharacter>(ActorA);
+		const ABPE_BaseCharacter* CharacterB = Cast<ABPE_BaseCharacter>(ActorB);
+
+		if(IsValid(CharacterA) && IsValid(CharacterB))
+		{
+			return CharacterA->TeamNumber == CharacterB->TeamNumber;
+		}
+
+		return true;
+	}
+	return true;
+}
+

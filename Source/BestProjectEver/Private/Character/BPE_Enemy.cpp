@@ -11,6 +11,8 @@ ABPE_Enemy::ABPE_Enemy()
 	EnemySpeedMap.Add(EEnemyStatus::Patrol, 300.0);
 	EnemySpeedMap.Add(EEnemyStatus::Combat, 600.0);
 	EnemySpeedMap.Add(EEnemyStatus::Investigating, 500.0);
+
+	TeamNumber = 0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

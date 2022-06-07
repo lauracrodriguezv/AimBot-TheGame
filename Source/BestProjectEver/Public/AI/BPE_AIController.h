@@ -17,6 +17,9 @@ class BESTPROJECTEVER_API ABPE_AIController : public AAIController
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy Controller")
+	FName PathPatrolReferenceName;
+	
 	UPROPERTY(BlueprintReadOnly, Category="Enemy Controller")
 	TObjectPtr<ABPE_Enemy> CharacterControlled;
 	
@@ -25,6 +28,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy Controller")
 	TObjectPtr<UBlackboardComponent> BlackboardReference;
+
+	UPROPERTY(BlueprintReadOnly, Category="Enemy Controller")
+	TObjectPtr<UObject> PathFollowing;
 	
 public:
 
@@ -37,4 +43,6 @@ protected:
 	void InitializeReferences();
 
 	void UpdateBlackboardKeys();
+
+	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 };

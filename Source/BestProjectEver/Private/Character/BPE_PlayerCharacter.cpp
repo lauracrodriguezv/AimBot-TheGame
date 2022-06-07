@@ -37,6 +37,8 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	DefaultWalkSpeed = 600.0f;
 	AimWalkSpeed = 100.0f;
 	ZoomOutInterpSpeed =  20.0f;
+
+	TeamNumber = 1;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

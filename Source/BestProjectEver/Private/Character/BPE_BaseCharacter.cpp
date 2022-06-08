@@ -6,6 +6,8 @@
 #include "BestProjectEver/BestProjectEver.h"
 #include "Components/BPE_HealthComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_BaseCharacter::ABPE_BaseCharacter()
@@ -25,6 +27,11 @@ ABPE_BaseCharacter::ABPE_BaseCharacter()
 void ABPE_BaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (IsValid(GetMesh()))
+	{
+		AnimInstance = GetMesh()->GetAnimInstance();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -38,6 +45,24 @@ void ABPE_BaseCharacter::StopWeaponFire()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_BaseCharacter::PlaySound(USoundCue* Sound)
+{
+	if(IsValid(Sound))
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, Sound, GetActorLocation());
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_BaseCharacter::PlayMontage(UAnimMontage* Montage, float PlayRate)
+{
+	if(IsValid(AnimInstance) && IsValid(Montage))
+	{
+		AnimInstance->Montage_Play(Montage, PlayRate);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_BaseCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -48,7 +73,6 @@ bool ABPE_BaseCharacter::IsWeaponEquipped() const
 {
 	return true;
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------
 bool ABPE_BaseCharacter::IsFriendly(const AActor* ActorA, const AActor* ActorB)

@@ -21,7 +21,7 @@ void UBPE_HealthComponent::BeginPlay()
 
 	CurrentHealth = MaxHealth;
 	AActor* ActorOwner = GetOwner();
-	if (IsValid(ActorOwner))
+	if (IsValid(ActorOwner) && ActorOwner->HasAuthority())
 	{
 		ActorOwner->OnTakeAnyDamage.AddDynamic(this, &UBPE_HealthComponent::HandleTakeAnyDamage);
 	}
@@ -40,6 +40,7 @@ void UBPE_HealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damag
 	if (CurrentHealth == 0.0f) 
 	{
 		bIsDead = true;
+		OnIsDead();
 	}
 
 	OnHealthChange();
@@ -54,6 +55,18 @@ void UBPE_HealthComponent::OnRep_Health()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void UBPE_HealthComponent::OnRep_IsDead()
+{
+	OnIsDead();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_HealthComponent::OnIsDead()
+{
+	OnDeathDelegate.Broadcast();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void UBPE_HealthComponent::OnHealthChange()
 {
 	OnHealthChangeDelegate.Broadcast(this, CurrentHealth, MaxHealth);
@@ -64,5 +77,6 @@ void UBPE_HealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UBPE_HealthComponent, CurrentHealth);
+	DOREPLIFETIME(UBPE_HealthComponent, bIsDead);
 }
 

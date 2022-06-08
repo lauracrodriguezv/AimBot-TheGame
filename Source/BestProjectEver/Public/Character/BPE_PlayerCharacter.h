@@ -88,13 +88,12 @@ protected:
 	//------------------------------------------------------------------------------------------------------------------
 	// Animations
 
-	/** anim instance reference */
-	UPROPERTY(BlueprintReadOnly, Category = "Animation")
-	TObjectPtr<UAnimInstance> AnimInstance;
-
 	/** animation played on current weapon change */
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> SwapWeaponMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TObjectPtr<UAnimMontage> DeathMontage;
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects
@@ -107,6 +106,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	void InitializeReference();
+
+	UFUNCTION()
+	void HandlePlayerDeath();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Input handlers
@@ -218,15 +220,6 @@ protected:
 	/** [server and client] weapon inventory handler */
 	void OnInventoryChanged();
 
-	//------------------------------------------------------------------------------------------------------------------
-	// Sounds And Effects
-
-	/** play sound cue */
-	void PlaySound(USoundCue* Sound);
-
-	/** play anim montage */
-	void PlayAnimMontage(UAnimMontage* Montage, float PlayRate = 1.0f);
-
 public:
 
 	virtual void Tick(float DeltaSeconds) override;
@@ -244,7 +237,5 @@ public:
 	bool IsAiming() const { return bIsAiming; };
 
 	virtual FVector GetPawnViewLocation() const override;
-
-	UBPE_HealthComponent* GetHealthComponent() const { return HealthComponent; }
 };
 

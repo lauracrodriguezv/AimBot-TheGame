@@ -6,6 +6,7 @@
 #include "Character/BPE_BaseCharacter.h"
 #include "Character/BPE_Enemy.h"
 #include "Character/BPE_PlayerCharacter.h"
+#include "Components/BPE_HealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -38,8 +39,9 @@ void UBPE_AnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 //----------------------------------------------------------------------------------------------------------------------
 void UBPE_AnimInstance::UpdateCharacterVariables()
 {
-	if(IsValid(CharacterOwner))
+	if(IsValid(CharacterOwner) && !bIsDead)
 	{
+		bIsDead = CharacterOwner->GetHealthComponent()->IsDead();
 		FVector Velocity = CharacterOwner->GetVelocity();
 		Velocity.Z = 0.0f;
 		Speed = Velocity.Size();
@@ -47,16 +49,16 @@ void UBPE_AnimInstance::UpdateCharacterVariables()
 		bIsInAir = CharacterOwner->GetCharacterMovement()->IsFalling();
 		bIsAccelerating = CharacterOwner->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.0f;
 		bIsCrouched = CharacterOwner->GetCharacterMovement()->IsCrouching();
-	}
 
-	if(IsValid(PlayerOwner))
-	{
-		bIsWeaponEquipped = PlayerOwner->IsWeaponEquipped();
-		bIsAiming = PlayerOwner->IsAiming();
-	}
+		if(IsValid(PlayerOwner))
+		{
+			bIsWeaponEquipped = PlayerOwner->IsWeaponEquipped();
+			bIsAiming = PlayerOwner->IsAiming();
+		}
 
-	if(IsValid(EnemyOwner))
-	{
-		bIsWeaponEquipped = EnemyOwner->IsWeaponEquipped();
+		if(IsValid(EnemyOwner))
+		{
+			bIsWeaponEquipped = EnemyOwner->IsWeaponEquipped();
+		}
 	}
 }

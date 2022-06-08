@@ -4,12 +4,12 @@
 #include "Character/BPE_PlayerCharacter.h"
 
 #include "Camera/CameraComponent.h"
+#include "Components/BPE_HealthComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/BPE_Weapon.h"
-#include "Sound/SoundCue.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_PlayerCharacter::ABPE_PlayerCharacter()
@@ -53,10 +53,14 @@ void ABPE_PlayerCharacter::InitializeReference()
 {
 	DefaultFOV = CameraComponent->FieldOfView;
 	CurrentFOV = DefaultFOV;
-	if (IsValid(GetMesh()))
-	{
-		AnimInstance = GetMesh()->GetAnimInstance();
-	}
+
+	HealthComponent->OnDeathDelegate.AddDynamic(this, &ABPE_PlayerCharacter::HandlePlayerDeath);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::HandlePlayerDeath()
+{
+	PlayMontage(DeathMontage);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -359,24 +363,6 @@ void ABPE_PlayerCharacter::OnInventoryChanged()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::PlaySound(USoundCue* Sound)
-{
-	if(IsValid(Sound))
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, Sound, GetActorLocation());
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::PlayAnimMontage(UAnimMontage* Montage, float PlayRate)
-{
-	if(IsValid(AnimInstance) && IsValid(Montage))
-	{
-		AnimInstance->Montage_Play(Montage, PlayRate);
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 {
 	ABPE_Weapon* LastOverlappingWeapon = OverlappingWeapon;
@@ -397,7 +383,7 @@ void ABPE_PlayerCharacter::OnCurrentWeaponChanged()
 	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 
-	PlayAnimMontage(SwapWeaponMontage, 2.0f);
+	PlayMontage(SwapWeaponMontage, 2.0f);
 
 	if(IsValid(CurrentWeapon) && IsLocallyControlled())
 	{

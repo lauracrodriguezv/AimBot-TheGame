@@ -6,8 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "BPE_HealthComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHealthChangeSignature, UBPE_HealthComponent*, CurrentHealthComponent,
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHealthChangeSignature, class UBPE_HealthComponent*, CurrentHealthComponent,
 	float, CurrentHealth, float, MaxHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BESTPROJECTEVER_API UBPE_HealthComponent : public UActorComponent
@@ -16,7 +17,7 @@ class BESTPROJECTEVER_API UBPE_HealthComponent : public UActorComponent
 
 protected:
 
-	UPROPERTY(BlueprintReadOnly, Category = "Health Component")
+	UPROPERTY(ReplicatedUsing = OnRep_IsDead, BlueprintReadOnly, Category = "Health Component")
 	uint8 bIsDead : 1;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health Component", meta = (ClampMin = 0.0, UIMin = 0.0))
@@ -32,6 +33,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChangeSignature OnHealthChangeDelegate;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnDeath OnDeathDelegate;
+
 protected:
 	
 	virtual void BeginPlay() override;
@@ -44,6 +48,11 @@ protected:
 	void OnRep_Health();
 
 	void OnHealthChange();
+
+	UFUNCTION()
+	void OnRep_IsDead();
+
+	void OnIsDead();
 
 public:	
 

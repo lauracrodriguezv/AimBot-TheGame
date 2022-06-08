@@ -42,8 +42,12 @@ protected:
 
 	UFUNCTION()
 	void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
-		class AController* InstigatedBy, AActor* DamageCauser );
+		AController* InstigatedBy, AActor* DamageCauser );
 
+	UFUNCTION()
+	void HandleEnemyTakeDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation,
+		UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser);
+	
 	UFUNCTION()
 	void OnRep_Health();
 

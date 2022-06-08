@@ -53,14 +53,6 @@ void ABPE_PlayerCharacter::InitializeReference()
 {
 	DefaultFOV = CameraComponent->FieldOfView;
 	CurrentFOV = DefaultFOV;
-
-	HealthComponent->OnDeathDelegate.AddDynamic(this, &ABPE_PlayerCharacter::HandlePlayerDeath);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::HandlePlayerDeath()
-{
-	PlayMontage(DeathMontage);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -511,3 +503,4 @@ FVector ABPE_PlayerCharacter::GetPawnViewLocation() const
 	}
 	return Super::GetPawnViewLocation();
 }
+

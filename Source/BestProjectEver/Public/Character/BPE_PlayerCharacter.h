@@ -21,6 +21,9 @@ class BESTPROJECTEVER_API ABPE_PlayerCharacter : public ABPE_BaseCharacter
 	GENERATED_BODY()
 
 protected:
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Components
 	
 	/** Third person camera*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -91,9 +94,6 @@ protected:
 	/** animation played on current weapon change */
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> SwapWeaponMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Animation")
-	TObjectPtr<UAnimMontage> DeathMontage;
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects
@@ -106,9 +106,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	void InitializeReference();
-
-	UFUNCTION()
-	void HandlePlayerDeath();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Input handlers
@@ -128,12 +125,6 @@ protected:
 	void StartCrouch();
 
 	void EndCrouch();
-
-	/** [client] call the server to perform fire */
-	virtual void StartWeaponFire() override;
-
-	/** [client] call the server to perform stop fire */
-	virtual void StopWeaponFire() override;
 
 	/** [client] call the server to perform aiming state */
 	void Aim();
@@ -223,6 +214,12 @@ protected:
 public:
 
 	virtual void Tick(float DeltaSeconds) override;
+
+	/** [client] call the server to perform fire */
+	virtual void StartWeaponFire() override;
+
+	/** [client] call the server to perform stop fire */
+	virtual void StopWeaponFire() override;
 	
 	/** [server] overlapping weapon handler */
 	void SetOverlappingWeapon(ABPE_Weapon* Weapon);

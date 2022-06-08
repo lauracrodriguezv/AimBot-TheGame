@@ -15,6 +15,7 @@ class ABPE_BaseCharacter;
 class ABPE_Casing;
 class USoundCue;
 class UMaterialInstanceConstant;
+class USoundBase;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -125,11 +126,17 @@ protected:
 
 	/** Handle for efficient management of Firing timer */
 	FTimerHandle TimerHandle_AutoFire;
+
+	//------------------------------------------------------------------------------------------------------------------
+	//Animation
 	
 	/** weapon animation */
 	UPROPERTY(EditAnywhere, Category = " Effects")
 	TObjectPtr<UAnimationAsset> FireAnimation;
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Effects and Sounds
+	
 	/** spawned actor for ammo FX */
 	UPROPERTY(EditAnywhere, Category = "Effects")
 	TSubclassOf<ABPE_Casing> CasingClass;
@@ -139,6 +146,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	TObjectPtr<USoundCue> ImpactSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	TObjectPtr<USoundBase> ShootSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	float ShootLoudness;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Shoot Type
@@ -213,14 +226,16 @@ protected:
 	/** [server] prevent to spawn multiple times fire button and fire again if it is on firing state and is automatic */
 	void HandleReFiring();
 
+	virtual void OnRep_Owner() override;
+
 	//------------------------------------------------------------------------------------------------------------------
 	//Effects 
 	
 	UFUNCTION(NetMulticast, Unreliable, WithValidation)
-	void Multicast_PlayMuzzleFireEffects(const FVector ImpactPoint);
+	void Multicast_PlayMuzzleFireEffects(const FVector& MuzzleLocation);
 
 	UFUNCTION(NetMulticast, Unreliable, WithValidation)
-	void Multicast_PlayImpactFireEffects(const FVector ImpactPoint);
+	void Multicast_PlayImpactFireEffects(const FVector& ImpactPoint);
 
 public:
 	

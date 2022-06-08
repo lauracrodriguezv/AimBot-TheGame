@@ -55,6 +55,8 @@ ABPE_Weapon::ABPE_Weapon()
 	MinDistanceToImpactPoint = 300.0f;
 
 	BaseDamage = 10.0f;
+
+	ShootLoudness = 1.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -215,8 +217,14 @@ void ABPE_Weapon::Fire()
 	FHitResult HitTarget;
 	FVector ShootDirection;
 	TraceUnderCrosshairs(HitTarget, ShootDirection);
-	
-	Multicast_PlayMuzzleFireEffects(HitTarget.ImpactPoint);
+
+	const FVector MuzzleLocation = HitTarget.TraceStart;
+	Multicast_PlayMuzzleFireEffects(MuzzleLocation);
+	ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
+	if(IsValid(PlayerOwner))
+	{
+		PlayerOwner->CharacterMakeNoise(ShootLoudness, MuzzleLocation);
+	}
 
 	if(HitTarget.bBlockingHit)
 	{
@@ -253,7 +261,7 @@ void ABPE_Weapon::ApplyDamage(const FHitResult& HitResult, FVector ShootDirectio
 	AActor* DamagedActor = HitResult.GetActor();
 	if(IsValid(DamagedActor) && OwnerCharacter)
 	{
-		UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), BaseDamage, ShootDirection, HitResult,
+		UGameplayStatics::ApplyPointDamage(DamagedActor, BaseDamage, ShootDirection, HitResult,
 			OwnerCharacter->GetInstigatorController(),OwnerCharacter, DamageType);	
 	}
 }
@@ -346,6 +354,13 @@ void ABPE_Weapon::SetOwner(AActor* NewOwner)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	OwnerCharacter = Cast<ABPE_BaseCharacter>(Owner);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::OnPickup(AActor* NewOwner)
 {
 	if(IsValid(NewOwner))
@@ -356,11 +371,16 @@ void ABPE_Weapon::OnPickup(AActor* NewOwner)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Implementation(const FVector ImpactPoint)
+void ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Implementation(const FVector& MuzzleLocation)
 {
 	if (IsValid(FireAnimation))
 	{
 		WeaponMesh->PlayAnimation(FireAnimation, false);
+	}
+
+	if(IsValid(ShootSound))
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShootSound, MuzzleLocation, ShootLoudness);
 	}
 	
 	if (IsValid(CasingClass))
@@ -376,7 +396,7 @@ void ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Implementation(const FVector I
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::Multicast_PlayImpactFireEffects_Implementation(const FVector ImpactPoint)
+void ABPE_Weapon::Multicast_PlayImpactFireEffects_Implementation(const FVector& ImpactPoint)
 {
 	if (ImpactParticles)
 	{
@@ -389,13 +409,13 @@ void ABPE_Weapon::Multicast_PlayImpactFireEffects_Implementation(const FVector I
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_Weapon::Multicast_PlayImpactFireEffects_Validate(const FVector ImpactPoint)
+bool ABPE_Weapon::Multicast_PlayImpactFireEffects_Validate(const FVector& ImpactPoint)
 {
 	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Validate(const FVector ImpactPoint)
+bool ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Validate(const FVector& MuzzleLocation)
 {
 	return true;
 }

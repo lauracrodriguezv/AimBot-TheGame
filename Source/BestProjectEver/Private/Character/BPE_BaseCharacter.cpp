@@ -6,6 +6,7 @@
 #include "BestProjectEver/BestProjectEver.h"
 #include "Components/BPE_HealthComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/PawnNoiseEmitterComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
@@ -16,6 +17,9 @@ ABPE_BaseCharacter::ABPE_BaseCharacter()
 
 	HealthComponent = CreateDefaultSubobject<UBPE_HealthComponent>(TEXT("HealthComponent"));
 	HealthComponent->SetIsReplicated(true);
+
+	NoiseEmitterComponent = CreateDefaultSubobject<UPawnNoiseEmitterComponent>(TEXT("NoiseEmitter"));
+	NoiseEmitterComponent->SetAutoActivate(true);
 	
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Weapon, ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Weapon, ECR_Block);
@@ -32,6 +36,14 @@ void ABPE_BaseCharacter::BeginPlay()
 	{
 		AnimInstance = GetMesh()->GetAnimInstance();
 	}
+
+	HealthComponent->OnDeathDelegate.AddDynamic(this, &ABPE_BaseCharacter::HandlePlayerDeath);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_BaseCharacter::HandlePlayerDeath()
+{
+	PlayAnimMontage(DeathMontage);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -42,6 +54,15 @@ void ABPE_BaseCharacter::StartWeaponFire()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_BaseCharacter::StopWeaponFire()
 {
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_BaseCharacter::CharacterMakeNoise(const float Loudness, const FVector NoiseLocation)
+{
+	if(IsValid(NoiseEmitterComponent))
+	{
+		NoiseEmitterComponent->MakeNoise(this, Loudness, NoiseLocation);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

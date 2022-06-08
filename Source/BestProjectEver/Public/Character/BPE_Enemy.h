@@ -54,15 +54,15 @@ protected:
 
 	void SpawnWeapon();
 
+	void OnSetEnemyStatus(EEnemyStatus NewEnemyStatus);
+	
+public:
+
 	UFUNCTION(BlueprintCallable)
 	virtual void StartWeaponFire() override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void StopWeaponFire() override;
-
-	void OnSetEnemyStatus(EEnemyStatus NewEnemyStatus);
-	
-public:
 	
 	UFUNCTION(BlueprintCallable)
 	ABPE_PathFollowing* GetPathFollowing() const { return PatrolPathReference; }

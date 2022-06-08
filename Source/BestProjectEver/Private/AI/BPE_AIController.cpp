@@ -12,6 +12,7 @@
 ABPE_AIController::ABPE_AIController()
 {
 	PathPatrolReferenceName = "PathPatrolReference";
+	SetGenericTeamId(FGenericTeamId(1));
 }
 
 //----------------------------------------------------------------------------------------------------------------------

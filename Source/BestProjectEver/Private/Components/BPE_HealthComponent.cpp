@@ -3,6 +3,7 @@
 
 #include "Components/BPE_HealthComponent.h"
 
+#include "Character/BPE_Enemy.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -24,6 +25,12 @@ void UBPE_HealthComponent::BeginPlay()
 	if (IsValid(ActorOwner) && ActorOwner->HasAuthority())
 	{
 		ActorOwner->OnTakeAnyDamage.AddDynamic(this, &UBPE_HealthComponent::HandleTakeAnyDamage);
+		const ABPE_Enemy* EnemyOwner = Cast<ABPE_Enemy>(ActorOwner);
+		if(IsValid(EnemyOwner))
+		{
+			
+		}
+		
 	}
 }
 
@@ -46,6 +53,15 @@ void UBPE_HealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damag
 	OnHealthChange();
 	UE_LOG(LogTemp, Log, TEXT("My Health Is: %f"), CurrentHealth);
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_HealthComponent::HandleEnemyTakeDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy,
+	FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection,
+	const UDamageType* DamageType, AActor* DamageCauser)
+{
+	
+}
+
 
 //----------------------------------------------------------------------------------------------------------------------
 void UBPE_HealthComponent::OnRep_Health()

@@ -17,6 +17,8 @@ class BESTPROJECTEVER_API ABPE_AIController : public AAIController
 
 protected:
 
+	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy Controller")
 	FName PathPatrolReferenceName;
 	

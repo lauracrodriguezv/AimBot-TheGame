@@ -20,8 +20,16 @@ public:
 
 protected:
 
+	//------------------------------------------------------------------------------------------------------------------
+	// Components
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	TObjectPtr<UBPE_HealthComponent> HealthComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UPawnNoiseEmitterComponent> NoiseEmitterComponent;
+
+	//------------------------------------------------------------------------------------------------------------------
 	
 	UPROPERTY(EditDefaultsOnly, Category="AI")
 	uint8 TeamNumber;
@@ -30,17 +38,22 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	FName WeaponSocketName;
 
+	//------------------------------------------------------------------------------------------------------------------
+	// Animation
+	
 	/** anim instance reference */
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
 	TObjectPtr<UAnimInstance> AnimInstance;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TObjectPtr<UAnimMontage> DeathMontage;
 	
 protected:
 
 	virtual void BeginPlay() override;
-	
-	virtual void StartWeaponFire();
-	
-	virtual void StopWeaponFire();
+
+	UFUNCTION()
+	void HandlePlayerDeath();
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects
@@ -55,10 +68,16 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	virtual void StartWeaponFire();
+	
+	virtual void StopWeaponFire();
+
 	virtual bool IsWeaponEquipped() const;
 
 	static bool IsFriendly(const AActor* ActorA, const AActor* ActorB);
 
 	UFUNCTION(BlueprintCallable)
 	virtual UBPE_HealthComponent* GetHealthComponent() const { return HealthComponent; }
+
+	void CharacterMakeNoise(const float Loudness, const FVector NoiseLocation);
 };

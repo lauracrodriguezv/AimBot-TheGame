@@ -12,6 +12,7 @@ UBPE_BTDecorator_IsInvestigating::UBPE_BTDecorator_IsInvestigating()
 {
 	NodeName = "IsInvestigating";
 	FlowAbortMode = EBTFlowAbortMode::Both;
+	SetIsInversed(false);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -21,7 +22,7 @@ bool UBPE_BTDecorator_IsInvestigating::CalculateRawConditionValue(UBehaviorTreeC
 	const AAIController* AIController = OwnerComp.GetAIOwner();
 	if(IsValid(AIController))
 	{
-		ABPE_Enemy* EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
+		const ABPE_Enemy* EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
 		if(IsValid(EnemyOwner))
 		{
 			return EnemyOwner->GetEnemyStatus() == EEnemyStatus::Investigating;

@@ -3,13 +3,12 @@
 
 #include "AI/Decorators/BPE_BTDecorator_IsPlayerAlive.h"
 
-#include "Character/BPE_Enemy.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/BPE_HealthComponent.h"
 
-//----------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------L-------------------------------------
 UBPE_BTDecorator_IsPlayerAlive::UBPE_BTDecorator_IsPlayerAlive()
 {
 	NodeName = "IsPlayerAlive";

@@ -6,13 +6,16 @@
 #include "Character/BPE_Enemy.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "BestProjectEver/BestProjectEver.h"
 #include "Character/BPE_PlayerCharacter.h"
 
 UBPE_BTDecorator_CheckLineOfSight::UBPE_BTDecorator_CheckLineOfSight()
 {
 	NodeName = "HasLineOfSight";
 	FlowAbortMode = EBTFlowAbortMode::Both;
+	SetIsInversed(true);
+
+	TargetReferenceName = "TargetReference";
+	TargetLocationName = "TargetLocation";
 }
 
 bool UBPE_BTDecorator_CheckLineOfSight::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp,
@@ -31,7 +34,7 @@ bool UBPE_BTDecorator_CheckLineOfSight::CalculateRawConditionValue(UBehaviorTree
 			FVector TraceStart = EyeLocation;
 
 			UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
-			FVector TraceEnd = BlackboardComponent->GetValueAsVector("TargetLocation");
+			FVector TraceEnd = BlackboardComponent->GetValueAsVector(TargetLocationName);
 			
 			FCollisionQueryParams QueryParams;
 			QueryParams.AddIgnoredActor(EnemyOwner);
@@ -43,7 +46,7 @@ bool UBPE_BTDecorator_CheckLineOfSight::CalculateRawConditionValue(UBehaviorTree
 
 			if(HitResult.bBlockingHit)
 			{
-				ABPE_PlayerCharacter* TargetReference = Cast<ABPE_PlayerCharacter>(BlackboardComponent->GetValueAsObject("TargetReference"));
+				ABPE_PlayerCharacter* TargetReference = Cast<ABPE_PlayerCharacter>(BlackboardComponent->GetValueAsObject(TargetReferenceName));
 				DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Green, true, 2.0);
 				return Cast<ABPE_PlayerCharacter>(HitResult.GetActor()) == TargetReference;
 			}
@@ -63,3 +66,8 @@ void UBPE_BTDecorator_CheckLineOfSight::OnGameplayTaskDeactivated(UGameplayTask&
 {
 	Super::OnGameplayTaskDeactivated(Task);
 }
+
+void UBPE_BTDecorator_CheckLineOfSight::TraceFromEnemySight(ABPE_Enemy* Enemy, FHitResult& HitResult)
+{
+}
+

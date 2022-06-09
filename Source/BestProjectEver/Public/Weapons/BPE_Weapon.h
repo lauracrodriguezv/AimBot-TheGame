@@ -261,6 +261,8 @@ public:
 
 	float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 
+	FTransform GetMuzzleSocketTransform() const;
+
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon usage 
 	

@@ -126,22 +126,17 @@ void ABPE_Weapon::ShootWithLineTrace(const FVector& ImpactPoint)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::ShootWithBullets(const FVector& ImpactPoint)
 {
-	if(IsValid(WeaponMesh) && IsValid(BulletClass))
+	if(IsValid(BulletClass))
 	{
-		const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(MuzzleFlashSocketName);
-		if(IsValid(MuzzleSocket))
-		{
-			const FTransform SocketTransform = MuzzleSocket->GetSocketTransform(WeaponMesh);
-			
-			const FVector BulletDirection = ImpactPoint - SocketTransform.GetLocation();
-			const FRotator BulletRotation = BulletDirection.Rotation();
+		const FTransform SocketTransform = GetMuzzleSocketTransform();
+		const FVector BulletDirection = ImpactPoint - SocketTransform.GetLocation();
+		const FRotator BulletRotation = BulletDirection.Rotation();
 
-			FActorSpawnParameters SpawnParameters;
-			SpawnParameters.Owner = GetOwner();
-			SpawnParameters.Instigator = Cast<APawn>(GetOwner());
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.Owner = GetOwner();
+		SpawnParameters.Instigator = Cast<APawn>(GetOwner());
 			
-			GetWorld()->SpawnActor<ABPE_Projectile>(BulletClass, SocketTransform.GetLocation(), BulletRotation, SpawnParameters);
-		}
+		GetWorld()->SpawnActor<ABPE_Projectile>(BulletClass, SocketTransform.GetLocation(), BulletRotation, SpawnParameters);
 	}
 }
 
@@ -311,6 +306,20 @@ void ABPE_Weapon::StopFire()
 	{
 		SetState(EWeaponState::Equipped);	
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+FTransform ABPE_Weapon::GetMuzzleSocketTransform() const
+{
+	if(IsValid(WeaponMesh))
+	{
+		const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(MuzzleFlashSocketName);
+		if(IsValid(MuzzleSocket))
+		{
+			return MuzzleSocket->GetSocketTransform(WeaponMesh);
+		}
+	}
+	return FTransform();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

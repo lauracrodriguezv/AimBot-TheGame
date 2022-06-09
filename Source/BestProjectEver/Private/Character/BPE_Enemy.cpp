@@ -76,3 +76,16 @@ bool ABPE_Enemy::IsWeaponEquipped() const
 {
 	return IsValid(CurrentWeapon);
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+FRotator ABPE_Enemy::GetViewRotation() const
+{
+	/*if(IsValid(CurrentWeapon))
+	{
+		const FTransform WeaponSocketTransform = CurrentWeapon->GetMuzzleSocketTransform();
+		const FVector WeaponToPlayer = TargetViewLocation - WeaponSocketTransform.GetLocation();
+		return FRotator(WeaponToPlayer.Rotation());
+	}*/
+	return Super::GetViewRotation();
+	
+}

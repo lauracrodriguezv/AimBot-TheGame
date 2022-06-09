@@ -39,6 +39,8 @@ protected:
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon
 
+	FVector TargetViewLocation;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Patrol")
 	TObjectPtr<ABPE_PathFollowing> PatrolPathReference;
 
@@ -71,4 +73,8 @@ public:
 	void SetEnemyStatus(EEnemyStatus NewEnemyStatus);
 
 	virtual bool IsWeaponEquipped() const override;
+
+	virtual FRotator GetViewRotation() const override;
+
+	void SetTargetViewLocation(FVector TargetLocation) { TargetViewLocation = TargetLocation; };
 };

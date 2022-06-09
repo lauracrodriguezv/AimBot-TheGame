@@ -49,11 +49,13 @@ void ABPE_BaseCharacter::HandlePlayerDeath()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_BaseCharacter::StartWeaponFire()
 {
+	// empty in base class
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_BaseCharacter::StopWeaponFire()
 {
+	// empty in base class
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -92,6 +94,7 @@ void ABPE_BaseCharacter::Tick(float DeltaSeconds)
 //----------------------------------------------------------------------------------------------------------------------
 bool ABPE_BaseCharacter::IsWeaponEquipped() const 
 {
+	// true in base class
 	return true;
 }
 

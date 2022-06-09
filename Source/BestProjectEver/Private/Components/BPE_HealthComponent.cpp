@@ -30,7 +30,6 @@ void UBPE_HealthComponent::BeginPlay()
 		{
 			
 		}
-		
 	}
 }
 

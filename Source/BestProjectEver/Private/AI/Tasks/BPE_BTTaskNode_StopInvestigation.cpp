@@ -19,7 +19,6 @@ EBTNodeResult::Type UBPE_BTTaskNode_StopInvestigation::ExecuteTask(UBehaviorTree
 	BlackboardComponent->SetValueAsBool(IsInvestigatingKey, false);
 
 	return EBTNodeResult::Succeeded;
-	
 }
 
 //----------------------------------------------------------------------------------------------------------------------

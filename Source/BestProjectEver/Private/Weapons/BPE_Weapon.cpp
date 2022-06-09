@@ -295,7 +295,7 @@ void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& HitFro
 		QueryParams.AddIgnoredComponent(OwnerCharacter->GetMesh());
 		QueryParams.bTraceComplex = true;
 
-		GetWorld()->LineTraceSingleByChannel(OutHitResult, TraceStart, TraceEnd, ECC_Weapon);
+		GetWorld()->LineTraceSingleByChannel(OutHitResult, TraceStart, TraceEnd, ECC_Weapon, QueryParams);
 	}
 }
 

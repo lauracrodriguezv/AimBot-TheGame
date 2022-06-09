@@ -5,6 +5,7 @@
 
 #include "Character/BPE_Enemy.h"
 #include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 UBPE_BTTask_Shoot::UBPE_BTTask_Shoot()
 {
@@ -21,6 +22,10 @@ EBTNodeResult::Type UBPE_BTTask_Shoot::ExecuteTask(UBehaviorTreeComponent& Owner
 		ABPE_Enemy* EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
 		if(IsValid(EnemyOwner))
 		{
+			const UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
+			const FVector TargetLocation = BlackboardComponent->GetValueAsVector("TargetLocation");
+			EnemyOwner->SetTargetViewLocation(TargetLocation);
+			
 			EnemyOwner->StartWeaponFire();
 			return  EBTNodeResult::Succeeded;
 		}

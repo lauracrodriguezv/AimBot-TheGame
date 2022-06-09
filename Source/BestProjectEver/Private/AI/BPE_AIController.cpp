@@ -68,6 +68,9 @@ ETeamAttitude::Type ABPE_AIController::GetTeamAttitudeTowards(const AActor& Othe
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_AIController::OnAIPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+	if(GEngine)
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("OnAIPerceptionUpdated!"));
+	
 	if(IsValid(BlackboardReference) && IsValid(CharacterControlled))
 	{
 		BlackboardReference->SetValueAsVector(InvestigatingLocationName, Stimulus.StimulusLocation);
@@ -75,6 +78,4 @@ void ABPE_AIController::OnAIPerceptionUpdated(AActor* Actor, FAIStimulus Stimulu
 		const FVector PlayerLocation = BlackboardReference->GetValueAsVector(PlayerLocationName);
 		CharacterControlled->SetTargetViewLocation(PlayerLocation);
 	}
-
-	
 }

@@ -31,6 +31,8 @@ void UBPE_BTService_GetDetectedTarget::TickNode(UBehaviorTreeComponent& OwnerCom
 		
 		if(PerceivedActors.IsEmpty())
 		{
+			ResetBlackboardKeysValues();
+			
 			AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Hearing::StaticClass(), PerceivedActors);
 			if(PerceivedActors.IsEmpty())
 			{
@@ -39,14 +41,12 @@ void UBPE_BTService_GetDetectedTarget::TickNode(UBehaviorTreeComponent& OwnerCom
 			else
 			{
 				SetBlackboardKeyValues(PerceivedActors);
-				EnemyOwner->SetEnemyStatus(EEnemyStatus::Investigating);
 			}
 		}
 		else
 		{
 			SetBlackboardKeyValues(PerceivedActors);
-			EnemyOwner->SetEnemyStatus(EEnemyStatus::Combat);
-		}	
+		}
 	}
 }
 
@@ -72,6 +72,7 @@ void UBPE_BTService_GetDetectedTarget::SetBlackboardKeyValues(const TArray<AActo
 		{
 			BlackboardComponent->SetValueAsObject(TargetReferenceKeyName, PerceivedActor);
 			BlackboardComponent->SetValueAsVector(TargetLocationKeyName, PerceivedActor->GetActorLocation());
+			break;
 		}
 	}
 }

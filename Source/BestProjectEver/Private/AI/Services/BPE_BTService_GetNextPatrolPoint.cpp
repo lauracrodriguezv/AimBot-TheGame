@@ -39,7 +39,6 @@ void UBPE_BTService_GetNextPatrolPoint::OnSearchStart(FBehaviorTreeSearchData& S
 	SetNextPatrolPointLocation();
 }
 
-
 //----------------------------------------------------------------------------------------------------------------------
 void UBPE_BTService_GetNextPatrolPoint::GetBlackboardKeyValues()
 {

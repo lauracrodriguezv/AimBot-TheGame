@@ -69,6 +69,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	ABPE_PathFollowing* GetPathFollowing() const { return PatrolPathReference; }
 
+	EEnemyStatus GetEnemyStatus() const { return EnemyStatus; }
+	
 	UFUNCTION(BlueprintCallable)
 	void SetEnemyStatus(EEnemyStatus NewEnemyStatus);
 

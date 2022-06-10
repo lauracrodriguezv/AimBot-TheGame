@@ -139,6 +139,7 @@ protected:
 	
 	/** spawned actor for ammo FX */
 	UPROPERTY(EditAnywhere, Category = "Effects")
+	
 	TSubclassOf<ABPE_Casing> CasingClass;
 
 	UPROPERTY(EditAnywhere, Category = "Effects")
@@ -218,6 +219,9 @@ protected:
 	UFUNCTION()
 	virtual void Fire();
 
+	/** check if enemy hit has the same color type */
+	bool CanApplyDamage(const AActor* ActorHit) const;
+	
 	void ApplyDamage(const FHitResult& HitResult);
 
 	/** [server] perform trace to set hit target */
@@ -254,6 +258,9 @@ public:
 
 	/** get weapon color type */
 	EColorType GetColorType() const { return ColorType; }
+
+	/** set weapon color type */
+	void SetColorType(EColorType NewColorType) { ColorType = NewColorType; }
 
 	/** [client and server] called when character start or end overlapping pickup area if it is locally controlled*/
 	void SetWidgetVisibility(bool bShowWidget);

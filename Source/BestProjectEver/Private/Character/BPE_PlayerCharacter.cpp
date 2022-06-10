@@ -58,7 +58,7 @@ void ABPE_PlayerCharacter::InitializeReference()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::MoveForward(float Value)
 {
-	if(IsValid(Controller)  && Value != 0.0f)
+	if(IsValid(Controller)  && Value != 0.0f && !GetHealthComponent()->IsDead())
 	{
 		const FRotator YawRotation (0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector Direction (FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
@@ -69,7 +69,7 @@ void ABPE_PlayerCharacter::MoveForward(float Value)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::MoveRight(float Value)
 {
-	if(IsValid(Controller) && Value != 0.0f)
+	if(IsValid(Controller) && Value != 0.0f && !GetHealthComponent()->IsDead())
 	{
 		const FRotator YawRotation (0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector Direction (FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y));
@@ -100,19 +100,25 @@ void ABPE_PlayerCharacter::AddControllerPitchInput(float Value)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::StartCrouch()
 {
-	Crouch();
+	if(!GetHealthComponent()->IsDead())
+	{
+		Crouch();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EndCrouch()
 {
-	UnCrouch();
+	if(!GetHealthComponent()->IsDead())
+	{
+		UnCrouch();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::StartWeaponFire()
 {
-	if(IsValid(CurrentWeapon))
+	if(IsValid(CurrentWeapon) && !GetHealthComponent()->IsDead())
 	{
 		if (HasAuthority())
 		{
@@ -128,7 +134,7 @@ void ABPE_PlayerCharacter::StartWeaponFire()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::StopWeaponFire()
 {
-	if(IsValid(CurrentWeapon))
+	if(IsValid(CurrentWeapon)  && !GetHealthComponent()->IsDead())
 	{
 		if(HasAuthority())
 		{
@@ -179,7 +185,7 @@ void ABPE_PlayerCharacter::OnStopFire()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Aim()
 {
-	if(IsValid(CurrentWeapon))
+	if(IsValid(CurrentWeapon) && !GetHealthComponent()->IsDead())
 	{
 		if(HasAuthority())
 		{
@@ -220,7 +226,7 @@ void ABPE_PlayerCharacter::OnRep_Aiming()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipWeapon()
 {
-	if(IsValid(OverlappingWeapon))
+	if(IsValid(OverlappingWeapon) && !GetHealthComponent()->IsDead())
 	{
 		if(HasAuthority())
 		{
@@ -236,7 +242,7 @@ void ABPE_PlayerCharacter::EquipWeapon()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipNextWeapon()
 {
-	if(Inventory.Num() >= 2)
+	if(Inventory.Num() >= 2 && !GetHealthComponent()->IsDead())
 	{
 		/** Index of by key requieres more performance than store an index, but I did it this way being concsious that in 
 		 * the inventory there is a maximun of 3 elements
@@ -251,7 +257,7 @@ void ABPE_PlayerCharacter::EquipNextWeapon()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipPreviousWeapon()
 {
-	if(Inventory.Num() >= 2)
+	if(Inventory.Num() >= 2 && !GetHealthComponent()->IsDead())
 	{
 		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
 		const int32 NextWeaponIndex = (CurrentWeaponIndex - 1 + Inventory.Num()) % Inventory.Num();

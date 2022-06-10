@@ -37,13 +37,14 @@ void UBPE_HealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damag
 	}
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
-	OnHealthChange();
 	
 	if (FMath::IsNearlyZero(CurrentHealth)) 
 	{
 		bIsDead = true;
 		OnIsDead();
 	}
+
+	OnHealthChange();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BestProjectEver/ColorType.h"
 #include "Character/BPE_BaseCharacter.h"
 #include "BestProjectEver/EnemyDefinitions.h"
 #include "BPE_Enemy.generated.h"
@@ -18,8 +19,21 @@ class BESTPROJECTEVER_API ABPE_Enemy : public ABPE_BaseCharacter
 public:
 
 	ABPE_Enemy();
+
+	virtual void OnConstruction(const FTransform& Transform) override;
 	
 protected:
+
+	//------------------------------------------------------------------------------------------------------------------
+	//Enemy Type
+	
+	/** to determine which color type weapon can hurt this enemy */
+	UPROPERTY(EditAnywhere, Category = "Enemy State")
+	EColorType ColorType;
+
+	/** Material based on color type */
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	TMap<EColorType, FLinearColor> MaterialColor;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Enemy State
@@ -83,5 +97,8 @@ public:
 	virtual FRotator GetViewRotation() const override;
 
 	/** set by the AI controller if an actor is perceived */
-	void SetTargetViewLocation(FVector TargetLocation) { TargetViewLocation = TargetLocation; };
+	void SetTargetViewLocation(FVector TargetLocation) { TargetViewLocation = TargetLocation; }
+
+	/** get enemy color type */
+	EColorType GetColorType() const { return ColorType; }
 };

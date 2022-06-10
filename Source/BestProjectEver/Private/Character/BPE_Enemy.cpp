@@ -13,6 +13,19 @@ ABPE_Enemy::ABPE_Enemy()
 	EnemySpeedMap.Add(EEnemyStatus::Investigating, 500.0);
 
 	Team = ETeam::Enemy;
+	ColorType = EColorType::Red;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Enemy::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	if(IsValid(GetMesh()) && MaterialColor.Contains(ColorType))
+	{
+		UMaterialInstanceDynamic* EnemyMaterial = GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(0,GetMesh()->GetMaterial(0)); 
+		EnemyMaterial->SetVectorParameterValue("MainColor", FLinearColor(MaterialColor[ColorType]));
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -32,6 +45,7 @@ void ABPE_Enemy::SpawnWeapon()
 		{
 			CurrentWeapon->OnPickup(this);
 			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
+			CurrentWeapon->SetColorType(GetColorType());
 		}
 	}
 }

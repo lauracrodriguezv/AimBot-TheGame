@@ -36,14 +36,28 @@ void ABPE_BaseCharacter::BeginPlay()
 	{
 		AnimInstance = GetMesh()->GetAnimInstance();
 	}
-
-	HealthComponent->OnDeathDelegate.AddDynamic(this, &ABPE_BaseCharacter::HandleCharacterDeath);
+	
+	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &ABPE_BaseCharacter::HandleCharacterDamage);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_BaseCharacter::HandleCharacterDeath()
 {
-	PlayAnimMontage(DeathMontage);
+	
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_BaseCharacter::HandleCharacterDamage(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth)
+{
+	if(HealthComponent->IsDead())
+	{
+		PlayMontage(DamageMontage, "Dead");
+		HandleCharacterDeath();
+	}
+	else
+	{
+		PlayMontage(DamageMontage, "Hurt");
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -77,11 +91,15 @@ void ABPE_BaseCharacter::PlaySound(USoundCue* Sound)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::PlayMontage(UAnimMontage* Montage, float PlayRate)
+void ABPE_BaseCharacter::PlayMontage(UAnimMontage* Montage, FName SectionName, float PlayRate)
 {
 	if(IsValid(AnimInstance) && IsValid(Montage))
 	{
 		AnimInstance->Montage_Play(Montage, PlayRate);
+		if(!SectionName.IsNone())
+		{
+			AnimInstance->Montage_JumpToSection(SectionName, Montage);
+		}
 	}
 }
 

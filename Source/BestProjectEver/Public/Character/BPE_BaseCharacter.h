@@ -26,7 +26,7 @@ public:
 	ABPE_BaseCharacter();
 
 protected:
-
+	
 	//------------------------------------------------------------------------------------------------------------------
 	// Components
 	
@@ -37,7 +37,7 @@ protected:
 	TObjectPtr<UPawnNoiseEmitterComponent> NoiseEmitterComponent;
 
 	//------------------------------------------------------------------------------------------------------------------
-
+	
 	/** for AI Perception Component */
 	UPROPERTY(EditDefaultsOnly, Category="AI")
 	ETeam Team;
@@ -54,7 +54,7 @@ protected:
 	TObjectPtr<UAnimInstance> AnimInstance;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
-	TObjectPtr<UAnimMontage> DeathMontage;
+	TObjectPtr<UAnimMontage> DamageMontage;
 	
 protected:
 
@@ -63,6 +63,9 @@ protected:
 	UFUNCTION()
 	void HandleCharacterDeath();
 
+	UFUNCTION()
+	void HandleCharacterDamage(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth);
+
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects
 
@@ -70,7 +73,7 @@ protected:
 	virtual void PlaySound(USoundCue* Sound);
 
 	/** play anim montage */
-	virtual void PlayMontage(UAnimMontage* Montage, float PlayRate = 1.0f);
+	virtual void PlayMontage(UAnimMontage* Montage, FName SectionName, float PlayRate = 1.0f);
 
 public:
 

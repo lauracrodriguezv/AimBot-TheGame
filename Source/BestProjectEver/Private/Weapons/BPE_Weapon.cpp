@@ -211,10 +211,10 @@ void ABPE_Weapon::UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollis
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::Fire()
 {
-	FHitResult HitTarget;
-	TraceUnderCrosshairs(HitTarget);
+	FHitResult HitResult;
+	TraceUnderCrosshairs(HitResult);
 
-	const FVector MuzzleLocation = HitTarget.TraceStart;
+	const FVector MuzzleLocation = HitResult.TraceStart;
 	Multicast_PlayMuzzleFireEffects(MuzzleLocation);
 	
 	ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
@@ -223,23 +223,23 @@ void ABPE_Weapon::Fire()
 		PlayerOwner->CharacterMakeNoise(ShootLoudness, MuzzleLocation);
 	}
 
-	if(HitTarget.bBlockingHit)
+	if(HitResult.bBlockingHit)
 	{
 		switch (ShootType)
 		{
 		case (EShootType::LineTrace):
 			{
-				ShootWithLineTrace(HitTarget.ImpactPoint);
+				ShootWithLineTrace(HitResult.ImpactPoint);
 				break;
 			}
 		case (EShootType::Bullet):
 			{
-				ShootWithBullets(HitTarget.ImpactPoint);
+				ShootWithBullets(HitResult.ImpactPoint);
 				break;
 			}
 		case (EShootType::Mixed):
 			{
-				ShootWithLineTraceAndBullet(HitTarget.TraceStart, HitTarget.ImpactPoint);
+				ShootWithLineTraceAndBullet(HitResult.TraceStart, HitResult.ImpactPoint);
 				break;
 			}
 		default:
@@ -247,15 +247,30 @@ void ABPE_Weapon::Fire()
 				break;
 			}
 		}
-		
-		ApplyDamage(HitTarget);
+
+		if(CanApplyDamage(HitResult.GetActor()))
+		{
+			ApplyDamage(HitResult);
+		}
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_Weapon::CanApplyDamage(const AActor* ActorHit) const
+{
+	const ABPE_Enemy* EnemyHit = Cast<ABPE_Enemy>(ActorHit);
+	if(IsValid(EnemyHit))
+	{
+		return EnemyHit->GetColorType() == ColorType;
+	}
+	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::ApplyDamage(const FHitResult& HitResult)
 {
 	AActor* DamagedActor = HitResult.GetActor();
+	
 	if(IsValid(DamagedActor) && IsValid(OwnerCharacter))
 	{
 		const FVector ShootDirection = (HitResult.TraceEnd - HitResult.TraceStart).GetSafeNormal();

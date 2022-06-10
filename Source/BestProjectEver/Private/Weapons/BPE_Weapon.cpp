@@ -66,11 +66,7 @@ void ABPE_Weapon::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	if(IsValid(WeaponMesh) && MaterialColor.Contains(ColorType))
-	{
-		UMaterialInstanceDynamic* WeaponMaterial = WeaponMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(0,WeaponMesh->GetMaterial(0)); 
-		WeaponMaterial->SetVectorParameterValue("ColorType", FLinearColor(MaterialColor[ColorType]));
-	}
+	UpdateMeshColor();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -161,6 +157,16 @@ void ABPE_Weapon::SetState(EWeaponState State)
 {
 	CurrentState = State;
 	OnSetWeaponState();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::UpdateMeshColor()
+{
+	if(IsValid(WeaponMesh) && MaterialColor.Contains(ColorType))
+	{
+		UMaterialInstanceDynamic* WeaponMaterial = WeaponMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(0,WeaponMesh->GetMaterial(0)); 
+		WeaponMaterial->SetVectorParameterValue("ColorType", FLinearColor(MaterialColor[ColorType]));
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -420,6 +426,13 @@ bool ABPE_Weapon::Multicast_PlayImpactFireEffects_Validate(const FVector& Impact
 bool ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Validate(const FVector& MuzzleLocation)
 {
 	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::SetColorType(EColorType NewColorType)
+{
+	ColorType = NewColorType;
+	UpdateMeshColor();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

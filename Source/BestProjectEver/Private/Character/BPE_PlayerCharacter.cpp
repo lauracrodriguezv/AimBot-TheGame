@@ -381,7 +381,7 @@ void ABPE_PlayerCharacter::OnCurrentWeaponChanged()
 	bUseControllerRotationYaw = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 
-	PlayMontage(SwapWeaponMontage, 2.0f);
+	PlayMontage(SwapWeaponMontage, FName(), 2.0);
 
 	if(IsValid(CurrentWeapon) && IsLocallyControlled())
 	{

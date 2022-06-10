@@ -200,6 +200,9 @@ protected:
 
 	/** [server] set weapon state */
 	void SetState(EWeaponState State);
+
+	/** change mesh color depending on color type */
+	void UpdateMeshColor();
 	
 	/** [client] called when CurrentState is set and it calls OnSetWeaponState */
 	UFUNCTION()
@@ -260,7 +263,7 @@ public:
 	EColorType GetColorType() const { return ColorType; }
 
 	/** set weapon color type */
-	void SetColorType(EColorType NewColorType) { ColorType = NewColorType; }
+	void SetColorType(EColorType NewColorType);
 
 	/** [client and server] called when character start or end overlapping pickup area if it is locally controlled*/
 	void SetWidgetVisibility(bool bShowWidget);

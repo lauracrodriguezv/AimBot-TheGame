@@ -22,6 +22,8 @@ protected:
 
 	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
 
+public:
+	
 	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
 
 	virtual void OnGameplayTaskDeactivated(UGameplayTask& Task) override;

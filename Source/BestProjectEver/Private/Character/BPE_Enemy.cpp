@@ -12,7 +12,7 @@ ABPE_Enemy::ABPE_Enemy()
 	EnemySpeedMap.Add(EEnemyStatus::Combat, 600.0);
 	EnemySpeedMap.Add(EEnemyStatus::Investigating, 500.0);
 
-	TeamNumber = 0;
+	Team = ETeam::Enemy;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -84,6 +84,7 @@ FRotator ABPE_Enemy::GetViewRotation() const
 	{
 		const FTransform WeaponSocketTransform = CurrentWeapon->GetMuzzleSocketTransform();
 		const FVector WeaponToPlayer = TargetViewLocation - WeaponSocketTransform.GetLocation();
+		
 		return FRotator(WeaponToPlayer.Rotation());
 	}
 	return Super::GetViewRotation();

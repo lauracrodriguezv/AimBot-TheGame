@@ -11,11 +11,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 UBPE_BTService_GetNextPatrolPoint::UBPE_BTService_GetNextPatrolPoint()
 {
-	NodeName = "GetDetectedTarget";
+	NodeName = "GetNextPatrolPoint";
 	
-	PathPatrolKeyName = "PathPatrolReference";
-	NextPatrolPointLocationKeyName = "NextPatrolPointLocation";
-	PatrolIndexKeyName = "PatrolIndex";
+	PathPatrolReferenceName = "PathPatrolReference";
+	NextPatrolPointLocationName = "NextPatrolPointLocation";
+	PatrolIndexName = "PatrolIndex";
 	PatrolIndex = 0;
 }
 
@@ -24,17 +24,14 @@ void UBPE_BTService_GetNextPatrolPoint::OnSearchStart(FBehaviorTreeSearchData& S
 {
 	Super::OnSearchStart(SearchData);
 
+	BlackboardComponent = SearchData.OwnerComp.GetBlackboardComponent();
+	
 	const AAIController* AIController = SearchData.OwnerComp.GetAIOwner();
 	if(IsValid(AIController))
 	{
 		EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
-		if(IsValid(EnemyOwner))
-		{
-			EnemyOwner->SetEnemyStatus(EEnemyStatus::Patrol);
-		}
 	}
 	
-	BlackboardComponent = SearchData.OwnerComp.GetBlackboardComponent();
 	GetBlackboardKeyValues();
 	SetNextPatrolPointLocation();
 }
@@ -44,8 +41,8 @@ void UBPE_BTService_GetNextPatrolPoint::GetBlackboardKeyValues()
 {
 	if(IsValid(BlackboardComponent))
 	{
-		PathPatrolReference = Cast<ABPE_PathFollowing>(BlackboardComponent->GetValueAsObject(PathPatrolKeyName));
-		PatrolIndex = BlackboardComponent->GetValueAsInt(PatrolIndexKeyName);
+		PathPatrolReference = Cast<ABPE_PathFollowing>(BlackboardComponent->GetValueAsObject(PathPatrolReferenceName));
+		PatrolIndex = BlackboardComponent->GetValueAsInt(PatrolIndexName);
 	}
 }
 
@@ -55,9 +52,12 @@ void UBPE_BTService_GetNextPatrolPoint::SetNextPatrolPointLocation()
 	if(IsValid(BlackboardComponent) && IsValid(PathPatrolReference))
 	{
 		const FVector NextPatrolPointLocation = PathPatrolReference->GetWorldLocationByIndex(PatrolIndex);
-		PatrolIndex = PatrolIndex <= PathPatrolReference->GetLastIndex() ? PatrolIndex + 1 : 0;
-		BlackboardComponent->SetValueAsInt(PatrolIndexKeyName, PatrolIndex);
-		BlackboardComponent->SetValueAsVector(NextPatrolPointLocationKeyName, NextPatrolPointLocation);
+		
+		PatrolIndex++;
+		PatrolIndex = PatrolIndex <= PathPatrolReference->GetLastIndex() ? PatrolIndex : 0;
+		BlackboardComponent->SetValueAsInt(PatrolIndexName, PatrolIndex);
+		
+		BlackboardComponent->SetValueAsVector(NextPatrolPointLocationName, NextPatrolPointLocation);
 	}
 }
 

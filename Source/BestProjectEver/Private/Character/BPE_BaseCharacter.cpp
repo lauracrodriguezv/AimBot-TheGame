@@ -37,11 +37,11 @@ void ABPE_BaseCharacter::BeginPlay()
 		AnimInstance = GetMesh()->GetAnimInstance();
 	}
 
-	HealthComponent->OnDeathDelegate.AddDynamic(this, &ABPE_BaseCharacter::HandlePlayerDeath);
+	HealthComponent->OnDeathDelegate.AddDynamic(this, &ABPE_BaseCharacter::HandleCharacterDeath);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::HandlePlayerDeath()
+void ABPE_BaseCharacter::HandleCharacterDeath()
 {
 	PlayAnimMontage(DeathMontage);
 }
@@ -94,7 +94,7 @@ void ABPE_BaseCharacter::Tick(float DeltaSeconds)
 //----------------------------------------------------------------------------------------------------------------------
 bool ABPE_BaseCharacter::IsWeaponEquipped() const 
 {
-	// true in base class
+	// true just in base class
 	return true;
 }
 
@@ -108,7 +108,7 @@ bool ABPE_BaseCharacter::IsFriendly(const AActor* ActorA, const AActor* ActorB)
 
 		if(IsValid(CharacterA) && IsValid(CharacterB))
 		{
-			return CharacterA->TeamNumber == CharacterB->TeamNumber;
+			return CharacterA->Team == CharacterB->Team;
 		}
 
 		return true;

@@ -233,6 +233,7 @@ public:
 
 	bool IsAiming() const { return bIsAiming; };
 
+	/** from the camera component for clients */
 	virtual FVector GetPawnViewLocation() const override;
 };
 

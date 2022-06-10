@@ -25,11 +25,6 @@ void UBPE_HealthComponent::BeginPlay()
 	if (IsValid(ActorOwner) && ActorOwner->HasAuthority())
 	{
 		ActorOwner->OnTakeAnyDamage.AddDynamic(this, &UBPE_HealthComponent::HandleTakeAnyDamage);
-		const ABPE_Enemy* EnemyOwner = Cast<ABPE_Enemy>(ActorOwner);
-		if(IsValid(EnemyOwner))
-		{
-			
-		}
 	}
 }
 
@@ -43,29 +38,18 @@ void UBPE_HealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damag
 	}
 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
+	OnHealthChange();
+	
 	if (CurrentHealth == 0.0f) 
 	{
 		bIsDead = true;
 		OnIsDead();
 	}
-
-	OnHealthChange();
-	UE_LOG(LogTemp, Log, TEXT("My Health Is: %f"), CurrentHealth);
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-void UBPE_HealthComponent::HandleEnemyTakeDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy,
-	FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection,
-	const UDamageType* DamageType, AActor* DamageCauser)
-{
-	
-}
-
 
 //----------------------------------------------------------------------------------------------------------------------
 void UBPE_HealthComponent::OnRep_Health()
 {
-	UE_LOG(LogTemp, Log, TEXT("Client My Health Is: %f"), CurrentHealth);
 	OnHealthChange();
 }
 

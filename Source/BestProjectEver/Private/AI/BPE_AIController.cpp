@@ -15,7 +15,6 @@ ABPE_AIController::ABPE_AIController()
 	PathPatrolReferenceName = "PathPatrolReference";
 	InvestigatingLocationName = "InvestigatingLocation";
 	PlayerLocationName = "PlayerReferenceLocation";
-	SetGenericTeamId(FGenericTeamId(1));
 
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 }
@@ -30,6 +29,8 @@ void ABPE_AIController::BeginPlay()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_AIController::InitializeReferences()
 {
+	SetGenericTeamId(FGenericTeamId(1));
+	
 	if(IsValid(EnemyBehaviourTree))
 	{
 		RunBehaviorTree(EnemyBehaviourTree);
@@ -67,15 +68,9 @@ ETeamAttitude::Type ABPE_AIController::GetTeamAttitudeTowards(const AActor& Othe
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_AIController::OnAIPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
-{
-	if(GEngine)
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("OnAIPerceptionUpdated!"));
-	
+{	
 	if(IsValid(BlackboardReference) && IsValid(CharacterControlled))
 	{
 		BlackboardReference->SetValueAsVector(InvestigatingLocationName, Stimulus.StimulusLocation);
-		
-		const FVector PlayerLocation = BlackboardReference->GetValueAsVector(PlayerLocationName);
-		CharacterControlled->SetTargetViewLocation(PlayerLocation);
 	}
 }

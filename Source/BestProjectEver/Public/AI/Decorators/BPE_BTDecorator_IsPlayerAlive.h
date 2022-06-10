@@ -14,6 +14,12 @@ class BESTPROJECTEVER_API UBPE_BTDecorator_IsPlayerAlive : public UBTDecorator
 {
 	GENERATED_BODY()
 
+protected:
+
+	/** target detected by controller */
+	UPROPERTY(EditAnywhere, Category="Blackboard")
+	FName TargetReferenceName;
+	
 public:
 
 	UBPE_BTDecorator_IsPlayerAlive();
@@ -21,6 +27,8 @@ public:
 protected:
 
 	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
+
+public:
 	
 	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
 

@@ -8,12 +8,14 @@
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/BPE_HealthComponent.h"
 
-//---------------------------------------------------------------------------------L-------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
 UBPE_BTDecorator_IsPlayerAlive::UBPE_BTDecorator_IsPlayerAlive()
 {
 	NodeName = "IsPlayerAlive";
 	FlowAbortMode = EBTFlowAbortMode::Both;
 	SetIsInversed(false);
+	
+	TargetReferenceName = "TargetReference";
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -22,13 +24,14 @@ bool UBPE_BTDecorator_IsPlayerAlive::CalculateRawConditionValue(UBehaviorTreeCom
 	const UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
 	if(IsValid(BlackboardComponent))
 	{
-		const ABPE_PlayerCharacter* TargetPlayer = Cast<ABPE_PlayerCharacter>(BlackboardComponent->GetValueAsObject("TargetReference"));
+		const UObject* TargetReference = BlackboardComponent->GetValueAsObject(TargetReferenceName);
+		const ABPE_PlayerCharacter* TargetPlayer = Cast<ABPE_PlayerCharacter>(TargetReference);
 		if(IsValid(TargetPlayer))
 		{
 			return !TargetPlayer->GetHealthComponent()->IsDead();
 		}
 	}
-	return false;			
+	return false;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

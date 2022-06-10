@@ -15,8 +15,21 @@ UBPE_BTService_GetDetectedTarget::UBPE_BTService_GetDetectedTarget()
 {
 	NodeName = "GetDetectedTarget";
 	
-	TargetReferenceKeyName = "TargetReference";
-	TargetLocationKeyName = "TargetLocation";
+	TargetReferenceName = "TargetReference";
+	TargetLocationName = "TargetLocation";
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_BTService_GetDetectedTarget::OnSearchStart(FBehaviorTreeSearchData& SearchData)
+{
+	Super::OnSearchStart(SearchData);
+
+	AIController = SearchData.OwnerComp.GetAIOwner();
+	if(IsValid(AIController))
+	{
+		BlackboardComponent = SearchData.OwnerComp.GetBlackboardComponent();
+		EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -27,12 +40,10 @@ void UBPE_BTService_GetDetectedTarget::TickNode(UBehaviorTreeComponent& OwnerCom
 	if(IsValid(EnemyOwner))
 	{
 		TArray<AActor*> PerceivedActors;
-		AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Sight::StaticClass(), PerceivedActors);
 		
+		AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Sight::StaticClass(), PerceivedActors);
 		if(PerceivedActors.IsEmpty())
-		{
-			ResetBlackboardKeysValues();
-			
+		{			
 			AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Hearing::StaticClass(), PerceivedActors);
 			if(PerceivedActors.IsEmpty())
 			{
@@ -51,27 +62,14 @@ void UBPE_BTService_GetDetectedTarget::TickNode(UBehaviorTreeComponent& OwnerCom
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_BTService_GetDetectedTarget::OnSearchStart(FBehaviorTreeSearchData& SearchData)
-{
-	Super::OnSearchStart(SearchData);
-
-	AIController = SearchData.OwnerComp.GetAIOwner();
-	if(IsValid(AIController))
-	{
-		BlackboardComponent = SearchData.OwnerComp.GetBlackboardComponent();
-		EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void UBPE_BTService_GetDetectedTarget::SetBlackboardKeyValues(const TArray<AActor*>& PerceivedActors)
 {
 	for (AActor* PerceivedActor : PerceivedActors)
 	{
 		if(IsValid(PerceivedActor) && IsValid(BlackboardComponent))
 		{
-			BlackboardComponent->SetValueAsObject(TargetReferenceKeyName, PerceivedActor);
-			BlackboardComponent->SetValueAsVector(TargetLocationKeyName, PerceivedActor->GetActorLocation());
+			BlackboardComponent->SetValueAsObject(TargetReferenceName, PerceivedActor);
+			BlackboardComponent->SetValueAsVector(TargetLocationName, PerceivedActor->GetActorLocation());
 			break;
 		}
 	}
@@ -82,8 +80,8 @@ void UBPE_BTService_GetDetectedTarget::ResetBlackboardKeysValues()
 {
 	if(IsValid(BlackboardComponent))
 	{
-		BlackboardComponent->SetValueAsObject(TargetReferenceKeyName, nullptr);
-		BlackboardComponent->SetValueAsVector(TargetLocationKeyName, FVector());
+		BlackboardComponent->SetValueAsObject(TargetReferenceName, nullptr);
+		BlackboardComponent->SetValueAsVector(TargetLocationName, FVector());
 	}
 }
 

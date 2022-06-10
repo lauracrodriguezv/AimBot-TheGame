@@ -36,13 +36,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Enemy State")
 	TMap<EEnemyStatus, float> EnemySpeedMap;
 
-	//------------------------------------------------------------------------------------------------------------------
-	//Weapon
-
+	/** target AI controller is perceived */
 	FVector TargetViewLocation;
-	
+
+	/** patrol path */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Patrol")
 	TObjectPtr<ABPE_PathFollowing> PatrolPathReference;
+
+	//------------------------------------------------------------------------------------------------------------------
+	//Weapon
 
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	TSubclassOf<ABPE_Weapon> WeaponClass;
@@ -54,29 +56,43 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	/** spawn enemy's weapon by default */
 	void SpawnWeapon();
 
+	/** set current enemy status handler */
 	void OnSetEnemyStatus(EEnemyStatus NewEnemyStatus);
 	
 public:
 
+	//------------------------------------------------------------------------------------------------------------------
+	// Weapon
+	
+	/** weapon perform fire. The enemy's weapon is not automatic by default */
 	UFUNCTION(BlueprintCallable)
 	virtual void StartWeaponFire() override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void StopWeaponFire() override;
-	
-	UFUNCTION(BlueprintCallable)
-	ABPE_PathFollowing* GetPathFollowing() const { return PatrolPathReference; }
-
-	EEnemyStatus GetEnemyStatus() const { return EnemyStatus; }
-	
-	UFUNCTION(BlueprintCallable)
-	void SetEnemyStatus(EEnemyStatus NewEnemyStatus);
 
 	virtual bool IsWeaponEquipped() const override;
 
+	//------------------------------------------------------------------------------------------------------------------
+	// Enemy data
+	
+	/** returns patrol path assigned */
+	UFUNCTION(BlueprintCallable)
+	ABPE_PathFollowing* GetPathFollowing() const { return PatrolPathReference; }
+
+	/** set current enemy status */
+	EEnemyStatus GetEnemyStatus() const { return EnemyStatus; }
+
+	/** set current enemy status */
+	UFUNCTION(BlueprintCallable)
+	void SetEnemyStatus(EEnemyStatus NewEnemyStatus);
+
+	/** so enemy knows which direction to shoot */
 	virtual FRotator GetViewRotation() const override;
 
+	/** set by the AI controller if an actor is perceived */
 	void SetTargetViewLocation(FVector TargetLocation) { TargetViewLocation = TargetLocation; };
 };

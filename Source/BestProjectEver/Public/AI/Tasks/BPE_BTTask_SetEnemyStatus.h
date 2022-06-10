@@ -18,7 +18,8 @@ class BESTPROJECTEVER_API UBPE_BTTask_SetEnemyStatus : public UBTTaskNode
 public:
 
 	UBPE_BTTask_SetEnemyStatus();
-	
+
+	/** current enemy´s behavior */
 	UPROPERTY(EditAnywhere, Category="Enemy State")
 	EEnemyStatus NewEnemyStatus;
 
@@ -26,5 +27,9 @@ protected:
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
+public:
+	
 	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
+
+	virtual void OnGameplayTaskDeactivated(UGameplayTask& Task) override;
 };

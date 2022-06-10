@@ -11,6 +11,8 @@ UBPE_BTTask_Shoot::UBPE_BTTask_Shoot()
 {
 	NodeName = "Shoot";
 	bNotifyTick = false;
+
+	TargetLocationName = "TargetLocation";
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -23,7 +25,7 @@ EBTNodeResult::Type UBPE_BTTask_Shoot::ExecuteTask(UBehaviorTreeComponent& Owner
 		if(IsValid(EnemyOwner))
 		{
 			const UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
-			const FVector TargetLocation = BlackboardComponent->GetValueAsVector("TargetLocation");
+			const FVector TargetLocation = BlackboardComponent->GetValueAsVector(TargetLocationName);
 			EnemyOwner->SetTargetViewLocation(TargetLocation);
 			
 			EnemyOwner->StartWeaponFire();
@@ -38,4 +40,10 @@ EBTNodeResult::Type UBPE_BTTask_Shoot::ExecuteTask(UBehaviorTreeComponent& Owner
 void UBPE_BTTask_Shoot::OnGameplayTaskActivated(UGameplayTask& Task)
 {
 	Super::OnGameplayTaskActivated(Task);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_BTTask_Shoot::OnGameplayTaskDeactivated(UGameplayTask& Task)
+{
+	Super::OnGameplayTaskDeactivated(Task);
 }

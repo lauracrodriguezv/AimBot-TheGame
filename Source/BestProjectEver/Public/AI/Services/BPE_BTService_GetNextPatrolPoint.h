@@ -19,16 +19,20 @@ class BESTPROJECTEVER_API UBPE_BTService_GetNextPatrolPoint : public UBTService
 
 protected:
 
+	/** next point index of path patrol */
 	int PatrolIndex;
-	
-	UPROPERTY(EditAnywhere, Category="Target")
-	FName PathPatrolKeyName;
 
-	UPROPERTY(EditAnywhere, Category="Target")
-	FName NextPatrolPointLocationKeyName;
+	/** path key enemy follows */
+	UPROPERTY(EditAnywhere, Category="Blackboard")
+	FName PathPatrolReferenceName;
 
-	UPROPERTY(EditAnywhere, Category="Target")
-	FName PatrolIndexKeyName;
+	/** next point location key of path patrol */
+	UPROPERTY(EditAnywhere, Category="Blackboard")
+	FName NextPatrolPointLocationName;
+
+	/** next point index key of path patrol */
+	UPROPERTY(EditAnywhere, Category="Blackboard")
+	FName PatrolIndexName;
 
 	TObjectPtr<ABPE_PathFollowing> PathPatrolReference;
 
@@ -48,6 +52,8 @@ protected:
 
 	void SetNextPatrolPointLocation();
 
+public:
+	
 	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
 
 	virtual void OnGameplayTaskDeactivated(UGameplayTask& Task) override;

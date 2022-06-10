@@ -19,7 +19,8 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_IsDead, BlueprintReadOnly, Category = "Health Component")
 	uint8 bIsDead : 1;
-	
+
+	/** character max health, 100 by default */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health Component", meta = (ClampMin = 0.0, UIMin = 0.0))
 	float MaxHealth;
 
@@ -30,9 +31,11 @@ public:
 	
 	UBPE_HealthComponent();
 
+	/** [server and client] called when health changes */
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChangeSignature OnHealthChangeDelegate;
 
+	/** [server and client] called when character is dead */
 	UPROPERTY(BlueprintAssignable)
 	FOnDeath OnDeathDelegate;
 
@@ -40,22 +43,23 @@ protected:
 	
 	virtual void BeginPlay() override;
 
+	/** [server] update heath data */
 	UFUNCTION()
 	void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 		AController* InstigatedBy, AActor* DamageCauser );
 
-	UFUNCTION()
-	void HandleEnemyTakeDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation,
-		UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser);
-	
+	/** [client] current health changed rep handler */
 	UFUNCTION()
 	void OnRep_Health();
 
+	/** [server and client] current health changed handler */
 	void OnHealthChange();
 
+	/** [client] character is death rep handler */
 	UFUNCTION()
 	void OnRep_IsDead();
 
+	/** [server and client] character is death handler */
 	void OnIsDead();
 
 public:	

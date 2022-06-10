@@ -4,6 +4,7 @@
 #include "Weapons/BPE_Weapon.h"
 
 #include "BestProjectEver/BestProjectEver.h"
+#include "Character/BPE_Enemy.h"
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
@@ -215,6 +216,7 @@ void ABPE_Weapon::Fire()
 
 	const FVector MuzzleLocation = HitTarget.TraceStart;
 	Multicast_PlayMuzzleFireEffects(MuzzleLocation);
+	
 	ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
 	if(IsValid(PlayerOwner))
 	{
@@ -267,15 +269,17 @@ void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& HitFro
 	if(IsValid(OwnerCharacter))
 	{
 		const ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
+		const ABPE_Enemy* EnemyOwner = Cast<ABPE_Enemy>(OwnerCharacter);
+		
 		FVector EyeLocation;
 		FRotator EyeRotation;
 		if(IsValid(PlayerOwner))
 		{
 			PlayerOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 		}
-		else
+		else if(IsValid(EnemyOwner))
 		{
-			OwnerCharacter->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+			EnemyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 		}
 		
 		HitFromDirection = EyeRotation.Vector();
@@ -292,7 +296,6 @@ void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& HitFro
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(OwnerCharacter);
 		QueryParams.AddIgnoredActor(this);
-		QueryParams.AddIgnoredComponent(OwnerCharacter->GetMesh());
 		QueryParams.bTraceComplex = true;
 
 		GetWorld()->LineTraceSingleByChannel(OutHitResult, TraceStart, TraceEnd, ECC_Weapon, QueryParams);
@@ -306,20 +309,6 @@ void ABPE_Weapon::StopFire()
 	{
 		SetState(EWeaponState::Equipped);	
 	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-FTransform ABPE_Weapon::GetMuzzleSocketTransform() const
-{
-	if(IsValid(WeaponMesh))
-	{
-		const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(MuzzleFlashSocketName);
-		if(IsValid(MuzzleSocket))
-		{
-			return MuzzleSocket->GetSocketTransform(WeaponMesh);
-		}
-	}
-	return FTransform();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -436,6 +425,20 @@ void ABPE_Weapon::SetWidgetVisibility(bool bShowWidget)
 	{
 		PickupWidget->SetVisibility(bShowWidget);
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+FTransform ABPE_Weapon::GetMuzzleSocketTransform() const
+{
+	if(IsValid(WeaponMesh))
+	{
+		const USkeletalMeshSocket* MuzzleSocket = WeaponMesh->GetSocketByName(MuzzleFlashSocketName);
+		if(IsValid(MuzzleSocket))
+		{
+			return MuzzleSocket->GetSocketTransform(WeaponMesh);
+		}
+	}
+	return FTransform();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

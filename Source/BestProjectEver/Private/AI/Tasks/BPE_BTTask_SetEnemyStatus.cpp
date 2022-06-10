@@ -12,12 +12,6 @@ UBPE_BTTask_SetEnemyStatus::UBPE_BTTask_SetEnemyStatus()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_BTTask_SetEnemyStatus::OnGameplayTaskActivated(UGameplayTask& Task)
-{
-	Super::OnGameplayTaskActivated(Task);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 EBTNodeResult::Type UBPE_BTTask_SetEnemyStatus::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	const AAIController* AIController = OwnerComp.GetAIOwner();
@@ -32,5 +26,17 @@ EBTNodeResult::Type UBPE_BTTask_SetEnemyStatus::ExecuteTask(UBehaviorTreeCompone
 	}
 
 	return EBTNodeResult::Failed;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_BTTask_SetEnemyStatus::OnGameplayTaskActivated(UGameplayTask& Task)
+{
+	Super::OnGameplayTaskActivated(Task);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_BTTask_SetEnemyStatus::OnGameplayTaskDeactivated(UGameplayTask& Task)
+{
+	Super::OnGameplayTaskDeactivated(Task);
 }
 

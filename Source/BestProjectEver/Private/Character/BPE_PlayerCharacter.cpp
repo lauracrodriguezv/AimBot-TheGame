@@ -38,7 +38,7 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	AimWalkSpeed = 100.0f;
 	ZoomOutInterpSpeed =  20.0f;
 
-	TeamNumber = 1;
+	Team = ETeam::Player;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

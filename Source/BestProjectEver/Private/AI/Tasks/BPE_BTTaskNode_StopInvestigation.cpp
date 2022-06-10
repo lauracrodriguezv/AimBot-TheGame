@@ -9,14 +9,15 @@ UBPE_BTTaskNode_StopInvestigation::UBPE_BTTaskNode_StopInvestigation()
 {
 	NodeName = "StopInvestigation";
 	bNotifyTick = false;
-	IsInvestigatingKey = "bIsInvestigating";
+	
+	bIsInvestigatingName = "bIsInvestigating";
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 EBTNodeResult::Type UBPE_BTTaskNode_StopInvestigation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
-	BlackboardComponent->SetValueAsBool(IsInvestigatingKey, false);
+	BlackboardComponent->SetValueAsBool(bIsInvestigatingName, false);
 
 	return EBTNodeResult::Succeeded;
 }
@@ -25,4 +26,10 @@ EBTNodeResult::Type UBPE_BTTaskNode_StopInvestigation::ExecuteTask(UBehaviorTree
 void UBPE_BTTaskNode_StopInvestigation::OnGameplayTaskActivated(UGameplayTask& Task)
 {
 	Super::OnGameplayTaskActivated(Task);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_BTTaskNode_StopInvestigation::OnGameplayTaskDeactivated(UGameplayTask& Task)
+{
+	Super::OnGameplayTaskDeactivated(Task);
 }

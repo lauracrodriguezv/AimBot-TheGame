@@ -18,12 +18,17 @@ public:
 
 	UBPE_BTTaskNode_StopInvestigation();
 
+	/** enemy is in investigating status */
 	UPROPERTY(EditDefaultsOnly, Category="Enemy State")
-	FName IsInvestigatingKey;
+	FName bIsInvestigatingName;
 	
 protected:
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
-
+	
+public:
+	
 	virtual void OnGameplayTaskActivated(UGameplayTask& Task) override;
+
+	virtual void OnGameplayTaskDeactivated(UGameplayTask& Task) override;
 };

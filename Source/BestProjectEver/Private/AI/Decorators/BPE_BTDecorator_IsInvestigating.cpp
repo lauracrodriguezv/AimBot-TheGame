@@ -12,12 +12,10 @@ UBPE_BTDecorator_IsInvestigating::UBPE_BTDecorator_IsInvestigating()
 {
 	NodeName = "IsInvestigating";
 	FlowAbortMode = EBTFlowAbortMode::Both;
-	SetIsInversed(false);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool UBPE_BTDecorator_IsInvestigating::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp,
-                                                                  uint8* NodeMemory) const
+bool UBPE_BTDecorator_IsInvestigating::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
 	const AAIController* AIController = OwnerComp.GetAIOwner();
 	if(IsValid(AIController))

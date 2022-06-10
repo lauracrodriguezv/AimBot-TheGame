@@ -9,6 +9,13 @@
 class UBPE_HealthComponent;
 class USoundCue;
 
+UENUM(BlueprintType)
+enum class ETeam : uint8
+{
+	Enemy,
+	Player
+};
+
 UCLASS()
 class BESTPROJECTEVER_API ABPE_BaseCharacter : public ACharacter
 {
@@ -30,9 +37,10 @@ protected:
 	TObjectPtr<UPawnNoiseEmitterComponent> NoiseEmitterComponent;
 
 	//------------------------------------------------------------------------------------------------------------------
-	
+
+	/** for AI Perception Component */
 	UPROPERTY(EditDefaultsOnly, Category="AI")
-	uint8 TeamNumber;
+	ETeam Team;
 	
 	/** socket or bone name for attaching weapon mesh */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
@@ -53,7 +61,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void HandlePlayerDeath();
+	void HandleCharacterDeath();
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects
@@ -74,10 +82,11 @@ public:
 
 	virtual bool IsWeaponEquipped() const;
 
+	/** actor A and actor B are from the same team */
 	static bool IsFriendly(const AActor* ActorA, const AActor* ActorB);
 
 	UFUNCTION(BlueprintCallable)
 	virtual UBPE_HealthComponent* GetHealthComponent() const { return HealthComponent; }
-
+	
 	void CharacterMakeNoise(const float Loudness, const FVector NoiseLocation);
 };

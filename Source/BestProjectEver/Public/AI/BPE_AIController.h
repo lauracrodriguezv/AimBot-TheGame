@@ -42,6 +42,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Enemy Controller")
 	TObjectPtr<UBlackboardComponent> BlackboardReference;
 
+	/** path enemy follows on patrol state */
 	UPROPERTY(BlueprintReadOnly, Category="Enemy Controller")
 	TObjectPtr<UObject> PathFollowing;
 	
@@ -57,6 +58,7 @@ protected:
 
 	void SetPathBlackboardKey();
 
+	/** compare team attitude between perceived actor and CharacterControlled */
 	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 
 	UFUNCTION()

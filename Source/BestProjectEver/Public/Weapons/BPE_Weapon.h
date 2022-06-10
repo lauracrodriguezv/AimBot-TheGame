@@ -226,6 +226,7 @@ protected:
 	/** [server] prevent to spawn multiple times fire button and fire again if it is on firing state and is automatic */
 	void HandleReFiring();
 
+	/** [client] update owner rep handler */
 	virtual void OnRep_Owner() override;
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -260,7 +261,7 @@ public:
 	float GetZoomedFOV() const { return ZoomedFOV; }
 
 	float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
-
+	
 	FTransform GetMuzzleSocketTransform() const;
 
 	//------------------------------------------------------------------------------------------------------------------

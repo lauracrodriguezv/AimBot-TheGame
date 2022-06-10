@@ -97,7 +97,7 @@ public:
 	virtual FRotator GetViewRotation() const override;
 
 	/** set by the AI controller if an actor is perceived */
-	void SetTargetViewLocation(FVector TargetLocation) { TargetViewLocation = TargetLocation; }
+	void SetTargetViewLocation(const FVector& TargetLocation) { TargetViewLocation = TargetLocation; }
 
 	/** get enemy color type */
 	EColorType GetColorType() const { return ColorType; }

@@ -73,7 +73,7 @@ protected:
 	virtual void PlaySound(USoundCue* Sound);
 
 	/** play anim montage */
-	virtual void PlayMontage(UAnimMontage* Montage, FName SectionName, float PlayRate = 1.0f);
+	virtual void PlayMontage(UAnimMontage* Montage, const FName& SectionName, float PlayRate = 1.0f);
 
 public:
 

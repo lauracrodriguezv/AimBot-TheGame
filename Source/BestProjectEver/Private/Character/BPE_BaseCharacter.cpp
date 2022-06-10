@@ -91,7 +91,7 @@ void ABPE_BaseCharacter::PlaySound(USoundCue* Sound)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::PlayMontage(UAnimMontage* Montage, FName SectionName, float PlayRate)
+void ABPE_BaseCharacter::PlayMontage(UAnimMontage* Montage, const FName& SectionName, float PlayRate /* = 1.0f */)
 {
 	if(IsValid(AnimInstance) && IsValid(Montage))
 	{

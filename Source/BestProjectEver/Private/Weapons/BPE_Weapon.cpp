@@ -264,9 +264,11 @@ void ABPE_Weapon::Fire()
 //----------------------------------------------------------------------------------------------------------------------
 bool ABPE_Weapon::CanApplyDamage(const AActor* ActorHit) const
 {
+	//IDamagable 
 	const ABPE_Enemy* EnemyHit = Cast<ABPE_Enemy>(ActorHit);
-	if(IsValid(EnemyHit))
+	if(IsValid(EnemyHit)) //EnemyHit.IsA(IDamagable)
 	{
+		//IDamagable::GetColorType_Execute(EnemyHit);
 		return EnemyHit->GetColorType() == ColorType;
 	}
 	return true;
@@ -429,7 +431,7 @@ bool ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Validate(const FVector& Muzzle
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::SetColorType(EColorType NewColorType)
+void ABPE_Weapon::SetColorType(const EColorType NewColorType)
 {
 	ColorType = NewColorType;
 	UpdateMeshColor();

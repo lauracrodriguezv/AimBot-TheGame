@@ -263,7 +263,7 @@ public:
 	EColorType GetColorType() const { return ColorType; }
 
 	/** set weapon color type */
-	void SetColorType(EColorType NewColorType);
+	void SetColorType(const EColorType NewColorType);
 
 	/** [client and server] called when character start or end overlapping pickup area if it is locally controlled*/
 	void SetWidgetVisibility(bool bShowWidget);

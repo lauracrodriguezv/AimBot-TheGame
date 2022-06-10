@@ -84,8 +84,7 @@ public:
 
 	/** actor A and actor B are from the same team */
 	static bool IsFriendly(const AActor* ActorA, const AActor* ActorB);
-
-	UFUNCTION(BlueprintCallable)
+	
 	virtual UBPE_HealthComponent* GetHealthComponent() const { return HealthComponent; }
 	
 	void CharacterMakeNoise(const float Loudness, const FVector NoiseLocation);

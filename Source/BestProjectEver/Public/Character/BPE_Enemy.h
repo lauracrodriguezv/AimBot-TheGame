@@ -68,10 +68,8 @@ public:
 	// Weapon
 	
 	/** weapon perform fire. The enemy's weapon is not automatic by default */
-	UFUNCTION(BlueprintCallable)
 	virtual void StartWeaponFire() override;
-
-	UFUNCTION(BlueprintCallable)
+	
 	virtual void StopWeaponFire() override;
 
 	virtual bool IsWeaponEquipped() const override;
@@ -80,14 +78,12 @@ public:
 	// Enemy data
 	
 	/** returns patrol path assigned */
-	UFUNCTION(BlueprintCallable)
 	ABPE_PathFollowing* GetPathFollowing() const { return PatrolPathReference; }
 
 	/** set current enemy status */
 	EEnemyStatus GetEnemyStatus() const { return EnemyStatus; }
 
 	/** set current enemy status */
-	UFUNCTION(BlueprintCallable)
 	void SetEnemyStatus(EEnemyStatus NewEnemyStatus);
 
 	/** so enemy knows which direction to shoot */

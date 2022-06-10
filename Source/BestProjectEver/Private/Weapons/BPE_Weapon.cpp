@@ -256,7 +256,7 @@ void ABPE_Weapon::Fire()
 void ABPE_Weapon::ApplyDamage(const FHitResult& HitResult, FVector ShootDirection)
 {
 	AActor* DamagedActor = HitResult.GetActor();
-	if(IsValid(DamagedActor) && OwnerCharacter)
+	if(IsValid(DamagedActor) && IsValid(OwnerCharacter))
 	{
 		UGameplayStatics::ApplyPointDamage(DamagedActor, BaseDamage, ShootDirection, HitResult,
 			OwnerCharacter->GetInstigatorController(),OwnerCharacter, DamageType);	
@@ -264,34 +264,24 @@ void ABPE_Weapon::ApplyDamage(const FHitResult& HitResult, FVector ShootDirectio
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& HitFromDirection)
+void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& Direction)
 {
 	if(IsValid(OwnerCharacter))
 	{
-		const ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
-		const ABPE_Enemy* EnemyOwner = Cast<ABPE_Enemy>(OwnerCharacter);
-		
 		FVector EyeLocation;
 		FRotator EyeRotation;
-		if(IsValid(PlayerOwner))
-		{
-			PlayerOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-		}
-		else if(IsValid(EnemyOwner))
-		{
-			EnemyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-		}
-		
-		HitFromDirection = EyeRotation.Vector();
+		OwnerCharacter->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+	
+		Direction = EyeRotation.Vector();
 		
 		FVector TraceStart = EyeLocation;
 		const float DistanceToPlayer = (OwnerCharacter->GetActorLocation() - TraceStart).Size();
 		constexpr float ExtraDistance = 100.0f;
 		
 		/** This additional distance is to prevent the shoot hit something behind the character */
-		TraceStart += HitFromDirection * (DistanceToPlayer + ExtraDistance);
+		TraceStart += Direction * (DistanceToPlayer + ExtraDistance);
 		
-		const FVector TraceEnd = EyeLocation + (HitFromDirection * ShotDistance);
+		const FVector TraceEnd = EyeLocation + (Direction * ShotDistance);
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(OwnerCharacter);

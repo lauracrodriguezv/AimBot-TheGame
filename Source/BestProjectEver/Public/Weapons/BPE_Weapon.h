@@ -221,7 +221,7 @@ protected:
 	void ApplyDamage(const FHitResult& HitResult, FVector ShootDirection);
 
 	/** [server] perform trace to set hit target */
-	void TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& HitFromDirection);
+	void TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& Direction);
 
 	/** [server] prevent to spawn multiple times fire button and fire again if it is on firing state and is automatic */
 	void HandleReFiring();

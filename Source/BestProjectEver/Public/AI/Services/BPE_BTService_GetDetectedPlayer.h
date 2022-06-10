@@ -26,10 +26,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Blackboard")
 	FName TargetLocationName;
 
+	UPROPERTY(Transient)
 	TObjectPtr<AAIController> AIController;
-	
+
+	UPROPERTY(Transient)
 	TObjectPtr<UBlackboardComponent> BlackboardComponent;
 
+	UPROPERTY(Transient)
 	TObjectPtr<ABPE_Enemy> EnemyOwner;
 	
 public:

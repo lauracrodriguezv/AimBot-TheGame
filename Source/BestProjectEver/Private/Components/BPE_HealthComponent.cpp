@@ -21,10 +21,9 @@ void UBPE_HealthComponent::BeginPlay()
 	Super::BeginPlay();
 
 	CurrentHealth = MaxHealth;
-	AActor* ActorOwner = GetOwner();
-	if (IsValid(ActorOwner) && ActorOwner->HasAuthority())
+	if (IsValid(GetOwner()) && GetOwner()->HasAuthority())
 	{
-		ActorOwner->OnTakeAnyDamage.AddDynamic(this, &UBPE_HealthComponent::HandleTakeAnyDamage);
+		GetOwner()->OnTakeAnyDamage.AddDynamic(this, &UBPE_HealthComponent::HandleTakeAnyDamage);
 	}
 }
 
@@ -40,7 +39,7 @@ void UBPE_HealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damag
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.0f, MaxHealth);
 	OnHealthChange();
 	
-	if (CurrentHealth == 0.0f) 
+	if (FMath::IsNearlyZero(CurrentHealth)) 
 	{
 		bIsDead = true;
 		OnIsDead();

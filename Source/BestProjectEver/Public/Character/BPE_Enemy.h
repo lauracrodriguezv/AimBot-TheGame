@@ -4,18 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Character/BPE_BaseCharacter.h"
+#include "BestProjectEver/EnemyDefinitions.h"
 #include "BPE_Enemy.generated.h"
 
 class ABPE_PathFollowing;
 class ABPE_Weapon;
-
-UENUM(BlueprintType)
-enum class EEnemyStatus : uint8 
-{
-	Patrol,
-	Investigating,
-	Combat
-};
 
 UCLASS()
 class BESTPROJECTEVER_API ABPE_Enemy : public ABPE_BaseCharacter

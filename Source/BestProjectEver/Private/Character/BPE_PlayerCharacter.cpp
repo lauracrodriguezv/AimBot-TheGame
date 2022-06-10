@@ -484,7 +484,7 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
-	DOREPLIFETIME_CONDITION_NOTIFY(ABPE_PlayerCharacter, bIsAiming, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME(ABPE_PlayerCharacter, bIsAiming);
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, Inventory, COND_OwnerOnly);
 }
 

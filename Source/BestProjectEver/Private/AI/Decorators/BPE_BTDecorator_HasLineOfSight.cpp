@@ -35,8 +35,8 @@ bool UBPE_BTDecorator_HasLineOfSight::CalculateRawConditionValue(UBehaviorTreeCo
 		if(HitResult.bBlockingHit)
 		{
 			const AActor* TargetReference = Cast<AActor>(BlackboardComponent->GetValueAsObject(TargetReferenceName));
-			const AActor* AActorHitted = Cast<AActor>(HitResult.GetActor());
-			return AActorHitted == TargetReference;
+			const AActor* ActorHit = Cast<AActor>(HitResult.GetActor());
+			return ActorHit == TargetReference;
 		}
 	}
 	return false;

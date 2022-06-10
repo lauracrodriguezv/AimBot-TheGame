@@ -34,10 +34,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Blackboard")
 	FName PatrolIndexName;
 
+	UPROPERTY(Transient)
 	TObjectPtr<ABPE_PathFollowing> PathPatrolReference;
 
+	UPROPERTY(Transient)
 	TObjectPtr<UBlackboardComponent> BlackboardComponent;
 
+	UPROPERTY(Transient)
 	TObjectPtr<ABPE_Enemy> EnemyOwner;
 
 public:

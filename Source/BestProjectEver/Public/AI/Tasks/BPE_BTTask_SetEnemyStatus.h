@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
-#include "Character/BPE_Enemy.h"
+#include "BestProjectEver/EnemyDefinitions.h"
 #include "BPE_BTTask_SetEnemyStatus.generated.h"
 
 /**

@@ -54,7 +54,7 @@ void UBPE_BTService_GetNextPatrolPoint::SetNextPatrolPointLocation()
 		const FVector NextPatrolPointLocation = PathPatrolReference->GetWorldLocationByIndex(PatrolIndex);
 		
 		PatrolIndex++;
-		PatrolIndex = PatrolIndex <= PathPatrolReference->GetLastIndex() ? PatrolIndex : 0;
+		PatrolIndex = PatrolIndex < PathPatrolReference->GetNumberOfSplinePathPoints() ? PatrolIndex : 0;
 		BlackboardComponent->SetValueAsInt(PatrolIndexName, PatrolIndex);
 		
 		BlackboardComponent->SetValueAsVector(NextPatrolPointLocationName, NextPatrolPointLocation);

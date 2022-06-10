@@ -42,6 +42,7 @@ ABPE_Weapon::ABPE_Weapon()
 	CurrentState = EWeaponState::Idle;
 	RoundsPerMinute = 600.0f;
 	ShotDistance = 10000.0f;
+	ExtraDistance = 100.0f;
 
 	MuzzleFlashSocketName = "SCK_MuzzleFlash";
 	AmmoEjectSocketName = "SCK_AmmoEject";
@@ -211,8 +212,7 @@ void ABPE_Weapon::UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollis
 void ABPE_Weapon::Fire()
 {
 	FHitResult HitTarget;
-	FVector ShootDirection;
-	TraceUnderCrosshairs(HitTarget, ShootDirection);
+	TraceUnderCrosshairs(HitTarget);
 
 	const FVector MuzzleLocation = HitTarget.TraceStart;
 	Multicast_PlayMuzzleFireEffects(MuzzleLocation);
@@ -248,40 +248,39 @@ void ABPE_Weapon::Fire()
 			}
 		}
 		
-		ApplyDamage(HitTarget, ShootDirection);
+		ApplyDamage(HitTarget);
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::ApplyDamage(const FHitResult& HitResult, FVector ShootDirection)
+void ABPE_Weapon::ApplyDamage(const FHitResult& HitResult)
 {
 	AActor* DamagedActor = HitResult.GetActor();
 	if(IsValid(DamagedActor) && IsValid(OwnerCharacter))
 	{
+		const FVector ShootDirection = (HitResult.TraceEnd - HitResult.TraceStart).GetSafeNormal();
 		UGameplayStatics::ApplyPointDamage(DamagedActor, BaseDamage, ShootDirection, HitResult,
 			OwnerCharacter->GetInstigatorController(),OwnerCharacter, DamageType);	
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& Direction)
+void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult)
 {
 	if(IsValid(OwnerCharacter))
 	{
 		FVector EyeLocation;
 		FRotator EyeRotation;
 		OwnerCharacter->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-	
-		Direction = EyeRotation.Vector();
 		
 		FVector TraceStart = EyeLocation;
 		const float DistanceToPlayer = (OwnerCharacter->GetActorLocation() - TraceStart).Size();
-		constexpr float ExtraDistance = 100.0f;
-		
+
+		const FVector TraceDirection = EyeRotation.Vector();
 		/** This additional distance is to prevent the shoot hit something behind the character */
-		TraceStart += Direction * (DistanceToPlayer + ExtraDistance);
+		TraceStart += TraceDirection * (DistanceToPlayer + ExtraDistance);
 		
-		const FVector TraceEnd = EyeLocation + (Direction * ShotDistance);
+		const FVector TraceEnd = EyeLocation + (TraceDirection * ShotDistance);
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(OwnerCharacter);

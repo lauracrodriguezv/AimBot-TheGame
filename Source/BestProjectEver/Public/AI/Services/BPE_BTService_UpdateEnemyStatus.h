@@ -17,8 +17,10 @@ class BESTPROJECTEVER_API UBPE_BTService_UpdateEnemyStatus : public UBTService
 
 protected:
 
+	UPROPERTY(Transient)
 	TObjectPtr<AAIController> AIController;
 
+	UPROPERTY(Transient)
 	TObjectPtr<ABPE_Enemy> EnemyOwner;
 	
 public:

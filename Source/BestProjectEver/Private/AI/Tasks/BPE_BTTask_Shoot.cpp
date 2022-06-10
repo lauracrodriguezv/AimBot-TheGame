@@ -19,12 +19,12 @@ UBPE_BTTask_Shoot::UBPE_BTTask_Shoot()
 EBTNodeResult::Type UBPE_BTTask_Shoot::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	const AAIController* AIController = OwnerComp.GetAIOwner();
-	if(IsValid(AIController))
+	const UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
+	if(IsValid(AIController) && IsValid(BlackboardComponent))
 	{
 		ABPE_Enemy* EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
 		if(IsValid(EnemyOwner))
 		{
-			const UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
 			const FVector TargetLocation = BlackboardComponent->GetValueAsVector(TargetLocationName);
 			EnemyOwner->SetTargetViewLocation(TargetLocation);
 			

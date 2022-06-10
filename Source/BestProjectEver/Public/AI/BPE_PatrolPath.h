@@ -20,14 +20,14 @@ public:
 protected:
 
 	/** point the enemy will follow */
-	UPROPERTY(EditAnywhere, Category="Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	TObjectPtr<USplineComponent> SplineComponent;
 
-public:
+public:	
 
 	/** get path points from spline by index */
 	FVector GetWorldLocationByIndex(const int32 Index) const;
 
 	/** total number of spline's points */
-	int32 GetLastIndex() const;
+	int32 GetNumberOfSplinePathPoints() const;
 };

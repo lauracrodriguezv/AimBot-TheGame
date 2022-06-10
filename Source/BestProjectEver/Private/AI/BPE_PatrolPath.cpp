@@ -16,7 +16,7 @@ ABPE_PathFollowing::ABPE_PathFollowing()
 //----------------------------------------------------------------------------------------------------------------------
 FVector ABPE_PathFollowing::GetWorldLocationByIndex(const int32 Index) const
 {
-	if(IsValid(SplineComponent) && Index >= 0 && Index <= GetLastIndex())
+	if(IsValid(SplineComponent) && Index >= 0 && Index <= GetNumberOfSplinePathPoints())
 	{
 		return SplineComponent->GetLocationAtSplinePoint(Index,ESplineCoordinateSpace::World);
 	}
@@ -24,7 +24,7 @@ FVector ABPE_PathFollowing::GetWorldLocationByIndex(const int32 Index) const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-int32 ABPE_PathFollowing::GetLastIndex() const
+int32 ABPE_PathFollowing::GetNumberOfSplinePathPoints() const
 {
 	if(IsValid(SplineComponent))
 	{

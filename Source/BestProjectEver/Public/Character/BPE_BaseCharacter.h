@@ -33,7 +33,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	TObjectPtr<UBPE_HealthComponent> HealthComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, BlueprintReadOnly)
 	TObjectPtr<UPawnNoiseEmitterComponent> NoiseEmitterComponent;
 
 	//------------------------------------------------------------------------------------------------------------------

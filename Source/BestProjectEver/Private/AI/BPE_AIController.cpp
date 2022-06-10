@@ -36,7 +36,7 @@ void ABPE_AIController::InitializeReferences()
 		RunBehaviorTree(EnemyBehaviourTree);
 	}
 
-	CharacterControlled = Cast<ABPE_Enemy>(K2_GetPawn());
+	CharacterControlled = Cast<ABPE_Enemy>(GetPawn());
 	BlackboardReference = UAIBlueprintHelperLibrary::GetBlackboard(this);
 
 	SetPathBlackboardKey();

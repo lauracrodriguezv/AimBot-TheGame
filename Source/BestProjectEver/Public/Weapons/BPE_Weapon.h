@@ -77,10 +77,6 @@ protected:
 	
 	TObjectPtr<ABPE_BaseCharacter> OwnerCharacter;
 	
-	/** Camera can be inverted or normal */
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Aiming")
-    uint8 bIsLookInverted : 1;
-	
 	/** current weapon state */
 	UPROPERTY(ReplicatedUsing=OnRep_WeaponState)
 	EWeaponState CurrentState;
@@ -112,6 +108,10 @@ protected:
 
 	/** distance from the weapon socket to the end location of the trace if there was no blocking hit */
 	float ShotDistance;
+
+	/** additional distance for shooting trace start to prevent the shoot hit something behind the character  */
+	UPROPERTY(EditDefaultsOnly, Category="Weapon State")
+	float ExtraDistance;
 
 	/** speed to interpolate from the default field of view of the player to the ZoomedFOV when is aiming */
 	UPROPERTY(EditAnywhere, Category = "Aiming")
@@ -218,10 +218,10 @@ protected:
 	UFUNCTION()
 	virtual void Fire();
 
-	void ApplyDamage(const FHitResult& HitResult, FVector ShootDirection);
+	void ApplyDamage(const FHitResult& HitResult);
 
 	/** [server] perform trace to set hit target */
-	void TraceUnderCrosshairs(FHitResult& OutHitResult, FVector& Direction);
+	void TraceUnderCrosshairs(FHitResult& OutHitResult);
 
 	/** [server] prevent to spawn multiple times fire button and fire again if it is on firing state and is automatic */
 	void HandleReFiring();

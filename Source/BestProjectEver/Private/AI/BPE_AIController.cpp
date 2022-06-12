@@ -17,6 +17,8 @@ ABPE_AIController::ABPE_AIController()
 	PlayerLocationName = "PlayerReferenceLocation";
 
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
+
+	DestroyDelay = 2.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -24,6 +26,27 @@ void ABPE_AIController::BeginPlay()
 {
 	Super::BeginPlay();
 	InitializeReferences();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_AIController::BeginInactiveState()
+{
+	if(IsValid(BrainComponent))
+	{
+		BrainComponent->StopLogic("Enemy is dead");	
+	}
+	
+	GetWorldTimerManager().SetTimer(TimerHandle_Destroy, this, &ABPE_AIController::DestroyEnemy,
+		DestroyDelay, false, DestroyDelay);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_AIController::DestroyEnemy()
+{
+	if(IsValid(GetPawn()))
+	{
+		GetPawn()->Destroy();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

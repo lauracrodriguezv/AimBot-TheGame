@@ -7,6 +7,7 @@
 #include "Components/BPE_HealthComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/PawnNoiseEmitterComponent.h"
+#include "Core/GameModes/BPE_GameplayGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
@@ -41,23 +42,39 @@ void ABPE_BaseCharacter::BeginPlay()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::HandleCharacterDeath()
+void ABPE_BaseCharacter::HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser)
 {
-	
+	ABPE_GameplayGameMode* GameplayGameMode = GetWorld()->GetAuthGameMode<ABPE_GameplayGameMode>();
+	if(IsValid(GameplayGameMode))
+	{		
+		GameplayGameMode->OnCharacterDeath(InstigatedBy, GetController(), this);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::HandleCharacterDamage(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth)
+void ABPE_BaseCharacter::HandleCharacterDamage(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth,
+		AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser)
 {
 	if(HealthComponent->IsDead())
 	{
+		if(HasAuthority())
+		{
+			HandleCharacterDeath(DamagedActor, InstigatedBy, DamageCauser);	
+		}
+		
 		PlayMontage(DamageMontage, "Dead");
-		HandleCharacterDeath();
+		// play dissolve effect 
 	}
 	else
 	{
 		PlayMontage(DamageMontage, "Hurt");
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_BaseCharacter::DropWeapon()
+{
+	// empty in base class
 }
 
 //----------------------------------------------------------------------------------------------------------------------

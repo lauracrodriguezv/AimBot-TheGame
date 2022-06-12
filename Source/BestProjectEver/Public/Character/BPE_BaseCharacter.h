@@ -60,11 +60,21 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	//------------------------------------------------------------------------------------------------------------------
+	// Character State
+	
 	UFUNCTION()
-	void HandleCharacterDeath();
+	virtual void HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser);
 
 	UFUNCTION()
-	void HandleCharacterDamage(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth);
+	virtual void HandleCharacterDamage(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth,
+		AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser);
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Weapon
+	
+	/** drop all weapons equipped */
+	virtual void DropWeapon();
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects

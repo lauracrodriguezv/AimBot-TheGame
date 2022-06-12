@@ -12,13 +12,10 @@
 void ABPE_HUD::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	AddCharacterOverlay();
-	InitializeReferences();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::InitializeReferences()
+void ABPE_HUD::BindDelegates()
 {
 	ABPE_PlayerCharacter* PlayerCharacter = Cast<ABPE_PlayerCharacter>( GetOwningPawn());
 	if(IsValid(PlayerCharacter))
@@ -46,7 +43,16 @@ void ABPE_HUD::AddCharacterOverlay()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::UpdateCurrentWeaponIcon(EColorType WeaponColorType)
+void ABPE_HUD::RemoveCharacterOverlay()
+{
+	if(IsValid(CharacterOverlay))
+	{
+		CharacterOverlay->RemoveFromParent();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::UpdateCurrentWeaponIcon(const EColorType WeaponColorType)
 {
 	if(IsValid(CharacterOverlay))
 	{
@@ -55,7 +61,8 @@ void ABPE_HUD::UpdateCurrentWeaponIcon(EColorType WeaponColorType)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::UpdateHealth(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth)
+void ABPE_HUD::UpdateHealth(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth,
+		AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser)
 {
 	if(IsValid(CharacterOverlay))
 	{

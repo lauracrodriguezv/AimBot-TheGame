@@ -6,8 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "BPE_HealthComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnHealthChangeSignature, class UBPE_HealthComponent*, CurrentHealthComponent,
-	float, CurrentHealth, float, MaxHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangeSignature, class UBPE_HealthComponent*, CurrentHealthComponent,
+float, CurrentHealth, float, MaxHealth, AActor*, DamagedActor, AController*, InstigatedBy, AActor*, DamageCauser);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -26,6 +26,10 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_Health, BlueprintReadOnly, Category = "Health Component")
 	float CurrentHealth;
+
+	/** actor who applied damage in any way to this actor */
+	UPROPERTY(Transient)
+	TObjectPtr<AActor> DamageCauserActor;
 	
 public:	
 	

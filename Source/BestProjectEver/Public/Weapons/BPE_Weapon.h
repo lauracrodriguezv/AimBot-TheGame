@@ -65,7 +65,7 @@ protected:
 	//Weapon Type
 
 	/** to determine which enemy it can apply damage */
-	UPROPERTY(EditAnywhere, Category = "Weapon State")
+	UPROPERTY(ReplicatedUsing=OnRep_ColorType, EditAnywhere, Category = "Weapon State")
 	EColorType ColorType;
 
 	/** Material based on color type */
@@ -120,6 +120,10 @@ protected:
 	/** FOV when is aiming */
 	UPROPERTY(EditAnywhere, Category = "Aiming")
 	float ZoomedFOV;
+
+	/** Magnitude for impulse added when weapon is dropped */
+	UPROPERTY(EditDefaultsOnly, Category="Weapon State")
+	float ImpulseOnDropped;
 
 	UPROPERTY(EditDefaultsOnly, Category= "Weapon State")
 	TSubclassOf<UDamageType> DamageType;
@@ -201,6 +205,10 @@ protected:
 	/** [server] set weapon state */
 	void SetState(EWeaponState State);
 
+	/** [client] replicate weapon color material */
+	UFUNCTION()
+	void OnRep_ColorType();
+	
 	/** change mesh color depending on color type */
 	void UpdateMeshColor();
 	
@@ -255,6 +263,9 @@ public:
 	virtual void SetOwner(AActor* NewOwner) override;
 
 	void OnPickup(AActor* NewOwner);
+
+	/** [server] set weapon parameter when is dropped */
+	void OnDropped();
 	
 	/** get current weapon state */
 	EWeaponState GetCurrentState() const { return CurrentState; }

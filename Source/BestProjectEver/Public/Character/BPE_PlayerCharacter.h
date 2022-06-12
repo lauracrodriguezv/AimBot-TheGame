@@ -106,6 +106,12 @@ protected:
 	virtual void BeginPlay() override;
 
 	void InitializeReference();
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Player State
+
+	/** [server]  */
+	virtual void HandleCharacterDeath(AActor* KilledActor, AController* InstigatedBy, AActor* Killer) override;
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Input handlers
@@ -195,6 +201,9 @@ protected:
 
 	/** [server] add weapon to inventory */
 	void PickupWeapon(ABPE_Weapon* NewWeapon);
+
+	/** [server] drop all weapons in inventory */
+	virtual void DropWeapon() override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetAsCurrentWeapon(ABPE_Weapon* Weapon);

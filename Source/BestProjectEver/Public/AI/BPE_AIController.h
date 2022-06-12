@@ -19,6 +19,10 @@ class BESTPROJECTEVER_API ABPE_AIController : public AAIController
 
 protected:
 
+	/** Minimum time before enemy is destroyed when dies */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="GameMode", meta=(ClampMin=0.0f))
+	float DestroyDelay;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Enemy Controller")
 	TObjectPtr<UAIPerceptionComponent> AIPerceptionComponent;
 
@@ -45,6 +49,9 @@ protected:
 	/** path enemy follows on patrol state */
 	UPROPERTY(BlueprintReadOnly, Category="Enemy Controller")
 	TObjectPtr<UObject> PathFollowing;
+
+	/** Handle for efficient management of destroy timer */
+	FTimerHandle TimerHandle_Destroy;
 	
 public:
 
@@ -53,6 +60,12 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+
+	/** [server] State entered when inactive */
+	virtual void BeginInactiveState() override;
+
+	UFUNCTION()
+	void DestroyEnemy();
 
 	void InitializeReferences();
 

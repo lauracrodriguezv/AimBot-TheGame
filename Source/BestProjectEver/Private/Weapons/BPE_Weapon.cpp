@@ -59,6 +59,8 @@ ABPE_Weapon::ABPE_Weapon()
 	BaseDamage = 10.0f;
 
 	ShootLoudness = 1.0f;
+
+	ImpulseOnDropped = 1000.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -381,6 +383,23 @@ void ABPE_Weapon::OnPickup(AActor* NewOwner)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnDropped()
+{
+	if(IsHidden())
+	{
+		SetActorHiddenInGame(false);
+	}
+	
+	const FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
+	DetachFromActor(DetachRules);
+	
+	SetOwner(nullptr);
+	SetState(EWeaponState::Idle);
+	
+	WeaponMesh->AddImpulse(FMath::VRand() * ImpulseOnDropped, NAME_None, true);	
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Implementation(const FVector& MuzzleLocation)
 {
 	if (IsValid(FireAnimation))
@@ -438,6 +457,12 @@ void ABPE_Weapon::SetColorType(const EColorType NewColorType)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnRep_ColorType()
+{
+	UpdateMeshColor();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::SetWidgetVisibility(bool bShowWidget)
 {
 	if(IsValid(PickupWidget))
@@ -466,6 +491,7 @@ void ABPE_Weapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ABPE_Weapon, CurrentState);
+	DOREPLIFETIME(ABPE_Weapon, ColorType);
 }
 
 

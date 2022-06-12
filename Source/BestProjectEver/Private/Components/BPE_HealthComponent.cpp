@@ -44,6 +44,7 @@ void UBPE_HealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damag
 		OnIsDead();
 	}
 
+	DamageCauserActor = DamageCauser;
 	OnHealthChange();
 }
 
@@ -68,7 +69,9 @@ void UBPE_HealthComponent::OnIsDead()
 //----------------------------------------------------------------------------------------------------------------------
 void UBPE_HealthComponent::OnHealthChange()
 {
-	OnHealthChangeDelegate.Broadcast(this, CurrentHealth, MaxHealth);
+	AController* DamageCauserController = IsValid(DamageCauserActor)? DamageCauserActor->GetInstigatorController() : nullptr;
+	OnHealthChangeDelegate.Broadcast(this, CurrentHealth, MaxHealth, GetOwner(),
+		DamageCauserController, DamageCauserActor);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

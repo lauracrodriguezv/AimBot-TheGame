@@ -56,6 +56,35 @@ void ABPE_PlayerCharacter::InitializeReference()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::HandleCharacterDeath(AActor* KilledActor, AController* InstigatedBy, AActor* Killer)
+{
+	Super::HandleCharacterDeath(KilledActor, InstigatedBy, Killer);
+	
+	if(!Inventory.IsEmpty())
+	{
+		DropWeapon();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::DropWeapon()
+{
+	if(HasAuthority())
+	{
+		for (ABPE_Weapon* Weapon : Inventory)
+		{
+			if(IsValid(Weapon))
+			{
+				Weapon->OnDropped();
+			}
+		}
+		
+		Inventory.Empty();
+		CurrentWeapon = nullptr;
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::MoveForward(float Value)
 {
 	if(IsValid(Controller)  && Value != 0.0f && !GetHealthComponent()->IsDead())
@@ -342,8 +371,6 @@ void ABPE_PlayerCharacter::HideUnusedWeapon(ABPE_Weapon* Weapon)
 {
 	if(IsValid(Weapon))
 	{
-		const FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
-		Weapon->DetachFromActor(DetachRules);
 		Weapon->SetActorHiddenInGame(true);
 	}
 }

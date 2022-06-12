@@ -68,6 +68,10 @@ protected:
 
 	/** set current enemy status handler */
 	void OnSetEnemyStatus(EEnemyStatus NewEnemyStatus);
+
+	virtual void HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser) override;
+	
+	virtual void DropWeapon() override;
 	
 public:
 

@@ -32,21 +32,27 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	void InitializeReferences();
-
 	/** update health information on character overlay widget */
 	UFUNCTION()
-	void UpdateHealth(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth);
+	void UpdateHealth(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth,
+		AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser);
 
 public:
 
 	virtual void DrawHUD() override;
 
+	/** Bind character's delegates */
+	void BindDelegates();
+
 	/** Create and add character overlay widget to the viewport */
 	UFUNCTION()
 	void AddCharacterOverlay();
 
+	/** Remove character overlay widget to the viewport */
+	UFUNCTION()
+	void RemoveCharacterOverlay();
+	
 	/** update weapon icon depending on the color type of the current weapon */
 	UFUNCTION()
-	void UpdateCurrentWeaponIcon(EColorType WeaponColorType);
+	void UpdateCurrentWeaponIcon(const EColorType WeaponColorType);
 };

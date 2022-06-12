@@ -92,6 +92,23 @@ bool ABPE_Enemy::IsWeaponEquipped() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_Enemy::HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser)
+{
+	Super::HandleCharacterDeath(DamagedActor, InstigatedBy, DamageCauser);
+	DropWeapon();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Enemy::DropWeapon()
+{
+	if(IsValid(CurrentWeapon))
+	{
+		CurrentWeapon->OnDropped();
+		CurrentWeapon = nullptr;
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 FRotator ABPE_Enemy::GetViewRotation() const
 {
 	if(IsValid(CurrentWeapon))

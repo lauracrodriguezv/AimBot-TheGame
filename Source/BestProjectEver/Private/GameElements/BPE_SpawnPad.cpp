@@ -8,17 +8,21 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "NiagaraComponent.h"
+#include "Interfaces/BPE_InteractWithColorType.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_SpawnPad::ABPE_SpawnPad()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
+	SetReplicatingMovement(true);
 	
 	SpawnPadBaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpawnPadBaseMesh"));
 	SetRootComponent(SpawnPadBaseMesh);
 
 	SpawnPadRingMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SpawnPadRingMesh"));
 	SpawnPadRingMesh->SetupAttachment(RootComponent);
+	SpawnPadRingMesh->SetIsReplicated(true);
 	
 	HoloGridPlane = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HoloGridPlane"));
 	HoloGridPlane->SetupAttachment(SpawnPadRingMesh);
@@ -40,7 +44,9 @@ ABPE_SpawnPad::ABPE_SpawnPad()
 	FX_SpawnPadActive->SetRelativeLocation(FVector(0.0f, 0.0f, 27.0f));
 
 	InteractWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InteractWidget"));
-	InteractWidget->SetupAttachment(ButtonMesh);
+	InteractWidget->SetupAttachment(RootComponent);
+
+	RingMovementTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("RingMovementTimeline"));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -61,6 +67,12 @@ void ABPE_SpawnPad::InitializeReferences()
 	}
 
 	SetWidgetVisibility(false);
+
+	if(IsValid(RingMovementCurve) && IsValid(RingMovementTimeline))
+	{
+		RingMovementTrack.BindDynamic(this, &ABPE_SpawnPad::UpdateRingPosition);
+		RingMovementTimeline->AddInterpFloat(RingMovementCurve, RingMovementTrack);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -70,7 +82,7 @@ void ABPE_SpawnPad::OnActivationTriggerOverlap(UPrimitiveComponent* OverlappedCo
 	ABPE_PlayerCharacter* OverlappedCharacter  = Cast<ABPE_PlayerCharacter>(OtherActor);
 	if(IsValid(OverlappedCharacter))
 	{
-		// set interactive trigger 
+		OverlappedCharacter->SetOverlappingSpawnPad(this);
 	}
 }
 
@@ -81,7 +93,7 @@ void ABPE_SpawnPad::OnActivationTriggerEndOverlap(UPrimitiveComponent* Overlappe
 	ABPE_PlayerCharacter* OverlappedCharacter  = Cast<ABPE_PlayerCharacter>(OtherActor);
 	if(IsValid(OverlappedCharacter))
 	{
-		// set interactive trigger to nullptr
+		OverlappedCharacter->SetOverlappingSpawnPad(nullptr);
 	}
 }
 
@@ -104,8 +116,15 @@ void ABPE_SpawnPad::SpawnActor()
 	
 	if(IsValid(CurrentActorSpawned))
 	{
-		// use an interface to decided what happen when now is not the CurrentActorSpawned
-		// Mesh->AddImpulse(FMath::VRand() * 1000.0f, NAME_None, true);
+		if(CurrentActorSpawned->Implements<UBPE_InteractWithColorType>())
+		{
+			IBPE_InteractWithColorType* ActorWithColorType = Cast<IBPE_InteractWithColorType>(CurrentActorSpawned);
+			ActorWithColorType->OnStopInteraction();
+		}
+		else
+		{
+			CurrentActorSpawned->Destroy();
+		}
 	}
 
 	if(IsValid(ActorToSpawnClass))
@@ -118,29 +137,32 @@ void ABPE_SpawnPad::SpawnActor()
 		CurrentActorSpawned = GetWorld()->SpawnActor<AActor>(ActorToSpawnClass, ActorTransform.GetLocation(),
 			ActorTransform.GetRotation().Rotator(), SpawnParameters);
 		
-		// can be spawned with color?
-			// set random color and update mesh color in enemy and weapon
+		if(IsValid(CurrentActorSpawned) && CurrentActorSpawned->Implements<UBPE_InteractWithColorType>())
+		{
+			IBPE_InteractWithColorType* ActorWithColorType = Cast<IBPE_InteractWithColorType>(CurrentActorSpawned);
+			/** this range was set taking into account that there are just three colors in the enum */
+			const uint8 RandomColor = FMath::RandRange(0, 2);
+			ActorWithColorType->SetColorType(static_cast<EColorType>(RandomColor));
+		}
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_SpawnPad::ActiveEffectsOnSpawn()
 {
-	RingMovementTrack.BindDynamic(this, &ABPE_SpawnPad::UpdateRingPosition);
-	if(IsValid(RingMovementCurve) && IsValid(RinMovementTimeline))
+	if(IsValid(RingMovementTimeline))
 	{
-		RinMovementTimeline->AddInterpFloat(RingMovementCurve, RingMovementTrack);
-		RinMovementTimeline->Play();
+		RingMovementTimeline->PlayFromStart();
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_SpawnPad::UpdateRingPosition(float DissolveValue)
+void ABPE_SpawnPad::UpdateRingPosition(float Value)
 {
 	if(IsValid(SpawnPadRingMesh))
 	{
 		const FVector NewLocationMultiplier (0.0f, 0.0f, 200.0f);
-		SpawnPadRingMesh->SetRelativeLocation(NewLocationMultiplier * DissolveValue);
+		SpawnPadRingMesh->SetRelativeLocation(NewLocationMultiplier * Value);
 	}
 }
 

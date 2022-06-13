@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "BestProjectEver/ColorType.h"
+#include "Interfaces/BPE_InteractWithColorType.h"
 #include "BPE_Weapon.generated.h"
 
 class USphereComponent;
@@ -35,7 +36,7 @@ enum class EShootType : uint8
 };
 
 UCLASS()
-class BESTPROJECTEVER_API ABPE_Weapon : public AActor
+class BESTPROJECTEVER_API ABPE_Weapon : public AActor, public IBPE_InteractWithColorType
 {
 	GENERATED_BODY()
 	
@@ -65,7 +66,7 @@ protected:
 	//Weapon Type
 
 	/** to determine which enemy it can apply damage */
-	UPROPERTY(EditAnywhere, Category = "Weapon State")
+	UPROPERTY(ReplicatedUsing=OnRep_ColorType, EditAnywhere, Category = "Weapon State")
 	EColorType ColorType;
 
 	/** Material based on color type */
@@ -200,9 +201,6 @@ protected:
 
 	/** [server] set weapon state */
 	void SetState(EWeaponState State);
-
-	/** change mesh color depending on color type */
-	void UpdateMeshColor();
 	
 	/** [client] called when CurrentState is set and it calls OnSetWeaponState */
 	UFUNCTION()
@@ -215,6 +213,9 @@ protected:
 	void UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
 		ECollisionEnabled::Type PickupAreaTypeCollision);
 
+	UFUNCTION()
+	void OnRep_ColorType();
+	
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon usage helpers
 	
@@ -259,12 +260,6 @@ public:
 	/** get current weapon state */
 	EWeaponState GetCurrentState() const { return CurrentState; }
 
-	/** get weapon color type */
-	EColorType GetColorType() const { return ColorType; }
-
-	/** set weapon color type */
-	void SetColorType(const EColorType NewColorType);
-
 	/** [client and server] called when character start or end overlapping pickup area if it is locally controlled*/
 	void SetWidgetVisibility(bool bShowWidget);
 
@@ -282,6 +277,24 @@ public:
 
 	/* [server] start firing, can be delayed to satisfy TimeBetweenShots */ 
 	void StopFire();
+
+	//------------------------------------------------------------------------------------------------------------------
+	//Color Type
+	
+	/** change mesh color depending on color type */
+	virtual void UpdateMeshColor() override;
+
+	/** get weapon color type */
+	virtual EColorType GetColorType() const override { return ColorType; }
+
+	/** set weapon color type */
+	virtual void SetColorType(const EColorType NewColorType) override;
+
+	/** game element dropped current actor */
+	virtual void OnStopInteraction() override;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_UpdateState();
 	
 	//------------------------------------------------------------------------------------------------------------------
 

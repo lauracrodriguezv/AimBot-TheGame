@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/BPE_Weapon.h"
+#include "GameElements/BPE_SpawnPad.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_PlayerCharacter::ABPE_PlayerCharacter()
@@ -294,6 +295,43 @@ void ABPE_PlayerCharacter::HandleEquipWeapon(ABPE_Weapon* WeaponToEquip)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Interact()
+{
+	if(IsValid(OverlappingSpawnPad) && !GetHealthComponent()->IsDead())
+	{
+		if(HasAuthority())
+		{
+			HandleInteract();
+		}
+		else
+		{
+			Server_Interact();
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Server_Interact_Implementation()
+{
+	HandleInteract();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_Interact_Validate()
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::HandleInteract()
+{
+	if(IsValid(OverlappingSpawnPad))
+	{
+		OverlappingSpawnPad->OnInteract();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::PickupWeapon(ABPE_Weapon* NewWeapon)
 {
 	if(IsValid(NewWeapon) && HasAuthority())
@@ -370,6 +408,15 @@ void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::SetOverlappingSpawnPad(ABPE_SpawnPad* SpawnPad)
+{
+	ABPE_SpawnPad* LastOverlappingSpawnPad = OverlappingSpawnPad;
+	OverlappingSpawnPad = SpawnPad;
+
+	OnSetOverlappingSpawnPad(LastOverlappingSpawnPad);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnRep_CurrentWeapon()
 {
 	OnCurrentWeaponChanged();
@@ -407,6 +454,28 @@ void ABPE_PlayerCharacter::OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWe
 		if(IsValid(LastOverlappingWeapon))
 		{
 			LastOverlappingWeapon->SetWidgetVisibility(false);
+		}	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnRep_OverlappingSpawnPad(ABPE_SpawnPad* LastOverlappingSpawnPad)
+{
+	OnSetOverlappingSpawnPad(LastOverlappingSpawnPad);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnSetOverlappingSpawnPad(ABPE_SpawnPad* LastOverlappingSpawnPad)
+{
+	if(IsLocallyControlled())
+	{
+		if(IsValid(OverlappingSpawnPad))
+		{
+			OverlappingSpawnPad->SetWidgetVisibility(true);
+		}
+		if(IsValid(LastOverlappingSpawnPad))
+		{
+			LastOverlappingSpawnPad->SetWidgetVisibility(false);
 		}	
 	}
 }
@@ -481,6 +550,8 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindAction("NextWeapon", IE_Pressed, this, &ABPE_PlayerCharacter::EquipNextWeapon);
 	PlayerInputComponent->BindAction("PreviousWeapon", IE_Pressed, this,  &ABPE_PlayerCharacter::EquipPreviousWeapon);
+
+	PlayerInputComponent->BindAction("Interact",IE_Pressed, this, &ABPE_PlayerCharacter::Interact);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -489,6 +560,7 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, OverlappingSpawnPad, COND_OwnerOnly);
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
 	DOREPLIFETIME(ABPE_PlayerCharacter, bIsAiming);
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, Inventory, COND_OwnerOnly);

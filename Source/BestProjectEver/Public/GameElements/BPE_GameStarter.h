@@ -28,7 +28,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	TObjectPtr<UBoxComponent> ActivationTrigger;
 
-	/** go here to start the game */
+	/** "go here to start the game" */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	TObjectPtr<UWidgetComponent> InformationWidget;
 	
@@ -42,6 +42,8 @@ protected:
 
 	void InitializeReferences();
 
+	/** [server] called when something starts overlaps ActivationTrigger component */
+	UFUNCTION()
 	void OnActivationTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

@@ -6,13 +6,14 @@
 #include "BestProjectEver/ColorType.h"
 #include "Character/BPE_BaseCharacter.h"
 #include "BestProjectEver/EnemyDefinitions.h"
+#include "Interfaces/BPE_InteractWithColorType.h"
 #include "BPE_Enemy.generated.h"
 
 class ABPE_PathFollowing;
 class ABPE_Weapon;
 
 UCLASS()
-class BESTPROJECTEVER_API ABPE_Enemy : public ABPE_BaseCharacter
+class BESTPROJECTEVER_API ABPE_Enemy : public ABPE_BaseCharacter, public IBPE_InteractWithColorType
 {
 	GENERATED_BODY()
 
@@ -28,7 +29,7 @@ protected:
 	//Enemy Type
 	
 	/** to determine which color type weapon can hurt this enemy */
-	UPROPERTY(EditAnywhere, Category = "Enemy State")
+	UPROPERTY(ReplicatedUsing=OnRep_ColorType, EditAnywhere, Category = "Enemy State")
 	EColorType ColorType;
 
 	/** Material based on color type */
@@ -68,6 +69,9 @@ protected:
 
 	/** set current enemy status handler */
 	void OnSetEnemyStatus(EEnemyStatus NewEnemyStatus);
+
+	UFUNCTION()
+	void OnRep_ColorType();
 	
 public:
 
@@ -99,6 +103,25 @@ public:
 	/** set by the AI controller if an actor is perceived */
 	void SetTargetViewLocation(const FVector& TargetLocation) { TargetViewLocation = TargetLocation; }
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Color Type
+
+	/** change mesh color depending on color type */
+	virtual void UpdateMeshColor() override;
+	
 	/** get enemy color type */
-	EColorType GetColorType() const { return ColorType; }
+	virtual EColorType GetColorType() const override { return ColorType; }
+
+	/** set enemy color type */
+	virtual void SetColorType(const EColorType NewColorType) override;
+
+	/** game element dropped current actor */
+	virtual void OnStopInteraction() override;
+
+	//------------------------------------------------------------------------------------------------------------------
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_UpdateMeshPhysics();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

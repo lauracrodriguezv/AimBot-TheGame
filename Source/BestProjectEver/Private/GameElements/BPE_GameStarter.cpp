@@ -47,9 +47,9 @@ void ABPE_GameStarter::InitializeReferences()
 void ABPE_GameStarter::OnActivationTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	ABPE_LobbyGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABPE_LobbyGameMode>();
-	if(IsValid(BlasterGameMode))
+	ABPE_LobbyGameMode* LobbyGameMode = GetWorld()->GetAuthGameMode<ABPE_LobbyGameMode>();
+	if(IsValid(LobbyGameMode))
 	{
-		BlasterGameMode->TravelToMatchMap();
+		LobbyGameMode->TravelToMatchMap();
 	}
 }

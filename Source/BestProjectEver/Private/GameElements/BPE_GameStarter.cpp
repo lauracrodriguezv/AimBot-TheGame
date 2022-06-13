@@ -36,7 +36,7 @@ void ABPE_GameStarter::BeginPlay()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameStarter::InitializeReferences()
 {
-	if(HasAuthority())
+	if(HasAuthority() && IsValid(ActivationTrigger))
 	{
 		ActivationTrigger->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 		ActivationTrigger->OnComponentBeginOverlap.AddDynamic(this, &ABPE_GameStarter::OnActivationTriggerOverlap);

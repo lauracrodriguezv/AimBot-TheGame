@@ -36,6 +36,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Materials")
 	TMap<EColorType, FLinearColor> MaterialColor;
 
+	/** impulse added when spawn pad drops this actor (OnStopInteraction) */
+	UPROPERTY(EditDefaultsOnly, Category="Interaction")
+	float ImpulseOnStopInteraction;
+
 	//------------------------------------------------------------------------------------------------------------------
 	//Enemy State
 	

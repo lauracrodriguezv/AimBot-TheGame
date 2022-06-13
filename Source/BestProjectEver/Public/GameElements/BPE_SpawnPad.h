@@ -53,11 +53,14 @@ protected:
 	TObjectPtr<UWidgetComponent> InteractWidget;
 
 	/** timeline for ring movement when an actor is spawned */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= Effects)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "Components")
 	TObjectPtr<UTimelineComponent> RingMovementTimeline;
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Spawner Data
+
+	UPROPERTY(EditAnywhere, Category = "Spawner")
+	FVector NewLocationMultiplier;
 	
 	UPROPERTY(EditAnywhere, Category = "Spawner")
 	TSubclassOf<AActor> ActorToSpawnClass;

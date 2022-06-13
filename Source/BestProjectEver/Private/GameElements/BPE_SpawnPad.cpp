@@ -47,6 +47,8 @@ ABPE_SpawnPad::ABPE_SpawnPad()
 	InteractWidget->SetupAttachment(RootComponent);
 
 	RingMovementTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("RingMovementTimeline"));
+
+	NewLocationMultiplier = FVector(0.0f, 0.0f, 200.0f);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -59,7 +61,7 @@ void ABPE_SpawnPad::BeginPlay()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_SpawnPad::InitializeReferences()
 {
-	if(HasAuthority())
+	if(HasAuthority() && IsValid(ActivationTrigger))
 	{
 		ActivationTrigger->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 		ActivationTrigger->OnComponentBeginOverlap.AddDynamic(this, &ABPE_SpawnPad::OnActivationTriggerOverlap);
@@ -161,7 +163,6 @@ void ABPE_SpawnPad::UpdateRingPosition(float Value)
 {
 	if(IsValid(SpawnPadRingMesh))
 	{
-		const FVector NewLocationMultiplier (0.0f, 0.0f, 200.0f);
 		SpawnPadRingMesh->SetRelativeLocation(NewLocationMultiplier * Value);
 	}
 }

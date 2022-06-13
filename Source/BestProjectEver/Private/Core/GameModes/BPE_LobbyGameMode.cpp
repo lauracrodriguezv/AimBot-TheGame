@@ -14,6 +14,7 @@ ABPE_LobbyGameMode::ABPE_LobbyGameMode()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_LobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
+	
 	Super::PostLogin(NewPlayer);
 }
 

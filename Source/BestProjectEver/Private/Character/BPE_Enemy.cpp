@@ -15,6 +15,8 @@ ABPE_Enemy::ABPE_Enemy()
 
 	Team = ETeam::Enemy;
 	ColorType = EColorType::Red;
+
+	ImpulseOnStopInteraction = 1000.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -109,9 +111,8 @@ FRotator ABPE_Enemy::GetViewRotation() const
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Enemy::SetColorType(const EColorType NewColorType)
 {
-	IBPE_InteractWithColorType::SetColorType(NewColorType);
-
 	ColorType = NewColorType;
+	IBPE_InteractWithColorType::SetColorType(NewColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -149,7 +150,7 @@ void ABPE_Enemy::OnStopInteraction()
 	if(IsValid(GetMesh()))
 	{
 		Multicast_UpdateMeshPhysics();
-		GetMesh()->AddImpulse(FMath::VRand() * 1000.0f, NAME_None, true);
+		GetMesh()->AddImpulse(FMath::VRand() * ImpulseOnStopInteraction, NAME_None, true);
 	}
 }
 

@@ -435,10 +435,9 @@ bool ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Validate(const FVector& Muzzle
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::SetColorType(const EColorType NewColorType)
-{
-	IBPE_InteractWithColorType::SetColorType(NewColorType);
-	
+{	
 	ColorType = NewColorType;
+	IBPE_InteractWithColorType::SetColorType(NewColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

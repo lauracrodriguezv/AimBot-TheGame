@@ -5,6 +5,7 @@
 
 #include "GameFramework/GameStateBase.h"
 
+//----------------------------------------------------------------------------------------------------------------------
 ABPE_LobbyGameMode::ABPE_LobbyGameMode()
 {
 	bUseSeamlessTravel = true;
@@ -13,12 +14,20 @@ ABPE_LobbyGameMode::ABPE_LobbyGameMode()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_LobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
+	
 	Super::PostLogin(NewPlayer);
+}
 
-	const int32 NumberOfPlayers = GameState.Get()->PlayerArray.Num();
-	if(NumberOfPlayers == 2)
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_LobbyGameMode::TravelToMatchMap()
+{
+	if(IsValid(GameState))
 	{
-		/** seamless travel to the match map open as a listen server for clients to connect to*/
-		GetWorld()->ServerTravel(FString("/Game/Maps/Gameplay?listen"));
+		const int32 NumberOfPlayers = GameState->PlayerArray.Num();
+		if(NumberOfPlayers >= 2)
+		{
+			/** seamless travel to the match map open as a listen server for clients to connect to*/
+			GetWorld()->ServerTravel(FString("/Game/Maps/Gameplay?listen"));
+		}	
 	}
 }

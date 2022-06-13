@@ -12,6 +12,7 @@ class USpringArmComponent;
 class ABPE_Weapon;
 class UBPE_InventoryComponent;
 class USoundCue;
+class ABPE_SpawnPad;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCurrentWeapon, EColorType, WeaponColorType);
 
@@ -88,6 +89,10 @@ protected:
 	UPROPERTY(Transient, ReplicatedUsing=OnRep_Inventory)
 	TArray<TObjectPtr<ABPE_Weapon>> Inventory;
 
+	/** set when character is over the activation trigger of a spawn pad */
+	UPROPERTY(ReplicatedUsing=OnRep_OverlappingSpawnPad)
+	TObjectPtr<ABPE_SpawnPad> OverlappingSpawnPad;
+
 	//------------------------------------------------------------------------------------------------------------------
 	// Animations
 
@@ -147,6 +152,9 @@ protected:
 
 	/** [client] equip previous weapon on the inventory */
 	void EquipPreviousWeapon();
+
+	/** [client] call the server to interact with game element */
+	void Interact();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Weapon
@@ -157,6 +165,13 @@ protected:
 	
 	/** [server] equip overlapping weapon */
 	void HandleEquipWeapon(ABPE_Weapon* WeaponToEquip);
+
+	/** [server] Interact */
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Interact();
+
+	/** [server] interact with overlapping spawn pad */
+	void HandleInteract();
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetAiming();
@@ -171,6 +186,10 @@ protected:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon);
 
+	/** [client] overlapping spawn pad rep handler */
+	UFUNCTION()
+	void OnRep_OverlappingSpawnPad(ABPE_SpawnPad* LastOverlappingSpawnPad);
+
 	/** [client] overlapping weapon rep handler */
 	UFUNCTION()
 	void OnRep_CurrentWeapon();
@@ -180,6 +199,9 @@ protected:
 
 	/** [client and server] overlapping weapon handler */
 	void OnSetOverlappingWeapon(ABPE_Weapon* LastOverlappingWeapon);
+
+	/** [client and server] on set overlapping spawn pad handler */
+	void OnSetOverlappingSpawnPad(ABPE_SpawnPad* LastOverlappingSpawnPad);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_StartFire();
@@ -237,6 +259,9 @@ public:
 	/** [server] overlapping weapon handler */
 	void SetOverlappingWeapon(ABPE_Weapon* Weapon);
 
+	/** [server] set overlapping SpawnPad handler */
+	void SetOverlappingSpawnPad(ABPE_SpawnPad* SpawnPad);
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -249,4 +274,3 @@ public:
 	/** from the camera component for clients */
 	virtual FVector GetPawnViewLocation() const override;
 };
-

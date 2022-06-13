@@ -4,28 +4,26 @@
 #include "Character/BPE_Enemy.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "Weapons/BPE_Weapon.h"
 
 ABPE_Enemy::ABPE_Enemy()
-{
+{	
 	EnemySpeedMap.Add(EEnemyStatus::Patrol, 300.0);
 	EnemySpeedMap.Add(EEnemyStatus::Combat, 600.0);
 	EnemySpeedMap.Add(EEnemyStatus::Investigating, 500.0);
 
 	Team = ETeam::Enemy;
 	ColorType = EColorType::Red;
+
+	ImpulseOnStopInteraction = 1000.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Enemy::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-
-	if(IsValid(GetMesh()) && MaterialColor.Contains(ColorType))
-	{
-		UMaterialInstanceDynamic* EnemyMaterial = GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(0,GetMesh()->GetMaterial(0)); 
-		EnemyMaterial->SetVectorParameterValue("MainColor", FLinearColor(MaterialColor[ColorType]));
-	}
+	UpdateMeshColor();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -78,6 +76,12 @@ void ABPE_Enemy::OnSetEnemyStatus(EEnemyStatus NewEnemyStatus)
 	}
 }
 
+//----------------------------------------------------------------------------------------------------------------------	
+void ABPE_Enemy::OnRep_ColorType()
+{
+	UpdateMeshColor();
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Enemy::SetEnemyStatus(EEnemyStatus NewEnemyStatus)
 {
@@ -119,5 +123,58 @@ FRotator ABPE_Enemy::GetViewRotation() const
 		return FRotator(WeaponToPlayer.Rotation());
 	}
 	return Super::GetViewRotation();
-	
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Enemy::SetColorType(const EColorType NewColorType)
+{
+	ColorType = NewColorType;
+	IBPE_InteractWithColorType::SetColorType(NewColorType);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Enemy::UpdateMeshColor()
+{
+	if(IsValid(GetMesh()) && MaterialColor.Contains(ColorType))
+	{
+		UMaterialInstanceDynamic* EnemyMaterial = GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(0,GetMesh()->GetMaterial(0));
+		if(IsValid(EnemyMaterial))
+		{
+			EnemyMaterial->SetVectorParameterValue("MainColor", FLinearColor(MaterialColor[ColorType]));	
+		}
+
+		if(IsValid(CurrentWeapon))
+		{
+			CurrentWeapon->SetColorType(GetColorType());
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Enemy::Multicast_UpdateMeshPhysics_Implementation()
+{
+	if(IsValid(GetMesh()))
+	{
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->SetEnableGravity(true);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Enemy::OnStopInteraction()
+{
+	if(IsValid(GetMesh()))
+	{
+		Multicast_UpdateMeshPhysics();
+		GetMesh()->AddImpulse(FMath::VRand() * ImpulseOnStopInteraction, NAME_None, true);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Enemy::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ABPE_Enemy, ColorType);
 }

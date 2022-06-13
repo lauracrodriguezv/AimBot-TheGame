@@ -38,7 +38,7 @@ ABPE_Weapon::ABPE_Weapon()
 
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
-
+	
 	CurrentState = EWeaponState::Idle;
 	RoundsPerMinute = 600.0f;
 	ShotDistance = 10000.0f;
@@ -166,8 +166,11 @@ void ABPE_Weapon::UpdateMeshColor()
 {
 	if(IsValid(WeaponMesh) && MaterialColor.Contains(ColorType))
 	{
-		UMaterialInstanceDynamic* WeaponMaterial = WeaponMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(0,WeaponMesh->GetMaterial(0)); 
-		WeaponMaterial->SetVectorParameterValue("ColorType", FLinearColor(MaterialColor[ColorType]));
+		UMaterialInstanceDynamic* WeaponMaterial = WeaponMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(0,WeaponMesh->GetMaterial(0));
+		if(IsValid(WeaponMaterial))
+		{
+			WeaponMaterial->SetVectorParameterValue("ColorType", FLinearColor(MaterialColor[ColorType]));	
+		}
 	}
 }
 
@@ -454,8 +457,14 @@ bool ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Validate(const FVector& Muzzle
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::SetColorType(const EColorType NewColorType)
-{
+{	
 	ColorType = NewColorType;
+	IBPE_InteractWithColorType::SetColorType(NewColorType);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnRep_ColorType()
+{
 	UpdateMeshColor();
 }
 
@@ -463,6 +472,25 @@ void ABPE_Weapon::SetColorType(const EColorType NewColorType)
 void ABPE_Weapon::OnRep_ColorType()
 {
 	UpdateMeshColor();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnStopInteraction()
+{
+	if(CurrentState != EWeaponState::Equipped)
+	{
+		Multicast_UpdateState();
+		if(IsValid(WeaponMesh))
+		{
+			WeaponMesh->AddImpulse(FMath::VRand() * 1000.0f, NAME_None, true);
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::Multicast_UpdateState_Implementation()
+{
+	SetState(EWeaponState::Idle);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

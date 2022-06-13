@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BestProjectEver/HealthData.h"
 #include "GameFramework/Character.h"
+
 #include "BPE_BaseCharacter.generated.h"
 
 class UBPE_HealthComponent;
@@ -67,8 +69,7 @@ protected:
 	virtual void HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser);
 
 	UFUNCTION()
-	virtual void HandleCharacterDamage(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth,
-		AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser);
+	virtual void HandleCharacterDamage(const FHealthData& HealthData);
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Weapon

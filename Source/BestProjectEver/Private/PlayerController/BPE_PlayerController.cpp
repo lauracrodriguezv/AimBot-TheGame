@@ -22,8 +22,10 @@ void ABPE_PlayerController::BeginPlay()
 void ABPE_PlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+
+	/** This delay is created because GetHUD() is not valid at the first tick, that's why the HUD was not updated on client */
 	GetWorldTimerManager().SetTimer(TimerHandle_HUD,this, &ABPE_PlayerController::Client_UpdateHud,
-		0.3f,false, 0.3f);
+		0.5f,false, 0.5f);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -35,12 +37,6 @@ void ABPE_PlayerController::Client_UpdateHud_Implementation()
 		HUD->AddCharacterOverlay();
 		HUD->BindDelegates();
 	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool ABPE_PlayerController::Client_UpdateHud_Validate()
-{
-	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -61,11 +61,10 @@ void ABPE_HUD::UpdateCurrentWeaponIcon(const EColorType WeaponColorType)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::UpdateHealth(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth,
-		AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser)
+void ABPE_HUD::UpdateHealth(const FHealthData& HealthData)
 {
 	if(IsValid(CharacterOverlay))
 	{
-		CharacterOverlay->UpdateHealthDisplay(CurrentHealth, MaxHealth);	
+		CharacterOverlay->UpdateHealthDisplay(HealthData.CurrentHealth, HealthData.MaxHealth);	
 	}
 }

@@ -52,14 +52,13 @@ void ABPE_BaseCharacter::HandleCharacterDeath(AActor* DamagedActor, AController*
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::HandleCharacterDamage(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth,
-		AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser)
+void ABPE_BaseCharacter::HandleCharacterDamage(const FHealthData& HealthData)
 {
-	if(HealthComponent->IsDead())
+	if(IsValid(HealthComponent) && HealthComponent->IsDead()) 
 	{
 		if(HasAuthority())
 		{
-			HandleCharacterDeath(DamagedActor, InstigatedBy, DamageCauser);	
+			HandleCharacterDeath(HealthData.DamagedActor, HealthData.InstigatedBy, HealthData.DamageCauser);	
 		}
 		
 		PlayMontage(DamageMontage, "Dead");

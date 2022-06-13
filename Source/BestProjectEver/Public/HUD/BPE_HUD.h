@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BestProjectEver/ColorType.h"
+#include "BestProjectEver/HealthData.h"
 #include "GameFramework/HUD.h"
 #include "BPE_HUD.generated.h"
 
@@ -34,8 +35,7 @@ protected:
 
 	/** update health information on character overlay widget */
 	UFUNCTION()
-	void UpdateHealth(UBPE_HealthComponent* CurrentHealthComponent, float CurrentHealth, float MaxHealth,
-		AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser);
+	void UpdateHealth(const FHealthData& HealthData);
 
 public:
 

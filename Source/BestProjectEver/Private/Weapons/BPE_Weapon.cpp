@@ -395,8 +395,11 @@ void ABPE_Weapon::OnDropped()
 	
 	SetOwner(nullptr);
 	SetState(EWeaponState::Idle);
-	
-	WeaponMesh->AddImpulse(FMath::VRand() * ImpulseOnDropped, NAME_None, true);	
+
+	if(IsValid(WeaponMesh))
+	{
+		WeaponMesh->AddImpulse(FMath::VRand() * ImpulseOnDropped, NAME_None, true);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

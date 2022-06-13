@@ -128,6 +128,10 @@ protected:
 
 	virtual void AddControllerPitchInput(float Value) override;
 
+	virtual void Jump() override;
+
+	virtual void StopJumping() override;
+	
 	void StartCrouch();
 
 	void EndCrouch();

@@ -70,8 +70,7 @@ void UBPE_HealthComponent::OnIsDead()
 void UBPE_HealthComponent::OnHealthChange()
 {
 	AController* DamageCauserController = IsValid(DamageCauserActor)? DamageCauserActor->GetInstigatorController() : nullptr;
-	OnHealthChangeDelegate.Broadcast(this, CurrentHealth, MaxHealth, GetOwner(),
-		DamageCauserController, DamageCauserActor);
+	OnHealthChangeDelegate.Broadcast(FHealthData(CurrentHealth, MaxHealth, GetOwner(), DamageCauserController, DamageCauserActor));
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -41,7 +41,7 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 
 	virtual void OnUnPossess() override;
-
+	
 	/** [server] State entered when inactive */
 	virtual void BeginInactiveState() override;
 
@@ -50,6 +50,6 @@ protected:
 	void RequestRespawn();
 
 	/** [client] get hud and bind functions */
-	UFUNCTION(Client, WithValidation, Reliable)
+	UFUNCTION(Client, Reliable)
 	void Client_UpdateHud();
 };

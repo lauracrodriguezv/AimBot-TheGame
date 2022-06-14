@@ -12,5 +12,8 @@ void UBPE_TimerWidget::SetTime(const float Time)
 	const int32 Seconds = Time - Minutes * 60.0f;
 			
 	const FString MatchCountdown = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
-	MatchCountdownText->SetText(FText::FromString(MatchCountdown));
+	if(IsValid(MatchCountdownText))
+	{
+		MatchCountdownText->SetText(FText::FromString(MatchCountdown));	
+	}
 }

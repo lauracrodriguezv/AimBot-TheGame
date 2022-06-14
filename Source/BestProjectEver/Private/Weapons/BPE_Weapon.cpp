@@ -469,12 +469,6 @@ void ABPE_Weapon::OnRep_ColorType()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::OnRep_ColorType()
-{
-	UpdateMeshColor();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::OnStopInteraction()
 {
 	if(CurrentState != EWeaponState::Equipped)

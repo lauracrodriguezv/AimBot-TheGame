@@ -4,14 +4,45 @@
 #include "Core/GameModes/BPE_GameplayGameMode.h"
 
 #include "AI/BPE_AIController.h"
-#include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "Character/BPE_PlayerCharacter.h"
 #include "Character/BPE_Enemy.h"
+#include "Core/GameState/BPE_GameState.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_GameplayGameMode::ABPE_GameplayGameMode()
 {
+	bDelayedStart = true;
+	
+	MatchTime = 120.0f;
+	WarmupTime = 10.0f;
+	LevelStartingTime = 0.0f;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameplayGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+	InitializeReferences();
+	GetWorldTimerManager().SetTimer(TimerHandle_RefreshTimeLeftRate, this, &ABPE_GameplayGameMode::UpdateTimeLeft, 1.0f, true, 0.0f);	
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameplayGameMode::InitializeReferences()
+{
+	TimeLeft = WarmupTime;
+	LevelStartingTime = GetWorld()->GetTimeSeconds();
+	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameplayGameMode::HandleMatchIsWaitingToStart()
+{
+	Super::HandleMatchIsWaitingToStart();
+	if(TimeLeft <= 0.0f)
+	{
+		StartMatch();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -28,6 +59,25 @@ void ABPE_GameplayGameMode::HandleEnemyDeath(AController* KillerController, ACon
 {
 	// increase killer score and xp for ultimate
 	// decrease total number of enemies alive
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameplayGameMode::UpdateTimeLeft()
+{
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		TimeLeft = WarmupTime - (GetWorld()->GetTimeSeconds() - LevelStartingTime);
+		HandleMatchIsWaitingToStart();
+	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		TimeLeft = (WarmupTime + MatchTime) - (GetWorld()->GetTimeSeconds() - LevelStartingTime);
+	}
+
+	if(IsValid(GameStateReference))
+	{
+		GameStateReference->SetTimeLeft(TimeLeft);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

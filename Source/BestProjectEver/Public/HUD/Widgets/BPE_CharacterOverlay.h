@@ -10,6 +10,7 @@
 class UImage;
 class UProgressBar;
 class UTextBlock;
+class UBPE_TimerWidget;
 
 UCLASS()
 class BESTPROJECTEVER_API UBPE_CharacterOverlay : public UUserWidget
@@ -58,6 +59,13 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> HealthText;
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Match Time
+
+	/** countdown on match in progress */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBPE_TimerWidget> W_Timer;
+
 protected:
 
 	virtual void NativeConstruct() override;
@@ -75,4 +83,7 @@ public:
 	void UpdateWeaponIcons(EColorType WeaponColorType);
 	
 	void UpdateHealthDisplay(float Health, float MaxHealth);
+
+	/** show the player the time left to end current match state */
+	void UpdateMatchTimer(const float TimeLeft);
 };

@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "HUD/Widgets/BPE_TimerWidget.h"
 
 void UBPE_CharacterOverlay::NativeConstruct()
 {
@@ -33,6 +34,15 @@ void UBPE_CharacterOverlay::UpdateHealthDisplay(float Health, float MaxHealth)
 	
 	FString Text = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
 	HealthText->SetText(FText::FromString(Text));
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_CharacterOverlay::UpdateMatchTimer(const float TimeLeft)
+{
+	if(IsValid(W_Timer))
+	{
+		W_Timer->SetTime(TimeLeft);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

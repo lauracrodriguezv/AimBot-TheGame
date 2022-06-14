@@ -5,13 +5,26 @@
 
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/BPE_HealthComponent.h"
+#include "Core/GameState/BPE_GameState.h"
 #include "HUD/Widgets/BPE_CharacterOverlay.h"
 #include "GameFramework/PlayerController.h"
+#include "HUD/Widgets/BPE_TimerWidget.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_HUD::BeginPlay()
 {
 	Super::BeginPlay();
+	InitializeReferences();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::InitializeReferences()
+{
+	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
+	if(IsValid(GameStateReference))
+	{
+		GameStateReference->OnTimeLeftUpdated.AddDynamic(this, &ABPE_HUD::UpdateMatchTimer);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -66,5 +79,14 @@ void ABPE_HUD::UpdateHealth(const FHealthData& HealthData)
 	if(IsValid(CharacterOverlay))
 	{
 		CharacterOverlay->UpdateHealthDisplay(HealthData.CurrentHealth, HealthData.MaxHealth);	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::UpdateMatchTimer(const float TimeLeft)
+{
+	if(IsValid(CharacterOverlay))
+	{
+		CharacterOverlay->UpdateMatchTimer(TimeLeft);	
 	}
 }

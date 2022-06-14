@@ -11,6 +11,9 @@
 class UBPE_CharacterOverlay;
 class UUserWidget;
 class UBPE_HealthComponent;
+class ABPE_PlayerController;
+class ABPE_GameState;
+class UBPE_TimerWidget;
 /**
  * 
  */
@@ -24,14 +27,19 @@ public:
 	/** widget with all hud information */
 	UPROPERTY(EditAnywhere, Category = "Player State")
 	TSubclassOf<UUserWidget> CharacterOverlayClass;
-
+	
 	/** character overlay widget reference */
 	UPROPERTY(BlueprintReadOnly, Category = "Player State")
 	TObjectPtr<UBPE_CharacterOverlay> CharacterOverlay;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Game State")
+	TObjectPtr<ABPE_GameState> GameStateReference;
 
 protected:
 
 	virtual void BeginPlay() override;
+
+	void InitializeReferences();
 
 	/** update health information on character overlay widget */
 	UFUNCTION()
@@ -55,4 +63,8 @@ public:
 	/** update weapon icon depending on the color type of the current weapon */
 	UFUNCTION()
 	void UpdateCurrentWeaponIcon(const EColorType WeaponColorType);
+
+	/** show the player the time left to end current match state */
+	UFUNCTION()
+	void UpdateMatchTimer(const float TimeLeft);
 };

@@ -9,6 +9,7 @@
 class ABPE_BaseCharacter;
 class ABPE_Enemy;
 class ABPE_PlayerCharacter;
+class ABPE_GameState;
 /**
  * 
  */
@@ -17,23 +18,57 @@ class BESTPROJECTEVER_API ABPE_GameplayGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
+protected:
+
+	/** time left to end the current match state */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")
+	float TimeLeft;
+
+	/** total time of the gameplay match */
+	UPROPERTY(EditDefaultsOnly, Category="Game Mode")
+	float MatchTime;
+
+	/** total time previous to start match */
+	UPROPERTY(EditDefaultsOnly, Category="Game Mode")
+	float WarmupTime;
+
+	/** current time since map starts */
+	float LevelStartingTime;
+
+	/** rate to update time left */
+	UPROPERTY(Transient)
+	FTimerHandle TimerHandle_RefreshTimeLeftRate;
+
+	UPROPERTY(Transient)
+	TObjectPtr<ABPE_GameState> GameStateReference;
+	
 public:
 
 	ABPE_GameplayGameMode();
 
 protected:
 
+	virtual void BeginPlay() override;
+
+	void InitializeReferences();
+
+	virtual void HandleMatchIsWaitingToStart() override;
+	
 	/** set scores */
 	void HandlePlayerDeath(AController* KillerController, AController* KilledController, ABPE_PlayerCharacter* KilledCharacter);
 
 	/** set scores */
 	void HandleEnemyDeath(AController* KillerController, AController* KilledController, ABPE_Enemy* KilledCharacter);
+
+	void UpdateTimeLeft();
 	
 public:
-
+	
 	/** notify about kills */
 	void OnCharacterDeath(AController* KillerController, AController* KilledController, ABPE_BaseCharacter* KilledCharacter);
 
 	/** tries to spawn the player's pawn, at the location returned by FindPlayerStart */
 	void RespawnPlayer(AController* KilledController, APawn* KilledCharacter);
+
+	float GetTimeLeft() const { return TimeLeft; };
 };

@@ -3,9 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
 #include "GameFramework/GameState.h"
 #include "BPE_GameState.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeLeftUpdated, const float, TimeLeft);
 
 class ABPE_GameplayGameMode;
 /**
@@ -19,7 +20,7 @@ class BESTPROJECTEVER_API ABPE_GameState : public AGameState
 protected:
 
 	/** time left to end current match state */
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")
+	UPROPERTY(ReplicatedUsing=OnRep_TimeLeft, VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")
 	float TimeLeft;
 
 	UPROPERTY()
@@ -28,14 +29,21 @@ protected:
 public:
 
 	ABPE_GameState();
+
+	UPROPERTY(BlueprintAssignable)
+	FOnTimeLeftUpdated OnTimeLeftUpdated;
 	
 protected:
 
 	virtual void BeginPlay() override;
 
+	/** [client] rep handler on time left updated in server */
+	UFUNCTION()
+	void OnRep_TimeLeft();
+
 public:
 
-	void SetTimeLeft(float Time) { TimeLeft = Time; }
+	void SetTimeLeft(float Time);
 
 	float GetTimeLeft() const { return TimeLeft; }
 

@@ -20,15 +20,19 @@ class BESTPROJECTEVER_API ABPE_GameplayGameMode : public AGameMode
 
 protected:
 
+	/** time left to end the current match state */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")
 	float TimeLeft;
 
+	/** total time of the gameplay match */
 	UPROPERTY(EditDefaultsOnly, Category="Game Mode")
 	float MatchTime;
-	
+
+	/** total time previous to start match */
 	UPROPERTY(EditDefaultsOnly, Category="Game Mode")
 	float WarmupTime;
 
+	/** current time since map starts */
 	float LevelStartingTime;
 
 	/** rate to update time left */

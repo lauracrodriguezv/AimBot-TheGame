@@ -19,6 +19,19 @@ void ABPE_GameState::BeginPlay()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameState::OnRep_TimeLeft()
+{
+	OnTimeLeftUpdated.Broadcast(TimeLeft);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameState::SetTimeLeft(float Time)
+{
+	TimeLeft = Time;
+	OnTimeLeftUpdated.Broadcast(TimeLeft);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

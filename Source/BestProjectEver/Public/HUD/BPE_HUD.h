@@ -35,10 +35,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Game State")
 	TObjectPtr<ABPE_GameState> GameStateReference;
 
-	/** rate to update time left */
-	UPROPERTY(Transient)
-	FTimerHandle TimerHandle_RefreshTimeLeftRate;
-
 protected:
 
 	virtual void BeginPlay() override;
@@ -70,5 +66,5 @@ public:
 
 	/** show the player the time left to end current match state */
 	UFUNCTION()
-	void UpdateMatchTimer();
+	void UpdateMatchTimer(const float TimeLeft);
 };

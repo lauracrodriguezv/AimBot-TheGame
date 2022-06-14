@@ -15,13 +15,16 @@ void ABPE_HUD::BeginPlay()
 {
 	Super::BeginPlay();
 	InitializeReferences();
-	GetWorldTimerManager().SetTimer(TimerHandle_RefreshTimeLeftRate, this, &ABPE_HUD::UpdateMatchTimer, 1.0f, true, 0.0f);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_HUD::InitializeReferences()
 {
 	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
+	if(IsValid(GameStateReference))
+	{
+		GameStateReference->OnTimeLeftUpdated.AddDynamic(this, &ABPE_HUD::UpdateMatchTimer);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -80,11 +83,10 @@ void ABPE_HUD::UpdateHealth(const FHealthData& HealthData)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::UpdateMatchTimer()
+void ABPE_HUD::UpdateMatchTimer(const float TimeLeft)
 {
-	if(IsValid(CharacterOverlay) && IsValid(GameStateReference))
+	if(IsValid(CharacterOverlay))
 	{
-		const float TimeLeft = GameStateReference->GetTimeLeft();
 		CharacterOverlay->UpdateMatchTimer(TimeLeft);	
 	}
 }

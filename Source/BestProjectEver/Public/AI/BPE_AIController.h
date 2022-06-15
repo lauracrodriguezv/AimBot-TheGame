@@ -62,7 +62,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void CheckMatchState(const FName MatchState);
+	void OnMatchStateChanged(const FName MatchState);
 	
 	/** [server] State entered when inactive */
 	virtual void BeginInactiveState() override;

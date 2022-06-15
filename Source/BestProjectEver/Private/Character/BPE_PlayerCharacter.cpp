@@ -53,6 +53,7 @@ void ABPE_PlayerCharacter::BeginPlay()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::InitializeReference()
 {
+	PlayerController = Cast<ABPE_PlayerController>(GetController());
 	DefaultFOV = CameraComponent->FieldOfView;
 	CurrentFOV = DefaultFOV;
 }
@@ -631,7 +632,6 @@ FVector ABPE_PlayerCharacter::GetPawnViewLocation() const
 //----------------------------------------------------------------------------------------------------------------------
 bool ABPE_PlayerCharacter::AreGameplayInputsEnabled() const
 {
-	const ABPE_PlayerController* PlayerController = Cast<ABPE_PlayerController>(GetController());
 	if(IsValid(GetHealthComponent()) && IsValid(PlayerController))
 	{
 		return !GetHealthComponent()->IsDead() && PlayerController->AreGameplayInputsEnabled();

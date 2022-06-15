@@ -90,11 +90,6 @@ protected:
 	UFUNCTION()
 	void AddResultsOverlay();
 
-	/** Remove results overlay widget to the viewport */
-	UFUNCTION()
-	void RemoveResultsOverlay();
-
-
 public:
 
 	virtual void DrawHUD() override;

@@ -13,6 +13,7 @@ class ABPE_Weapon;
 class UBPE_InventoryComponent;
 class USoundCue;
 class ABPE_SpawnPad;
+class ABPE_PlayerController;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCurrentWeapon, EColorType, WeaponColorType);
 
@@ -43,6 +44,9 @@ public:
 	FOnChangeCurrentWeapon OnChangeCurrentWeaponDelegate;
 
 protected:
+
+	UPROPERTY(Transient)
+	TObjectPtr<ABPE_PlayerController> PlayerController;
 	
 	/** Camera can be inverted or normal */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")

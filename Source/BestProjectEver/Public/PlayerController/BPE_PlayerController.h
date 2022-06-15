@@ -47,7 +47,7 @@ protected:
 	virtual void OnUnPossess() override;
 
 	UFUNCTION()
-	void CheckMatchState(const FName MatchState);
+	void OnMatchStateChanged(const FName MatchState);
 	
 	/** [server] State entered when inactive */
 	virtual void BeginInactiveState() override;

@@ -167,12 +167,3 @@ void ABPE_HUD::AddResultsOverlay()
 		ResultsOverlay->AddToViewport();
 	}
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::RemoveResultsOverlay()
-{
-	if(IsValid(ResultsOverlay))
-	{
-		ResultsOverlay->RemoveFromParent();
-	}
-}

@@ -22,7 +22,7 @@ void ABPE_PlayerController::BeginPlay()
 	ABPE_GameState* GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
 	if(IsValid(GameStateReference))
 	{
-		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_PlayerController::CheckMatchState);
+		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_PlayerController::OnMatchStateChanged);
 	}
 }
 
@@ -61,14 +61,14 @@ void ABPE_PlayerController::OnUnPossess()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerController::CheckMatchState(const FName MatchState)
+void ABPE_PlayerController::OnMatchStateChanged(const FName MatchState)
 {
 	if(MatchState == MatchState::Cooldown)
 	{
 		BeginCooldownState();
 	}
 }
-
+	
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerController::BeginInactiveState()
 {

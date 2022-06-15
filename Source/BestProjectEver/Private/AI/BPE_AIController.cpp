@@ -31,7 +31,7 @@ void ABPE_AIController::BeginPlay()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_AIController::CheckMatchState(const FName MatchState)
+void ABPE_AIController::OnMatchStateChanged(const FName MatchState)
 {
 	if(MatchState == MatchState::Cooldown)
 	{
@@ -93,7 +93,7 @@ void ABPE_AIController::InitializeReferences()
 	ABPE_GameState* GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
 	if(IsValid(GameStateReference))
 	{
-		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_AIController::CheckMatchState);
+		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_AIController::OnMatchStateChanged);
 	}
 }
 

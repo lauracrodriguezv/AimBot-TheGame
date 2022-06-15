@@ -11,6 +11,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Weapons/BPE_Weapon.h"
 #include "GameElements/BPE_SpawnPad.h"
+#include "PlayerController/BPE_PlayerController.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_PlayerCharacter::ABPE_PlayerCharacter()
@@ -88,7 +89,7 @@ void ABPE_PlayerCharacter::DropWeapon()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::MoveForward(float Value)
 {
-	if(IsValid(Controller)  && Value != 0.0f && IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(IsValid(Controller)  && Value != 0.0f && AreGameplayInputsEnabled())
 	{
 		const FRotator YawRotation (0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector Direction (FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
@@ -99,7 +100,7 @@ void ABPE_PlayerCharacter::MoveForward(float Value)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::MoveRight(float Value)
 {
-	if(IsValid(Controller) && Value != 0.0f && IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(IsValid(Controller) && Value != 0.0f && AreGameplayInputsEnabled())
 	{
 		const FRotator YawRotation (0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector Direction (FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y));
@@ -130,7 +131,7 @@ void ABPE_PlayerCharacter::AddControllerPitchInput(float Value)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Jump()
 {
-	if(IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(AreGameplayInputsEnabled())
 	{
 		Super::Jump();
 	}
@@ -139,7 +140,7 @@ void ABPE_PlayerCharacter::Jump()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::StopJumping()
 {
-	if(IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(AreGameplayInputsEnabled())
 	{
 		Super::StopJumping();	
 	}
@@ -148,7 +149,7 @@ void ABPE_PlayerCharacter::StopJumping()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::StartCrouch()
 {
-	if(IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(AreGameplayInputsEnabled())
 	{
 		Crouch();
 	}
@@ -157,7 +158,7 @@ void ABPE_PlayerCharacter::StartCrouch()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EndCrouch()
 {
-	if(IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(AreGameplayInputsEnabled())
 	{
 		UnCrouch();
 	}
@@ -166,7 +167,7 @@ void ABPE_PlayerCharacter::EndCrouch()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::StartWeaponFire()
 {
-	if(IsValid(CurrentWeapon) && IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(IsValid(CurrentWeapon) && AreGameplayInputsEnabled())
 	{
 		if (HasAuthority())
 		{
@@ -182,7 +183,7 @@ void ABPE_PlayerCharacter::StartWeaponFire()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::StopWeaponFire()
 {
-	if(IsValid(CurrentWeapon) && IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(IsValid(CurrentWeapon) && AreGameplayInputsEnabled())
 	{
 		if(HasAuthority())
 		{
@@ -233,7 +234,7 @@ void ABPE_PlayerCharacter::OnStopFire()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Aim()
 {
-	if(IsValid(CurrentWeapon) && IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(IsValid(CurrentWeapon) && AreGameplayInputsEnabled())
 	{
 		if(HasAuthority())
 		{
@@ -274,7 +275,7 @@ void ABPE_PlayerCharacter::OnRep_Aiming()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipWeapon()
 {
-	if(IsValid(OverlappingWeapon) && IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(IsValid(OverlappingWeapon) && AreGameplayInputsEnabled())
 	{
 		if(HasAuthority())
 		{
@@ -290,7 +291,7 @@ void ABPE_PlayerCharacter::EquipWeapon()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipNextWeapon()
 {
-	if(Inventory.Num() >= 2 && IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(Inventory.Num() >= 2 && AreGameplayInputsEnabled())
 	{
 		/** Index of by key requieres more performance than store an index, but I did it this way being concsious that in 
 		 * the inventory there is a maximun of 3 elements
@@ -305,7 +306,7 @@ void ABPE_PlayerCharacter::EquipNextWeapon()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipPreviousWeapon()
 {
-	if(Inventory.Num() >= 2 && IsValid(GetHealthComponent()) && !GetHealthComponent()->IsDead())
+	if(Inventory.Num() >= 2 && AreGameplayInputsEnabled())
 	{
 		const int32 CurrentWeaponIndex = Inventory.IndexOfByKey(CurrentWeapon);
 		const int32 NextWeaponIndex = (CurrentWeaponIndex - 1 + Inventory.Num()) % Inventory.Num();
@@ -344,7 +345,7 @@ void ABPE_PlayerCharacter::HandleEquipWeapon(ABPE_Weapon* WeaponToEquip)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Interact()
 {
-	if(IsValid(OverlappingSpawnPad) && !GetHealthComponent()->IsDead())
+	if(IsValid(OverlappingSpawnPad) && AreGameplayInputsEnabled())
 	{
 		if(HasAuthority())
 		{
@@ -625,5 +626,16 @@ FVector ABPE_PlayerCharacter::GetPawnViewLocation() const
 		return CameraComponent->GetComponentLocation();
 	}
 	return Super::GetPawnViewLocation();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::AreGameplayInputsEnabled() const
+{
+	const ABPE_PlayerController* PlayerController = Cast<ABPE_PlayerController>(GetController());
+	if(IsValid(GetHealthComponent()) && IsValid(PlayerController))
+	{
+		return !GetHealthComponent()->IsDead() && PlayerController->AreGameplayInputsEnabled();
+	}
+	return false;
 }
 

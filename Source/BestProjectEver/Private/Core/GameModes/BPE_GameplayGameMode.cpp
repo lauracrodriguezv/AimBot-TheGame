@@ -9,6 +9,12 @@
 #include "Character/BPE_Enemy.h"
 #include "Core/GameState/BPE_GameState.h"
 
+namespace MatchState
+{
+	const FName Cooldown = FName("Cooldown");
+}
+
+
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_GameplayGameMode::ABPE_GameplayGameMode()
 {
@@ -16,6 +22,7 @@ ABPE_GameplayGameMode::ABPE_GameplayGameMode()
 	
 	MatchTime = 120.0f;
 	WarmupTime = 10.0f;
+	CooldownTime = 15.0f;
 	LevelStartingTime = 0.0f;
 }
 
@@ -46,6 +53,30 @@ void ABPE_GameplayGameMode::HandleMatchIsWaitingToStart()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameplayGameMode::HandleMatchStarted()
+{
+	if(TimeLeft <= 0.0f)
+	{
+		StartCooldown();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameplayGameMode::HandleCooldownTime()
+{
+	if(TimeLeft <= 0.0f)
+	{
+		GetWorld()->ServerTravel(FString("/Game/Maps/Gameplay?listen"));
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameplayGameMode::StartCooldown()
+{
+	SetMatchState(MatchState::Cooldown);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameplayGameMode::HandlePlayerDeath(AController* KillerController, AController* KilledController,
 	ABPE_PlayerCharacter* KilledCharacter)
 {
@@ -72,6 +103,12 @@ void ABPE_GameplayGameMode::UpdateTimeLeft()
 	else if (MatchState == MatchState::InProgress)
 	{
 		TimeLeft = (WarmupTime + MatchTime) - (GetWorld()->GetTimeSeconds() - LevelStartingTime);
+		HandleMatchStarted();
+	}
+	else if(MatchState == MatchState::Cooldown)
+	{
+		TimeLeft = (WarmupTime + MatchTime + CooldownTime) - (GetWorld()->GetTimeSeconds() - LevelStartingTime);
+		HandleCooldownTime();
 	}
 
 	if(IsValid(GameStateReference))

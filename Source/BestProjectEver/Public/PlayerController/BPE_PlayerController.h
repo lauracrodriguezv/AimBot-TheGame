@@ -17,6 +17,10 @@ class BESTPROJECTEVER_API ABPE_PlayerController : public APlayerController
 
 protected:
 
+	/** all player inputs are enabled */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Player Controller")
+	uint8 bAreGameplayInputsEnabled : 1;
+	
 	UPROPERTY(BlueprintReadOnly, Category="UI")
 	ABPE_HUD* HUD;
 
@@ -41,9 +45,15 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 
 	virtual void OnUnPossess() override;
+
+	UFUNCTION()
+	void CheckMatchState(const FName MatchState);
 	
 	/** [server] State entered when inactive */
 	virtual void BeginInactiveState() override;
+
+	/** [client and server] State entered when match state is in cooldown */
+	void BeginCooldownState();
 
 	/** [server] request the game mode to destroy and respawn player's pawn */
 	UFUNCTION()
@@ -52,4 +62,9 @@ protected:
 	/** [client] get hud and bind functions */
 	UFUNCTION(Client, Reliable)
 	void Client_UpdateHud();
+
+public:
+
+	/** check if all player inputs are enabled or just camera movements */
+	bool AreGameplayInputsEnabled() const { return  bAreGameplayInputsEnabled; }
 };

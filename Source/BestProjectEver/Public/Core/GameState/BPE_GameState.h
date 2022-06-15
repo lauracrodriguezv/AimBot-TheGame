@@ -7,6 +7,7 @@
 #include "BPE_GameState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeLeftUpdated, const float, TimeLeft);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchStateSet, const FName, MatchState);
 
 class ABPE_GameplayGameMode;
 /**
@@ -32,6 +33,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnTimeLeftUpdated OnTimeLeftUpdated;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnMatchStateSet OnMatchStateSet;
 	
 protected:
 
@@ -43,6 +47,8 @@ protected:
 
 public:
 
+	virtual void OnRep_MatchState() override;
+	
 	void SetTimeLeft(float Time);
 
 	float GetTimeLeft() const { return TimeLeft; }

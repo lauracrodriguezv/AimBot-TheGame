@@ -3,7 +3,6 @@
 
 #include "Core/GameState/BPE_GameState.h"
 
-#include "Core/GameModes/BPE_GameplayGameMode.h"
 #include "Math/UnitConversion.h"
 #include "Net/UnrealNetwork.h"
 
@@ -22,6 +21,13 @@ void ABPE_GameState::BeginPlay()
 void ABPE_GameState::OnRep_TimeLeft()
 {
 	OnTimeLeftUpdated.Broadcast(TimeLeft);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameState::OnRep_MatchState()
+{
+	Super::OnRep_MatchState();
+	OnMatchStateSet.Broadcast(GetMatchState());
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -5,10 +5,14 @@
 
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/BPE_HealthComponent.h"
+#include "Core/GameModes/BPE_GameplayGameMode.h"
 #include "Core/GameState/BPE_GameState.h"
+#include "GameFramework/GameMode.h"
 #include "HUD/Widgets/BPE_CharacterOverlay.h"
 #include "GameFramework/PlayerController.h"
 #include "HUD/Widgets/BPE_TimerWidget.h"
+#include "HUD/Widgets/BPE_AnnouncementOverlay.h"
+#include "HUD/Widgets/BPE_ResultsOverlay.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_HUD::BeginPlay()
@@ -23,7 +27,8 @@ void ABPE_HUD::InitializeReferences()
 	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
 	if(IsValid(GameStateReference))
 	{
-		GameStateReference->OnTimeLeftUpdated.AddDynamic(this, &ABPE_HUD::UpdateMatchTimer);
+		GameStateReference->OnTimeLeftUpdated.AddDynamic(this, &ABPE_HUD::UpdateMatchTimeLeft);
+		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_HUD::UpdateOverlay);
 	}
 }
 
@@ -47,6 +52,11 @@ void ABPE_HUD::DrawHUD()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_HUD::AddCharacterOverlay()
 {
+	if(MatchState == MatchState::Cooldown)
+	{
+		return;
+	}
+	
 	APlayerController* PlayerController = GetOwningPlayerController();
 	if(IsValid(PlayerController) && IsValid(CharacterOverlayClass))
 	{
@@ -83,10 +93,86 @@ void ABPE_HUD::UpdateHealth(const FHealthData& HealthData)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::UpdateMatchTimer(const float TimeLeft)
+void ABPE_HUD::UpdateMatchTimeLeft(const float TimeLeft)
 {
-	if(IsValid(CharacterOverlay))
+	if (MatchState == MatchState::WaitingToStart)
 	{
-		CharacterOverlay->UpdateMatchTimer(TimeLeft);	
+		if(IsValid(AnnouncementOverlay))
+		{
+			AnnouncementOverlay->UpdateMatchTimer(TimeLeft);
+		}
+	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		if(IsValid(CharacterOverlay))
+		{
+			CharacterOverlay->UpdateMatchTimer(TimeLeft);
+		}
+	}
+	else if(MatchState == MatchState::Cooldown)
+	{
+		if(IsValid(ResultsOverlay))
+		{
+			ResultsOverlay->UpdateMatchTimer(TimeLeft);
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::UpdateOverlay(const FName NewMatchState)
+{
+	MatchState = NewMatchState;
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		AddAnnouncementOverlay();
+	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		RemoveAnnouncementOverlay();
+	}
+	else if (MatchState == MatchState::Cooldown)
+	{
+		RemoveCharacterOverlay();
+		AddResultsOverlay();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::AddAnnouncementOverlay()
+{
+	APlayerController* PlayerController = GetOwningPlayerController();
+	if(IsValid(PlayerController) && IsValid(AnnouncementOverlayClass))
+	{
+		AnnouncementOverlay = CreateWidget<UBPE_AnnouncementOverlay>(PlayerController, AnnouncementOverlayClass);
+		AnnouncementOverlay->AddToViewport();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::RemoveAnnouncementOverlay()
+{
+	if(IsValid(AnnouncementOverlay))
+	{
+		AnnouncementOverlay->RemoveFromParent();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::AddResultsOverlay()
+{
+	APlayerController* PlayerController = GetOwningPlayerController();
+	if(IsValid(PlayerController) && IsValid(ResultsOverlayClass))
+	{
+		ResultsOverlay = CreateWidget<UBPE_ResultsOverlay>(PlayerController, ResultsOverlayClass);
+		ResultsOverlay->AddToViewport();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::RemoveResultsOverlay()
+{
+	if(IsValid(ResultsOverlay))
+	{
+		ResultsOverlay->RemoveFromParent();
 	}
 }

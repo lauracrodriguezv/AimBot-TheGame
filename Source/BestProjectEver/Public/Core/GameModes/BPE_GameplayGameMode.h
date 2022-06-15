@@ -10,6 +10,12 @@ class ABPE_BaseCharacter;
 class ABPE_Enemy;
 class ABPE_PlayerCharacter;
 class ABPE_GameState;
+
+namespace MatchState
+{
+	extern BESTPROJECTEVER_API const FName Cooldown; // Match duration has been reached. Display winner and begin cooldown timer
+}
+
 /**
  * 
  */
@@ -32,6 +38,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Game Mode")
 	float WarmupTime;
 
+	/** total time previous to start match */
+	UPROPERTY(EditDefaultsOnly, Category="Game Mode")
+	float CooldownTime;
+
 	/** current time since map starts */
 	float LevelStartingTime;
 
@@ -53,6 +63,13 @@ protected:
 	void InitializeReferences();
 
 	virtual void HandleMatchIsWaitingToStart() override;
+
+	/** did not use HandleMatchHasStarted because I need to update first the time left before this method */
+	void HandleMatchStarted();
+
+	void HandleCooldownTime();
+
+	void StartCooldown();
 	
 	/** set scores */
 	void HandlePlayerDeath(AController* KillerController, AController* KilledController, ABPE_PlayerCharacter* KilledCharacter);

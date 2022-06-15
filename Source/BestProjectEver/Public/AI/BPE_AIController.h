@@ -61,8 +61,13 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void CheckMatchState(const FName MatchState);
+	
 	/** [server] State entered when inactive */
 	virtual void BeginInactiveState() override;
+
+	void BeginCooldownState();
 
 	UFUNCTION()
 	void DestroyEnemy();

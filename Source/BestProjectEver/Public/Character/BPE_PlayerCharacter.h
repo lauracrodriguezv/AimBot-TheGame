@@ -273,4 +273,7 @@ public:
 
 	/** from the camera component for clients */
 	virtual FVector GetPawnViewLocation() const override;
+
+	/** check if all player inputs are enabled or just camera movements and if it is not dead */
+	bool AreGameplayInputsEnabled() const;
 };

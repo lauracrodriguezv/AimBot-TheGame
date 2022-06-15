@@ -4,18 +4,26 @@
 #include "PlayerController/BPE_PlayerController.h"
 
 #include "Core/GameModes/BPE_GameplayGameMode.h"
+#include "Core/GameState/BPE_GameState.h"
 #include "HUD/BPE_HUD.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_PlayerController::ABPE_PlayerController()
 {
 	TimeToRespawn = 1.0f;
+	bAreGameplayInputsEnabled = true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	ABPE_GameState* GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
+	if(IsValid(GameStateReference))
+	{
+		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_PlayerController::CheckMatchState);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -53,10 +61,25 @@ void ABPE_PlayerController::OnUnPossess()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerController::CheckMatchState(const FName MatchState)
+{
+	if(MatchState == MatchState::Cooldown)
+	{
+		BeginCooldownState();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerController::BeginInactiveState()
 {
 	GetWorldTimerManager().SetTimer(TimerHandle_Respawn, this, &ABPE_PlayerController::RequestRespawn,
 		TimeToRespawn, false, TimeToRespawn);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerController::BeginCooldownState()
+{
+	bAreGameplayInputsEnabled = false;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

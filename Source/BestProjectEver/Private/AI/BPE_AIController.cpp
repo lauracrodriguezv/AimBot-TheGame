@@ -8,6 +8,8 @@
 #include "Character/BPE_Enemy.h"
 #include "Character/BPE_BaseCharacter.h"
 #include "AI/BPE_PatrolPath.h"
+#include "Core/GameModes/BPE_GameplayGameMode.h"
+#include "Core/GameState/BPE_GameState.h"
 #include "Perception/AIPerceptionComponent.h"
 
 ABPE_AIController::ABPE_AIController()
@@ -29,6 +31,15 @@ void ABPE_AIController::BeginPlay()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_AIController::CheckMatchState(const FName MatchState)
+{
+	if(MatchState == MatchState::Cooldown)
+	{
+		BeginCooldownState();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_AIController::BeginInactiveState()
 {
 	if(IsValid(BrainComponent))
@@ -38,6 +49,16 @@ void ABPE_AIController::BeginInactiveState()
 	
 	GetWorldTimerManager().SetTimer(TimerHandle_Destroy, this, &ABPE_AIController::DestroyEnemy,
 		DestroyDelay, false, DestroyDelay);
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_AIController::BeginCooldownState()
+{
+	if(IsValid(BrainComponent))
+	{
+		BrainComponent->StopLogic("Cooldown state");	
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -67,6 +88,12 @@ void ABPE_AIController::InitializeReferences()
 	if(IsValid(AIPerceptionComponent))
 	{
 		AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &ABPE_AIController::OnAIPerceptionUpdated);
+	}
+
+	ABPE_GameState* GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
+	if(IsValid(GameStateReference))
+	{
+		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_AIController::CheckMatchState);
 	}
 }
 

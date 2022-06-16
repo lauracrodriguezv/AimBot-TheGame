@@ -26,6 +26,9 @@ class BESTPROJECTEVER_API ABPE_GameplayGameMode : public AGameMode
 
 protected:
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Match Time
+	
 	/** time left to end the current match state */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")
 	float TimeLeft;
@@ -49,6 +52,8 @@ protected:
 	UPROPERTY(Transient)
 	FTimerHandle TimerHandle_RefreshTimeLeftRate;
 
+	//------------------------------------------------------------------------------------------------------------------
+
 	UPROPERTY(Transient)
 	TObjectPtr<ABPE_GameState> GameStateReference;
 	
@@ -62,13 +67,22 @@ protected:
 
 	void InitializeReferences();
 
+	/** Called when the state transitions to WaitingToStart */
 	virtual void HandleMatchIsWaitingToStart() override;
 
-	/** did not use HandleMatchHasStarted because I need to update first the time left before this method */
-	void HandleMatchStarted();
+	/** Called when the state transitions to InProgress */
+	virtual void HandleMatchHasStarted() override;
 
+	/** Called when the state transitions to Cooldown */
 	void HandleCooldownTime();
 
+	/** Called when the state transitions to Cooldown */
+	void HandleMatchResults();
+
+	/** Transition from WaitingToStart to InProgress */
+	virtual void StartMatch() override;
+
+	/** Transition from InProgress to Cooldown */
 	void StartCooldown();
 	
 	/** set scores */
@@ -77,6 +91,7 @@ protected:
 	/** set scores */
 	void HandleEnemyDeath(AController* KillerController, AController* KilledController, ABPE_Enemy* KilledCharacter);
 
+	/** Update the time left to finish the current state */
 	void UpdateTimeLeft();
 	
 public:

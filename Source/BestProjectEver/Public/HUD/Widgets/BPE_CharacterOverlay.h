@@ -66,6 +66,15 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBPE_TimerWidget> W_Timer;
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Score
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ScoreText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> EnemiesText;
+
 protected:
 
 	virtual void NativeConstruct() override;
@@ -86,4 +95,8 @@ public:
 
 	/** show the player the time left to end current match state */
 	void UpdateMatchTimer(const float TimeLeft);
+
+	void UpdateScoreText(const float Score);
+
+	void UpdateEnemiesAliveText(const int32 EnemiesAlive);
 };

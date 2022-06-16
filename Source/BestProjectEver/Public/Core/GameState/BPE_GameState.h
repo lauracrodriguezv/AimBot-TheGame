@@ -8,6 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeLeftUpdated, const float, TimeLeft);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchStateSet, const FName, MatchState);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDies, const int32, EnemiesAlive);
 
 class ABPE_GameplayGameMode;
 /**
@@ -20,12 +21,14 @@ class BESTPROJECTEVER_API ABPE_GameState : public AGameState
 
 protected:
 
+	uint8 bAreAllEnemiesDead : 1;
+	
 	/** time left to end current match state */
 	UPROPERTY(ReplicatedUsing=OnRep_TimeLeft, VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")
 	float TimeLeft;
 
-	UPROPERTY()
-	TObjectPtr<ABPE_GameplayGameMode> GameModeReference;
+	UPROPERTY(ReplicatedUsing=OnRep_EnemiesAlive, BlueprintReadOnly, Category="Game Mode")
+	int32 EnemiesAlive;
 
 public:
 
@@ -36,6 +39,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnMatchStateSet OnMatchStateSet;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnEnemyDies OnEnemyDeath;
 	
 protected:
 
@@ -44,6 +50,9 @@ protected:
 	/** [client] rep handler on time left updated in server */
 	UFUNCTION()
 	void OnRep_TimeLeft();
+
+	UFUNCTION()
+	void OnRep_EnemiesAlive();
 
 public:
 
@@ -54,4 +63,12 @@ public:
 	float GetTimeLeft() const { return TimeLeft; }
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void DecreaseEnemiesAlive();
+
+	void SetEnemiesOnMatch(const int32 Enemies);
+
+	int32 GetEnemiesOnMatch() const { return EnemiesAlive; }
+
+	bool AreAllEnemiesDead() const { return bAreAllEnemiesDead; }
 };

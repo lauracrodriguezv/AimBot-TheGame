@@ -7,6 +7,7 @@
 #include "Components/BPE_HealthComponent.h"
 #include "Core/GameModes/BPE_GameplayGameMode.h"
 #include "Core/GameState/BPE_GameState.h"
+#include "Core/PlayerState/BPE_PlayerState.h"
 #include "GameFramework/GameMode.h"
 #include "HUD/Widgets/BPE_CharacterOverlay.h"
 #include "GameFramework/PlayerController.h"
@@ -29,6 +30,7 @@ void ABPE_HUD::InitializeReferences()
 	{
 		GameStateReference->OnTimeLeftUpdated.AddDynamic(this, &ABPE_HUD::UpdateMatchTimeLeft);
 		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_HUD::UpdateOverlay);
+		GameStateReference->OnEnemyDeath.AddDynamic(this, &ABPE_HUD::UpdateEnemiesAlive);
 	}
 }
 
@@ -40,6 +42,15 @@ void ABPE_HUD::BindDelegates()
 	{
 		PlayerCharacter->OnChangeCurrentWeaponDelegate.AddDynamic(this, &ABPE_HUD::UpdateCurrentWeaponIcon);
 		PlayerCharacter->GetHealthComponent()->OnHealthChangeDelegate.AddDynamic(this, &ABPE_HUD::UpdateHealth);
+	}
+
+	if(IsValid(PlayerOwner))
+	{
+		PlayerStateReference = Cast<ABPE_PlayerState>(PlayerOwner->GetPlayerState<ABPE_PlayerState>());
+		if(IsValid(PlayerStateReference))
+		{
+			PlayerStateReference->OnScoreChanged.AddDynamic(this, &ABPE_HUD::UpdateScore);
+		}
 	}
 }
 
@@ -62,6 +73,11 @@ void ABPE_HUD::AddCharacterOverlay()
 	{
 		CharacterOverlay = CreateWidget<UBPE_CharacterOverlay>(PlayerController, CharacterOverlayClass);
 		CharacterOverlay->AddToViewport();
+	}
+
+	if(IsValid(GameStateReference))
+	{
+		UpdateEnemiesAlive(GameStateReference->GetEnemiesOnMatch());
 	}
 }
 
@@ -165,5 +181,23 @@ void ABPE_HUD::AddResultsOverlay()
 	{
 		ResultsOverlay = CreateWidget<UBPE_ResultsOverlay>(PlayerController, ResultsOverlayClass);
 		ResultsOverlay->AddToViewport();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::UpdateScore(const float Score)
+{
+	if(IsValid(CharacterOverlay))
+	{
+		CharacterOverlay->UpdateScoreText(Score);	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::UpdateEnemiesAlive(const int32 EnemiesAlive)
+{
+	if(IsValid(CharacterOverlay))
+	{
+		CharacterOverlay->UpdateEnemiesAliveText(EnemiesAlive);	
 	}
 }

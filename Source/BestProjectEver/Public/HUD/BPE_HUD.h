@@ -16,6 +16,7 @@ class ABPE_GameState;
 class UBPE_TimerWidget;
 class UBPE_AnnouncementOverlay;
 class UBPE_ResultsOverlay;
+class ABPE_PlayerState;
 /**
  * 
  */
@@ -56,6 +57,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Game State")
 	TObjectPtr<ABPE_GameState> GameStateReference;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Player State")
+	TObjectPtr<ABPE_PlayerState> PlayerStateReference;
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -89,6 +93,14 @@ protected:
 	/** Create and add results overlay widget to the viewport */
 	UFUNCTION()
 	void AddResultsOverlay();
+
+	/** update player score on player state score changed */
+	UFUNCTION()
+	void UpdateScore(const float Score);
+
+	/** update total enemies alive on the match */
+	UFUNCTION()
+	void UpdateEnemiesAlive(const int32 EnemiesAlive);
 
 public:
 

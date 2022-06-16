@@ -8,6 +8,7 @@
 #include "Character/BPE_PlayerCharacter.h"
 #include "Character/BPE_Enemy.h"
 #include "Core/GameState/BPE_GameState.h"
+#include "Core/PlayerState/BPE_PlayerState.h"
 
 namespace MatchState
 {
@@ -39,7 +40,14 @@ void ABPE_GameplayGameMode::InitializeReferences()
 {
 	TimeLeft = WarmupTime;
 	LevelStartingTime = GetWorld()->GetTimeSeconds();
+	
 	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
+	if(IsValid(GameStateReference))
+	{
+		TArray<AActor*> EnemiesInGame;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABPE_Enemy::StaticClass(), EnemiesInGame);
+		GameStateReference->SetEnemiesOnMatch(EnemiesInGame.Num());
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -53,9 +61,10 @@ void ABPE_GameplayGameMode::HandleMatchIsWaitingToStart()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_GameplayGameMode::HandleMatchStarted()
+void ABPE_GameplayGameMode::HandleMatchHasStarted()
 {
-	if(TimeLeft <= 0.0f)
+	Super::HandleMatchHasStarted();
+	if(TimeLeft <= 0.0f || GameStateReference->AreAllEnemiesDead())
 	{
 		StartCooldown();
 	}
@@ -71,9 +80,40 @@ void ABPE_GameplayGameMode::HandleCooldownTime()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameplayGameMode::HandleMatchResults()
+{
+	if(IsValid(GameStateReference))
+	{
+		if(GameStateReference->AreAllEnemiesDead())
+		{
+			if(GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("You Win!!"));		
+			}
+		}
+		else
+		{
+			if(GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("You lose!"));		
+			}
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameplayGameMode::StartMatch()
+{
+	TimeLeft = MatchTime;
+	Super::StartMatch();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameplayGameMode::StartCooldown()
 {
+	TimeLeft = CooldownTime;
 	SetMatchState(MatchState::Cooldown);
+	HandleMatchResults();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -88,26 +128,35 @@ void ABPE_GameplayGameMode::HandlePlayerDeath(AController* KillerController, ACo
 void ABPE_GameplayGameMode::HandleEnemyDeath(AController* KillerController, AController* KilledController,
 	ABPE_Enemy* KilledCharacter)
 {
-	// increase killer score and xp for ultimate
-	// decrease total number of enemies alive
+	if(IsValid(KillerController))
+	{
+		ABPE_PlayerState* PlayerState = Cast<ABPE_PlayerState>(KillerController->GetPlayerState<ABPE_PlayerState>());
+		if(IsValid(PlayerState))
+		{
+			PlayerState->IncreaseScore(1.0);
+		}
+	}
+
+	if(IsValid(GameStateReference))
+	{
+		GameStateReference->DecreaseEnemiesAlive();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameplayGameMode::UpdateTimeLeft()
 {
+	--TimeLeft;
 	if (MatchState == MatchState::WaitingToStart)
 	{
-		TimeLeft = WarmupTime - (GetWorld()->GetTimeSeconds() - LevelStartingTime);
 		HandleMatchIsWaitingToStart();
 	}
 	else if (MatchState == MatchState::InProgress)
 	{
-		TimeLeft = (WarmupTime + MatchTime) - (GetWorld()->GetTimeSeconds() - LevelStartingTime);
-		HandleMatchStarted();
+		HandleMatchHasStarted();
 	}
 	else if(MatchState == MatchState::Cooldown)
 	{
-		TimeLeft = (WarmupTime + MatchTime + CooldownTime) - (GetWorld()->GetTimeSeconds() - LevelStartingTime);
 		HandleCooldownTime();
 	}
 
@@ -123,6 +172,17 @@ void ABPE_GameplayGameMode::OnCharacterDeath(AController* KillerController, ACon
 	if(IsValid(KilledController))
 	{
 		KilledController->ChangeState(EName::Inactive);	
+	}
+
+	if(KilledCharacter->IsA(ABPE_Enemy::StaticClass()))
+	{
+		ABPE_Enemy* EnemyKilled = Cast<ABPE_Enemy>(KilledCharacter);
+		HandleEnemyDeath(KillerController, KilledController, EnemyKilled);
+	}
+	else if(KilledCharacter->IsA(ABPE_PlayerCharacter::StaticClass()))
+	{
+		ABPE_PlayerCharacter* PlayerKilled = Cast<ABPE_PlayerCharacter>(KilledCharacter);
+		HandlePlayerDeath(KillerController, KilledController, PlayerKilled);
 	}
 }
 

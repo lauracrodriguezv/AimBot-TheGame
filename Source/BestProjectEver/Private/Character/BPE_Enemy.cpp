@@ -30,7 +30,10 @@ void ABPE_Enemy::OnConstruction(const FTransform& Transform)
 void ABPE_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
-	SpawnWeapon();
+	if(HasAuthority())
+	{
+		SpawnWeapon();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

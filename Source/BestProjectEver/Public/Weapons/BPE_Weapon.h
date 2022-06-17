@@ -125,6 +125,8 @@ protected:
 	/** Magnitude for impulse added when weapon is dropped */
 	UPROPERTY(EditDefaultsOnly, Category="Weapon State")
 	float ImpulseOnDropped;
+	
+	FVector ShootTarget;
 
 	UPROPERTY(EditDefaultsOnly, Category= "Weapon State")
 	TSubclassOf<UDamageType> DamageType;
@@ -285,6 +287,8 @@ public:
 
 	/* [server] start firing, can be delayed to satisfy TimeBetweenShots */ 
 	void StopFire();
+
+	void SetShootTarget(FVector Target) { ShootTarget = Target; }
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Color Type

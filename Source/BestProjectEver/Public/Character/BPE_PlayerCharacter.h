@@ -44,9 +44,6 @@ public:
 	FOnChangeCurrentWeapon OnChangeCurrentWeaponDelegate;
 
 protected:
-
-	UPROPERTY(Transient)
-	TObjectPtr<ABPE_PlayerController> PlayerController;
 	
 	/** Camera can be inverted or normal */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")

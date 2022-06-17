@@ -47,6 +47,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	void SetEnemiesOnMatch();
+
 	/** [client] rep handler on time left updated in server */
 	UFUNCTION()
 	void OnRep_TimeLeft();
@@ -65,8 +67,6 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void DecreaseEnemiesAlive();
-
-	void SetEnemiesOnMatch(const int32 Enemies);
 
 	int32 GetEnemiesOnMatch() const { return EnemiesAlive; }
 

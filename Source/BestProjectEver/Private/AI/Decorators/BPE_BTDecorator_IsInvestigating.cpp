@@ -11,6 +11,8 @@
 UBPE_BTDecorator_IsInvestigating::UBPE_BTDecorator_IsInvestigating()
 {
 	NodeName = "IsInvestigating";
+	NotifyObserver = EBTBlackboardRestart::ResultChange;
+	
 	FlowAbortMode = EBTFlowAbortMode::Both;
 }
 

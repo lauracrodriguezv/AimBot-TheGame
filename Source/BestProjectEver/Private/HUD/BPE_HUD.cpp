@@ -44,7 +44,7 @@ void ABPE_HUD::BindDelegates()
 		PlayerCharacter->GetHealthComponent()->OnHealthChangeDelegate.AddDynamic(this, &ABPE_HUD::UpdateHealth);
 	}
 
-	if(IsValid(PlayerOwner))
+	if(IsValid(PlayerOwner) && !IsValid(PlayerStateReference))
 	{
 		PlayerStateReference = Cast<ABPE_PlayerState>(PlayerOwner->GetPlayerState<ABPE_PlayerState>());
 		if(IsValid(PlayerStateReference))

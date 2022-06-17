@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTDecorator.h"
+#include "BehaviorTree/Decorators/BTDecorator_Blackboard.h"
 #include "BPE_BTDecorator_HasLineOfSight.generated.h"
 
 class ABPE_Enemy;
@@ -11,7 +12,7 @@ class ABPE_Enemy;
  * 
  */
 UCLASS()
-class BESTPROJECTEVER_API UBPE_BTDecorator_HasLineOfSight : public UBTDecorator
+class BESTPROJECTEVER_API UBPE_BTDecorator_HasLineOfSight : public UBTDecorator_Blackboard
 {
 	GENERATED_BODY()
 

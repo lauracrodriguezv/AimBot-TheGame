@@ -10,14 +10,15 @@
 #include "AI/BPE_PatrolPath.h"
 #include "Core/GameModes/BPE_GameplayGameMode.h"
 #include "Core/GameState/BPE_GameState.h"
+#include "Navigation/CrowdFollowingComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 
-ABPE_AIController::ABPE_AIController()
+ABPE_AIController::ABPE_AIController(const FObjectInitializer& ObjectInitializer)
+	:Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>(TEXT("PathFollowingComponent")))
 {
 	PathPatrolReferenceName = "PathPatrolReference";
 	InvestigatingLocationName = "InvestigatingLocation";
 	PlayerLocationName = "PlayerReferenceLocation";
-
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
 	DestroyDelay = 2.0f;

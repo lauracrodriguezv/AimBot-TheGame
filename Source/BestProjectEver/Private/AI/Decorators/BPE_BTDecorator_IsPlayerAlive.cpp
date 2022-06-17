@@ -12,10 +12,12 @@
 UBPE_BTDecorator_IsPlayerAlive::UBPE_BTDecorator_IsPlayerAlive()
 {
 	NodeName = "IsPlayerAlive";
+	NotifyObserver = EBTBlackboardRestart::ResultChange;
+	
 	FlowAbortMode = EBTFlowAbortMode::Both;
 	SetIsInversed(false);
 	
-	TargetReferenceName = "TargetReference";
+	TargetReferenceName = "TargetReference";	
 }
 
 //----------------------------------------------------------------------------------------------------------------------

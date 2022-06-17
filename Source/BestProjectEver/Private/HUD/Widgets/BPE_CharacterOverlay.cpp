@@ -48,7 +48,7 @@ void UBPE_CharacterOverlay::UpdateMatchTimer(const float TimeLeft)
 //----------------------------------------------------------------------------------------------------------------------
 void UBPE_CharacterOverlay::UpdateScoreText(const float Score)
 {	
-	const FString Text = FString::Printf(TEXT("%d"), FMath::CeilToInt(Score));
+	const FString Text = FString::FromInt(Score);
 	if(IsValid(ScoreText))
 	{
 		ScoreText->SetText(FText::FromString(Text));
@@ -58,7 +58,7 @@ void UBPE_CharacterOverlay::UpdateScoreText(const float Score)
 //----------------------------------------------------------------------------------------------------------------------
 void UBPE_CharacterOverlay::UpdateEnemiesAliveText(const int32 EnemiesAlive)
 {
-	const FString Text = FString::Printf(TEXT("%d"), EnemiesAlive);
+	const FString Text = FString::FromInt(EnemiesAlive);
 	if(IsValid(EnemiesText))
 	{
 		EnemiesText->SetText(FText::FromString(Text));

@@ -93,6 +93,8 @@ protected:
 
 	/** Update the time left to finish the current state */
 	void UpdateTimeLeft();
+
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 	
 public:
 	

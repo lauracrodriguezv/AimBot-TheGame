@@ -9,6 +9,32 @@
 #include "Interfaces/BPE_InteractWithColorType.h"
 #include "BPE_Enemy.generated.h"
 
+USTRUCT(BlueprintType)
+struct FEnemyParameterOnNewState
+{
+	GENERATED_BODY()
+
+	/** Emissive color */
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	FLinearColor EmissiveColor;
+
+	/** Color visor */
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	FLinearColor ColorVisor;
+
+	/** Emissive animation speed for the enemy's eyes */
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	float AnimationEmissiveMultiplier;
+
+	/** Emissive multiplier for the enemy's body */
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	float EmissiveIntensity;
+
+	/** Max walk speed */
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	float MaxWalkSpeed;
+};
+
 class ABPE_PathFollowing;
 class ABPE_Weapon;
 
@@ -33,22 +59,25 @@ protected:
 	EColorType ColorType;
 
 	/** Material based on color type */
-	UPROPERTY(EditDefaultsOnly, Category = "Materials")
-	TMap<EColorType, FLinearColor> MaterialColor;
-
+	UPROPERTY(EditDefaultsOnly, Category = "Enemy State")
+	TMap<EColorType, FLinearColor> BodyMaterialColor;
+	
 	/** impulse added when spawn pad drops this actor (OnStopInteraction) */
 	UPROPERTY(EditDefaultsOnly, Category="Interaction")
 	float ImpulseOnStopInteraction;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Enemy State
-	
+
+	UPROPERTY(EditDefaultsOnly, ReplicatedUsing=OnRep_EnemyStatus, Category = "Enemy State")
 	EEnemyStatus EnemyStatus;
 
+	/** Material based on color type */
 	UPROPERTY(EditDefaultsOnly, Category = "Enemy State")
-	TMap<EEnemyStatus, float> EnemySpeedMap;
+	TMap<EEnemyStatus, FEnemyParameterOnNewState> ParameterOnNewStatus;
 
 	/** target AI controller is perceived */
+	UPROPERTY(BlueprintReadOnly, Category="Weapon")
 	FVector TargetViewLocation;
 
 	/** patrol path */
@@ -61,7 +90,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	TSubclassOf<ABPE_Weapon> WeaponClass;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Weapon")
 	TObjectPtr<ABPE_Weapon> CurrentWeapon;
 
 protected:
@@ -71,8 +100,13 @@ protected:
 	/** spawn enemy's weapon by default */
 	void SpawnWeapon();
 
+	UFUNCTION()
+	void OnRep_EnemyStatus();
+	
 	/** set current enemy status handler */
-	void OnSetEnemyStatus(EEnemyStatus NewEnemyStatus);
+	void OnSetEnemyStatus();
+
+	void UpdateMaterialOnEnemyStatus();
 	
 	virtual void HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser) override;
 	
@@ -80,6 +114,7 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_ColorType();
+	
 
 public:
 

@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTDecorator.h"
+#include "BehaviorTree/Decorators/BTDecorator_Blackboard.h"
 #include "BPE_BTDecorator_IsInvestigating.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class BESTPROJECTEVER_API UBPE_BTDecorator_IsInvestigating : public UBTDecorator
+class BESTPROJECTEVER_API UBPE_BTDecorator_IsInvestigating : public UBTDecorator_Blackboard
 {
 	GENERATED_BODY()
 

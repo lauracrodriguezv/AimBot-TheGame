@@ -3,7 +3,9 @@
 
 #include "Core/GameState/BPE_GameState.h"
 
+#include "Character/BPE_Enemy.h"
 #include "Core/GameModes/BPE_GameplayGameMode.h"
+#include "Kismet/GameplayStatics.h"
 #include "Math/UnitConversion.h"
 #include "Net/UnrealNetwork.h"
 
@@ -16,6 +18,18 @@ ABPE_GameState::ABPE_GameState()
 void ABPE_GameState::BeginPlay()
 {
 	Super::BeginPlay();
+	SetEnemiesOnMatch();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameState::SetEnemiesOnMatch()
+{
+	if(HasAuthority())
+	{
+		TArray<AActor*> EnemiesInGame;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABPE_Enemy::StaticClass(), EnemiesInGame);
+		EnemiesAlive = EnemiesInGame.Num();	
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -49,15 +63,6 @@ void ABPE_GameState::DecreaseEnemiesAlive()
 		{
 			bAreAllEnemiesDead = true;
 		}	
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_GameState::SetEnemiesOnMatch(const int32 Enemies)
-{
-	if(HasAuthority())
-	{
-		EnemiesAlive = Enemies;
 	}
 }
 

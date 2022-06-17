@@ -10,6 +10,8 @@
 UBPE_BTDecorator_HasLineOfSight::UBPE_BTDecorator_HasLineOfSight()
 {
 	NodeName = "HasLineOfSight";
+	NotifyObserver = EBTBlackboardRestart::ResultChange;
+
 	FlowAbortMode = EBTFlowAbortMode::Both;
 
 	/** if the enemy does not have line of sight, search for a better combat position*/ 

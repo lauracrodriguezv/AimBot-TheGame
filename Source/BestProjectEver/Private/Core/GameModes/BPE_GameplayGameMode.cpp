@@ -9,6 +9,8 @@
 #include "Character/BPE_Enemy.h"
 #include "Core/GameState/BPE_GameState.h"
 #include "Core/PlayerState/BPE_PlayerState.h"
+#include "GameFramework/PlayerStart.h"
+#include "EngineUtils.h"
 
 namespace MatchState
 {
@@ -40,14 +42,7 @@ void ABPE_GameplayGameMode::InitializeReferences()
 {
 	TimeLeft = WarmupTime;
 	LevelStartingTime = GetWorld()->GetTimeSeconds();
-	
-	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
-	if(IsValid(GameStateReference))
-	{
-		TArray<AActor*> EnemiesInGame;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABPE_Enemy::StaticClass(), EnemiesInGame);
-		GameStateReference->SetEnemiesOnMatch(EnemiesInGame.Num());
-	}
+	GameStateReference = Cast<ABPE_GameState>(GameState);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -64,7 +59,7 @@ void ABPE_GameplayGameMode::HandleMatchIsWaitingToStart()
 void ABPE_GameplayGameMode::HandleMatchHasStarted()
 {
 	Super::HandleMatchHasStarted();
-	if(TimeLeft <= 0.0f || GameStateReference->AreAllEnemiesDead())
+	if(TimeLeft <= 0.0f || IsValid(GameStateReference) && GameStateReference->AreAllEnemiesDead())
 	{
 		StartCooldown();
 	}
@@ -164,6 +159,22 @@ void ABPE_GameplayGameMode::UpdateTimeLeft()
 	{
 		GameStateReference->SetTimeLeft(TimeLeft);
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+AActor* ABPE_GameplayGameMode::ChoosePlayerStart_Implementation(AController* Player)
+{	
+	for (TActorIterator<APlayerStart> It(GetWorld()); It; ++It)
+	{
+		APlayerStart* Current = *It;
+		if(Current->PlayerStartTag != "Taken")
+		{
+			Current->PlayerStartTag = "Taken";
+			return Current;
+		}
+	}
+	
+	return Super::ChoosePlayerStart_Implementation(Player);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

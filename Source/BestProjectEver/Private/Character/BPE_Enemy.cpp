@@ -3,20 +3,18 @@
 
 #include "Character/BPE_Enemy.h"
 
+#include "Components/ArrowComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/BPE_Weapon.h"
 
 ABPE_Enemy::ABPE_Enemy()
-{	
-	EnemySpeedMap.Add(EEnemyStatus::Patrol, 300.0);
-	EnemySpeedMap.Add(EEnemyStatus::Combat, 600.0);
-	EnemySpeedMap.Add(EEnemyStatus::Investigating, 500.0);
-
+{
 	Team = ETeam::Enemy;
 	ColorType = EColorType::Red;
 
 	ImpulseOnStopInteraction = 1000.0f;
+	UpdateMaterialOnEnemyStatus();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -24,6 +22,7 @@ void ABPE_Enemy::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	UpdateMeshColor();
+	UpdateMaterialOnEnemyStatus();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -70,13 +69,40 @@ void ABPE_Enemy::StopWeaponFire()
 }
 
 //----------------------------------------------------------------------------------------------------------------------	
-void ABPE_Enemy::OnSetEnemyStatus(EEnemyStatus NewEnemyStatus)
+void ABPE_Enemy::OnSetEnemyStatus()
 {
-	if(EnemySpeedMap.Contains(NewEnemyStatus))
+	if(ParameterOnNewStatus.Contains(EnemyStatus))
 	{
-		const float Speed = EnemySpeedMap[NewEnemyStatus];
+		const float Speed = ParameterOnNewStatus[EnemyStatus].MaxWalkSpeed;
 		GetCharacterMovement()->MaxWalkSpeed = Speed;
 	}
+	UpdateMaterialOnEnemyStatus();
+}
+
+//----------------------------------------------------------------------------------------------------------------------	
+void ABPE_Enemy::UpdateMaterialOnEnemyStatus()
+{
+	if(IsValid(GetMesh()))
+	{
+		UMaterialInstanceDynamic* EyesMaterial = GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(1,GetMesh()->GetMaterial(1));
+		UMaterialInstanceDynamic* BodyMaterial = GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(0,GetMesh()->GetMaterial(0));
+
+		if(IsValid(EyesMaterial) && IsValid(BodyMaterial) && ParameterOnNewStatus.Contains(EnemyStatus))
+		{
+			EyesMaterial->SetVectorParameterValue("Color Eyes", FLinearColor(ParameterOnNewStatus[EnemyStatus].EmissiveColor));
+			EyesMaterial->SetScalarParameterValue("AnimationMultiplier", ParameterOnNewStatus[EnemyStatus].AnimationEmissiveMultiplier);
+			EyesMaterial->SetVectorParameterValue("Color Visor", FLinearColor(ParameterOnNewStatus[EnemyStatus].ColorVisor));
+			
+			BodyMaterial->SetVectorParameterValue("Emissive", FLinearColor(ParameterOnNewStatus[EnemyStatus].EmissiveColor));
+			BodyMaterial->SetScalarParameterValue("EmissiveIntensity", ParameterOnNewStatus[EnemyStatus].EmissiveIntensity);
+		}
+	}	
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Enemy::OnRep_EnemyStatus()
+{
+	OnSetEnemyStatus();
 }
 
 //----------------------------------------------------------------------------------------------------------------------	
@@ -89,7 +115,7 @@ void ABPE_Enemy::OnRep_ColorType()
 void ABPE_Enemy::SetEnemyStatus(EEnemyStatus NewEnemyStatus)
 {
 	EnemyStatus = NewEnemyStatus;
-	OnSetEnemyStatus(NewEnemyStatus);
+	OnSetEnemyStatus();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -118,8 +144,9 @@ void ABPE_Enemy::DropWeapon()
 //----------------------------------------------------------------------------------------------------------------------
 FRotator ABPE_Enemy::GetViewRotation() const
 {
-	if(IsValid(CurrentWeapon))
+	if(IsValid(CurrentWeapon) && EnemyStatus == EEnemyStatus::Combat)
 	{
+		CurrentWeapon->SetShootTarget(TargetViewLocation);
 		const FTransform WeaponSocketTransform = CurrentWeapon->GetMuzzleSocketTransform();
 		const FVector WeaponToPlayer = TargetViewLocation - WeaponSocketTransform.GetLocation();
 		
@@ -138,12 +165,12 @@ void ABPE_Enemy::SetColorType(const EColorType NewColorType)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Enemy::UpdateMeshColor()
 {
-	if(IsValid(GetMesh()) && MaterialColor.Contains(ColorType))
+	if(IsValid(GetMesh()) && BodyMaterialColor.Contains(ColorType))
 	{
 		UMaterialInstanceDynamic* EnemyMaterial = GetMesh()->CreateAndSetMaterialInstanceDynamicFromMaterial(0,GetMesh()->GetMaterial(0));
 		if(IsValid(EnemyMaterial))
 		{
-			EnemyMaterial->SetVectorParameterValue("MainColor", FLinearColor(MaterialColor[ColorType]));	
+			EnemyMaterial->SetVectorParameterValue("MainColor", FLinearColor(BodyMaterialColor[ColorType]));	
 		}
 
 		if(IsValid(CurrentWeapon))
@@ -180,4 +207,5 @@ void ABPE_Enemy::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ABPE_Enemy, ColorType);
+	DOREPLIFETIME(ABPE_Enemy, CurrentWeapon);
 }

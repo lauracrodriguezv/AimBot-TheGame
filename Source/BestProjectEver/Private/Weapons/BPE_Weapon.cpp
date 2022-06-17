@@ -227,11 +227,14 @@ void ABPE_Weapon::Fire()
 
 	const FVector MuzzleLocation = HitResult.TraceStart;
 	Multicast_PlayMuzzleFireEffects(MuzzleLocation);
-	
-	ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
-	if(IsValid(PlayerOwner))
+
+	if(OwnerCharacter->IsA(ABPE_PlayerCharacter::StaticClass()))
 	{
-		PlayerOwner->CharacterMakeNoise(ShootLoudness, MuzzleLocation);
+		ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
+		if(IsValid(PlayerOwner))
+		{
+			PlayerOwner->CharacterMakeNoise(ShootLoudness, MuzzleLocation);
+		}
 	}
 
 	if(HitResult.bBlockingHit)
@@ -299,6 +302,7 @@ void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult)
 	{
 		FVector EyeLocation;
 		FRotator EyeRotation;
+		
 		OwnerCharacter->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 		
 		FVector TraceStart = EyeLocation;

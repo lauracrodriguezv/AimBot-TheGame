@@ -18,7 +18,7 @@ class BESTPROJECTEVER_API ABPE_AIController : public AAIController
 	GENERATED_BODY()
 
 protected:
-
+	
 	/** Minimum time before enemy is destroyed when dies */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="GameMode", meta=(ClampMin=0.0f))
 	float DestroyDelay;
@@ -55,7 +55,7 @@ protected:
 	
 public:
 
-	ABPE_AIController();
+	ABPE_AIController(const FObjectInitializer& ObjectInitializer);
 	
 protected:
 

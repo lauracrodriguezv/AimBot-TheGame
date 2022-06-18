@@ -146,7 +146,6 @@ FRotator ABPE_Enemy::GetViewRotation() const
 {
 	if(IsValid(CurrentWeapon) && EnemyStatus == EEnemyStatus::Combat)
 	{
-		CurrentWeapon->SetShootTarget(TargetViewLocation);
 		const FTransform WeaponSocketTransform = CurrentWeapon->GetMuzzleSocketTransform();
 		const FVector WeaponToPlayer = TargetViewLocation - WeaponSocketTransform.GetLocation();
 		

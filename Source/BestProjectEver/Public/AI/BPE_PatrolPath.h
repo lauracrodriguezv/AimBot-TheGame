@@ -30,4 +30,6 @@ public:
 
 	/** total number of spline's points */
 	int32 GetNumberOfSplinePathPoints() const;
+
+	USplineComponent* GetSplineComponent() const { return SplineComponent; }
 };

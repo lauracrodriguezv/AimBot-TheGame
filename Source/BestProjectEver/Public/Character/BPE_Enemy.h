@@ -6,6 +6,7 @@
 #include "BestProjectEver/ColorType.h"
 #include "Character/BPE_BaseCharacter.h"
 #include "BestProjectEver/EnemyDefinitions.h"
+#include "Interfaces/BPE_FollowSplinePath.h"
 #include "Interfaces/BPE_InteractWithColorType.h"
 #include "BPE_Enemy.generated.h"
 
@@ -37,9 +38,10 @@ struct FEnemyParameterOnNewState
 
 class ABPE_PathFollowing;
 class ABPE_Weapon;
+class UBPE_FollowSplineComponent;
 
 UCLASS()
-class BESTPROJECTEVER_API ABPE_Enemy : public ABPE_BaseCharacter, public IBPE_InteractWithColorType
+class BESTPROJECTEVER_API ABPE_Enemy : public ABPE_BaseCharacter, public IBPE_InteractWithColorType, public IBPE_FollowSplinePath
 {
 	GENERATED_BODY()
 
@@ -50,6 +52,9 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	
 protected:
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
+	TObjectPtr<UBPE_FollowSplineComponent> FollowSplineComponent;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Enemy Type
@@ -123,7 +128,9 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_ColorType();
-	
+
+	virtual void FollowSplinePath_Implementation(const FVector& NextPointLocation) override;
+
 public:
 
 	//------------------------------------------------------------------------------------------------------------------

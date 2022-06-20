@@ -4,7 +4,10 @@
 #include "Character/BPE_Enemy.h"
 
 #include "Components/ArrowComponent.h"
+#include "Components/BPE_FollowSplineComponent.h"
+#include "Engine/TextRenderActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/BPE_Weapon.h"
 #include "Core/GameModes/BPE_LobbyGameMode.h"
@@ -16,8 +19,10 @@ ABPE_Enemy::ABPE_Enemy()
 
 	ImpulseOnStopInteraction = 1000.0f;
 	UpdateMaterialOnEnemyStatus();
-
+	
 	DestroyDelay = 2.0f;
+	
+	FollowSplineComponent = CreateDefaultSubobject<UBPE_FollowSplineComponent>(TEXT("FollowSplineComponent"));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -112,6 +117,16 @@ void ABPE_Enemy::OnRep_EnemyStatus()
 void ABPE_Enemy::OnRep_ColorType()
 {
 	UpdateMeshColor();
+}
+
+//----------------------------------------------------------------------------------------------------------------------	
+void ABPE_Enemy::FollowSplinePath_Implementation(const FVector& NextPointLocation)
+{
+	if(IsValid(GetMovementComponent()))
+	{
+		const FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), NextPointLocation);
+		AddMovementInput(UKismetMathLibrary::GetForwardVector(LookAtRotation), GetMovementComponent()->GetMaxSpeed(), true);	
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

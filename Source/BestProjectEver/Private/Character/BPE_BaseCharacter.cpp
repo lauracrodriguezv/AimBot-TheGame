@@ -44,14 +44,11 @@ void ABPE_BaseCharacter::BeginPlay()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_BaseCharacter::HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser)
 {
-	if(GetWorld()->GetAuthGameMode<AGameModeBase>()->IsA(ABPE_GameplayGameMode::StaticClass()))
-	{
-		ABPE_GameplayGameMode* GameplayGameMode = GetWorld()->GetAuthGameMode<ABPE_GameplayGameMode>();
-		if(IsValid(GameplayGameMode))
-		{		
-			GameplayGameMode->OnCharacterDeath(InstigatedBy, GetController(), this);
-		}	
-	}
+	ABPE_GameplayGameMode* GameplayGameMode = GetWorld()->GetAuthGameMode<ABPE_GameplayGameMode>();
+	if(IsValid(GameplayGameMode))
+	{		
+		GameplayGameMode->OnCharacterDeath(InstigatedBy, GetController(), this);
+	}	
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -74,7 +71,7 @@ void ABPE_BaseCharacter::HandleCharacterDamage(const FHealthData& HealthData)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::DropWeapon(bool bIsInactive)
+void ABPE_BaseCharacter::DropWeapon()
 {
 	// empty in base class
 }

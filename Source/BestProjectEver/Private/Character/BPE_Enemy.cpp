@@ -134,8 +134,7 @@ void ABPE_Enemy::HandleCharacterDeath(AActor* DamagedActor, AController* Instiga
 
 	if(GetWorld()->GetAuthGameMode<AGameModeBase>()->IsA(ABPE_LobbyGameMode::StaticClass()))
 	{
-		GetWorldTimerManager().SetTimer(TimerHandle_Destroy, this,&ABPE_Enemy::DestroyInactiveEnemy,DestroyDelay, false, DestroyDelay);
-		DropWeapon(true);
+		OnStopInteraction();
 	}
 	else
 	{
@@ -144,11 +143,11 @@ void ABPE_Enemy::HandleCharacterDeath(AActor* DamagedActor, AController* Instiga
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Enemy::DropWeapon(bool bIsInactive)
+void ABPE_Enemy::DropWeapon()
 {
 	if(IsValid(CurrentWeapon))
 	{
-		CurrentWeapon->OnDropped(bIsInactive);
+		CurrentWeapon->OnDropped();
 		CurrentWeapon = nullptr;
 	}
 }
@@ -211,19 +210,13 @@ void ABPE_Enemy::OnStopInteraction()
 		GetMesh()->AddImpulse(FMath::VRand() * ImpulseOnStopInteraction, NAME_None, true);
 	}
 
-	DropWeapon(true);
-	
-	GetWorldTimerManager().SetTimer(TimerHandle_Destroy, this,&ABPE_Enemy::DestroyInactiveEnemy,DestroyDelay, false, DestroyDelay);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_Enemy::DestroyInactiveEnemy()
-{
-	ABPE_LobbyGameMode* LobbyGameMode = GetWorld()->GetAuthGameMode<ABPE_LobbyGameMode>();
-	if(IsValid(LobbyGameMode))
+	if(IsValid(CurrentWeapon))
 	{
-		LobbyGameMode->DestroyInactiveActor(this);
-	}	
+		CurrentWeapon->OnStopInteraction();
+		CurrentWeapon = nullptr;
+	}
+	
+	SetLifeSpan(DestroyDelay);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -69,7 +69,7 @@ void ABPE_PlayerCharacter::HandleCharacterDeath(AActor* KilledActor, AController
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::DropWeapon(bool bIsInactive)
+void ABPE_PlayerCharacter::DropWeapon()
 {
 	if(HasAuthority())
 	{

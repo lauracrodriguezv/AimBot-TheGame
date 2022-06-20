@@ -24,7 +24,8 @@ enum class EWeaponState : uint8
 	Idle,
 	Firing,
 	Reloading,
-	Equipped
+	Equipped,
+	WaitingToDestroy
 };
 
 UENUM(BlueprintType)
@@ -126,9 +127,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Weapon State")
 	float ImpulseOnDropped;
 
-	/** Minimum time before actor is destroyed when is inactive (In the LobbyGameMode, inactive is when destroy delay is
-	 * 0 and the weapon is still in idle state) */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="GameMode", meta=(ClampMin=0.0f))
+	/** Minimum time before actor is destroyed */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Weapon State", meta=(ClampMin=0.0f))
 	float DestroyDelay;
 
 	UPROPERTY(EditDefaultsOnly, Category= "Weapon State")
@@ -136,9 +136,6 @@ protected:
 
 	/** Handle for efficient management of Firing timer */
 	FTimerHandle TimerHandle_AutoFire;
-
-	/** Handle for efficient management of destroy delay */
-	FTimerHandle TimerHandle_DestroyWeapon;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Animation
@@ -213,6 +210,15 @@ protected:
 
 	/** [server] set weapon state */
 	void SetState(EWeaponState State);
+	
+	void HandleIdleState();
+	
+	void HandleEquippedState();
+
+	void HandleWaitingToDestroyState();
+
+	/** set physics properties so the weapon can be equipped */
+	void SetPhysicsPropertiesToEquip();
 
 	/** [client] replicate weapon color material */
 	UFUNCTION()
@@ -228,10 +234,6 @@ protected:
 	/* [client and server] enable or disable collisions depending on the weapon state */
 	void UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
 		ECollisionEnabled::Type PickupAreaTypeCollision);
-
-	/** In the LobbyGameMode, inactive is when destroy delay is 0 and the weapon is still in idle state after being spawned */
-	UFUNCTION()
-	void DestroyInactiveWeapon();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon usage helpers
@@ -274,11 +276,8 @@ public:
 
 	void OnPickup(AActor* NewOwner);
 
-	/** [server] set weapon parameter when is dropped
-	 *
-	 * @param bIsInactive if is set to true, the weapon will be destroyed after a certain time if is still on idle state
-	 */
-	void OnDropped(bool bIsInactive = false);
+	/** [server] set weapon parameter when is dropped */
+	void OnDropped();
 	
 	/** get current weapon state */
 	EWeaponState GetCurrentState() const { return CurrentState; }
@@ -315,9 +314,6 @@ public:
 
 	/** game element dropped current actor */
 	virtual void OnStopInteraction() override;
-
-	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_UpdateState();
 	
 	//------------------------------------------------------------------------------------------------------------------
 

@@ -86,7 +86,7 @@ protected:
 
 	/** Delay for reset emissive of button material */
 	UPROPERTY(EditDefaultsOnly, Category="Materials")
-	float SetButtonEmissiveDelay;
+	float ButtonEmissiveDuration;
 
 	/** Button emissive on interaction*/
 	UPROPERTY(EditDefaultsOnly, Category="Materials")

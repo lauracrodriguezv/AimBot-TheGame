@@ -52,7 +52,7 @@ ABPE_SpawnPad::ABPE_SpawnPad()
 	RingMovementTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("RingMovementTimeline"));
 
 	NewLocationMultiplier = FVector(0.0f, 0.0f, 200.0f);
-	SetButtonEmissiveDelay = 2.0f;
+	ButtonEmissiveDuration = 2.0f;
 	ButtonEmissive = 6.0f;
 }
 
@@ -175,7 +175,7 @@ void ABPE_SpawnPad::Multicast_SetButtonMeshMaterial_Implementation()
 		{
 			ButtonMaterial->SetScalarParameterValue("Emissive", ButtonEmissive);
 			GetWorldTimerManager().SetTimer(TimerHandle_ButtonEmissive, this, &ABPE_SpawnPad::TurnOffButtonEmissive,
-				SetButtonEmissiveDelay, false, SetButtonEmissiveDelay);
+				ButtonEmissiveDuration, false, ButtonEmissiveDuration);
 		}
 	}
 }

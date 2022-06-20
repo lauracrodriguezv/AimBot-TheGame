@@ -190,17 +190,17 @@ void ABPE_Weapon::OnSetWeaponState()
 	{
 	case EWeaponState::Idle:
 		{
-			const ECollisionEnabled::Type PickupAreaTypeCollision = HasAuthority()?
-				ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision;
-			
-			UpdatePhysicsProperties(ECollisionEnabled::QueryAndPhysics, true,
-				PickupAreaTypeCollision);
+			HandleIdleState();
 			break;
 		}
 	case EWeaponState::Equipped:
 		{
-			UpdatePhysicsProperties(ECollisionEnabled::NoCollision, false,
-				ECollisionEnabled::NoCollision);
+			HandleEquippedState();			
+			break;
+		}
+	case EWeaponState::WaitingToDestroy:
+		{
+			HandleWaitingToDestroyState();			
 			break;
 		}
 	default:
@@ -209,6 +209,43 @@ void ABPE_Weapon::OnSetWeaponState()
 		}
 	}
 	SetWidgetVisibility(false);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::HandleIdleState()
+{
+	SetPhysicsPropertiesToEquip();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::HandleEquippedState()
+{
+	UpdatePhysicsProperties(ECollisionEnabled::NoCollision, false,
+				ECollisionEnabled::NoCollision);
+
+	if(HasAuthority())
+	{
+		SetLifeSpan(0.0f);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::HandleWaitingToDestroyState()
+{
+	SetPhysicsPropertiesToEquip();
+			
+	if(HasAuthority())
+	{
+		SetLifeSpan(DestroyDelay);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::SetPhysicsPropertiesToEquip()
+{
+	const ECollisionEnabled::Type PickupAreaTypeCollision = HasAuthority()? ECollisionEnabled::QueryAndPhysics :
+		ECollisionEnabled::NoCollision;
+	UpdatePhysicsProperties(ECollisionEnabled::QueryAndPhysics, true, PickupAreaTypeCollision);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -393,7 +430,7 @@ void ABPE_Weapon::OnPickup(AActor* NewOwner)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::OnDropped(bool bIsInactive)
+void ABPE_Weapon::OnDropped()
 {
 	if(IsHidden())
 	{
@@ -409,11 +446,6 @@ void ABPE_Weapon::OnDropped(bool bIsInactive)
 	if(IsValid(WeaponMesh))
 	{
 		WeaponMesh->AddImpulse(FMath::VRand() * ImpulseOnDropped, NAME_None, true);
-	}
-
-	if(bIsInactive)
-	{
-		OnStopInteraction();
 	}
 }
 
@@ -483,35 +515,14 @@ void ABPE_Weapon::OnRep_ColorType()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::OnStopInteraction()
 {
-	if(CurrentState == EWeaponState::Idle && HasAuthority())
+	if(HasAuthority())
 	{
-		Multicast_UpdateState();
+		SetState(EWeaponState::WaitingToDestroy);
 		if(IsValid(WeaponMesh))
 		{
 			WeaponMesh->AddImpulse(FMath::VRand() * 1000.0f, NAME_None, true);
 		}
-
-		GetWorldTimerManager().SetTimer(TimerHandle_DestroyWeapon, this, &ABPE_Weapon::DestroyInactiveWeapon, DestroyDelay, false, DestroyDelay);
 	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::DestroyInactiveWeapon()
-{
-	if(CurrentState == EWeaponState::Idle)
-	{
-		ABPE_LobbyGameMode* LobbyGameMode = GetWorld()->GetAuthGameMode<ABPE_LobbyGameMode>();
-		if(IsValid(LobbyGameMode))
-		{
-			LobbyGameMode->DestroyInactiveActor(this);
-		}	
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::Multicast_UpdateState_Implementation()
-{
-	SetState(EWeaponState::Idle);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -75,7 +75,7 @@ protected:
 	// Weapon
 	
 	/** drop all weapons equipped */
-	virtual void DropWeapon(bool bIsInactive = false);
+	virtual void DropWeapon();
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects

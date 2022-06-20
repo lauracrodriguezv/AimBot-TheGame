@@ -31,12 +31,3 @@ void ABPE_LobbyGameMode::TravelToMatchMap()
 		}	
 	}
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_LobbyGameMode::DestroyInactiveActor(AActor* ActorToDestroy)
-{
-	if(IsValid(ActorToDestroy))
-	{
-		ActorToDestroy->Destroy();
-	}
-}

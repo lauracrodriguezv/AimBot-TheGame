@@ -89,7 +89,7 @@ protected:
 	
 	/** Minimum time before actor is destroyed when is inactive (In the LobbyGameMode, inactive is when spawn pad stops
 	 * interacting with this actor or is death */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="GameMode", meta=(ClampMin=0.0f))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Enemy State", meta=(ClampMin=0.0f))
 	float DestroyDelay;
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -117,15 +117,12 @@ protected:
 	void UpdateMaterialOnEnemyStatus();
 	
 	virtual void HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser) override;
-	
-	virtual void DropWeapon(bool bIsInactive = false) override;
+
+	/** drop all weapons equipped */
+	virtual void DropWeapon() override;
 	
 	UFUNCTION()
 	void OnRep_ColorType();
-	
-	/** In the LobbyGameMode, inactive is when spawn pad stops interacting with this actor or is death */ 
-	UFUNCTION()
-	void DestroyInactiveEnemy();
 	
 public:
 

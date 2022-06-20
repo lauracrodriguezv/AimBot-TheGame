@@ -32,11 +32,11 @@ struct FWeaponIcon
 	UPROPERTY(EditDefaultsOnly, Category="Weapon")
 	FVector2D NotSelectedScale;
 	
-	FWeaponIcon() : Icon(nullptr), IconColor(FLinearColor::Transparent), SelectedScale(FVector2D(2.0f, 2.0f)),
-		NotSelectedScale(FVector2D(0.8f, 0.8f)) {};
+	FWeaponIcon() : Icon(nullptr), IconColor(FLinearColor::Transparent), SelectedScale(FVector2D(2.0f)),
+		NotSelectedScale(FVector2D(0.8f)) {};
 	
-	FWeaponIcon(UImage* Image, FLinearColor NewColor) : Icon(Image), IconColor(NewColor), SelectedScale(FVector2D(2.0f, 2.0f)),
-		NotSelectedScale(FVector2D(0.8f, 0.8f)) {};
+	FWeaponIcon(UImage* Image, FLinearColor NewColor) : Icon(Image), IconColor(NewColor), SelectedScale(FVector2D(2.0f)),
+		NotSelectedScale(FVector2D(0.8f)) {};
 };
 
 UCLASS()

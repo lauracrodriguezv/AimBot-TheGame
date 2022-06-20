@@ -7,22 +7,31 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "HUD/Widgets/BPE_TimerWidget.h"
+#include "HUD/Widgets/BPE_CrosshairWidget.h"
 
 void UBPE_CharacterOverlay::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
 	InitializeWeaponIcons();
-	SelectedScale = FVector2D(2.0f, 2.0f);
-	NotSelectedScale = FVector2D(0.8f, 0.8f);
+	WeaponIndex = 0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void UBPE_CharacterOverlay::UpdateWeaponIcons(EColorType WeaponColorType)
 {
-	if(IconsWeapon.Contains(WeaponColorType))
+	if(!WeaponIcons.Contains(WeaponColorType) && CurrentWeaponColor.Contains(WeaponColorType))
 	{
-		SetIconRenderParameters(IconsWeapon[WeaponColorType]);
+		WeaponIndex = WeaponIndex < WeaponImages.Num()? WeaponIndex : 0;
+		WeaponIcons.Add(WeaponColorType, FWeaponIcon(WeaponImages[WeaponIndex], CurrentWeaponColor[WeaponColorType]));
+		++WeaponIndex;
+	}
+	
+	SetIconRenderParameters(WeaponColorType);
+	
+	if(IsValid(W_Crosshair) && WeaponIcons.Contains(WeaponColorType))
+	{
+		W_Crosshair->SetCrosshairColor(WeaponIcons[WeaponColorType].IconColor);
 	}
 }
 
@@ -66,30 +75,33 @@ void UBPE_CharacterOverlay::UpdateEnemiesAliveText(const int32 EnemiesAlive)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_CharacterOverlay::SetIconRenderParameters(UImage* Icon)
+void UBPE_CharacterOverlay::SetIconRenderParameters(EColorType WeaponColorType)
 {
-	if(IsValid(CurrentIconSelected))
+	if(WeaponIcons.Contains(WeaponColorType))
 	{
-		CurrentIconSelected->SetRenderScale(NotSelectedScale);
-	}
-
-	if(IsValid(Icon))
-	{
-		CurrentIconSelected = Icon;
-		CurrentIconSelected->SetRenderScale(SelectedScale);
-
-		if(CurrentIconSelected->GetRenderOpacity() < 1.0)
+		if(IsValid(CurrentIconSelected))
 		{
-			CurrentIconSelected->SetRenderOpacity(1.0f);
+			CurrentIconSelected->SetRenderScale(WeaponIcons[WeaponColorType].NotSelectedScale);
 		}
+
+		if(IsValid(WeaponIcons[WeaponColorType].Icon))
+		{
+			CurrentIconSelected = WeaponIcons[WeaponColorType].Icon;
+			CurrentIconSelected->SetRenderScale(WeaponIcons[WeaponColorType].SelectedScale);
+			CurrentIconSelected->SetColorAndOpacity(WeaponIcons[WeaponColorType].IconColor);
+		}	
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void UBPE_CharacterOverlay::InitializeWeaponIcons()
 {
-	IconsWeapon.Add(EColorType::Yellow, YellowWeapon);
-	IconsWeapon.Add(EColorType::Blue, BlueWeapon);
-	IconsWeapon.Add(EColorType::Red, RedWeapon);
+	WeaponImages.AddUnique(LeftWeaponIcon);
+	WeaponImages.AddUnique(CenterWeaponIcon);
+	WeaponImages.AddUnique(RightWeaponIcon);
+	
+	CurrentWeaponColor.Add(EColorType::Yellow, FLinearColor::Yellow);
+	CurrentWeaponColor.Add(EColorType::Blue, FLinearColor::Blue);
+	CurrentWeaponColor.Add(EColorType::Red, FLinearColor::Red);
 }
 

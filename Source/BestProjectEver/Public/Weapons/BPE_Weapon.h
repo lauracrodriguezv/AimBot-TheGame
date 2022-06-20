@@ -126,11 +126,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Weapon State")
 	float ImpulseOnDropped;
 
+	/** Minimum time before actor is destroyed when is inactive (In the LobbyGameMode, inactive is when destroy delay is
+	 * 0 and the weapon is still in idle state) */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="GameMode", meta=(ClampMin=0.0f))
+	float DestroyDelay;
+
 	UPROPERTY(EditDefaultsOnly, Category= "Weapon State")
 	TSubclassOf<UDamageType> DamageType;
 
 	/** Handle for efficient management of Firing timer */
 	FTimerHandle TimerHandle_AutoFire;
+
+	/** Handle for efficient management of destroy delay */
+	FTimerHandle TimerHandle_DestroyWeapon;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Animation
@@ -220,6 +228,10 @@ protected:
 	/* [client and server] enable or disable collisions depending on the weapon state */
 	void UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollision, bool bEnableMeshPhysics,
 		ECollisionEnabled::Type PickupAreaTypeCollision);
+
+	/** In the LobbyGameMode, inactive is when destroy delay is 0 and the weapon is still in idle state after being spawned */
+	UFUNCTION()
+	void DestroyInactiveWeapon();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon usage helpers
@@ -262,8 +274,11 @@ public:
 
 	void OnPickup(AActor* NewOwner);
 
-	/** [server] set weapon parameter when is dropped */
-	void OnDropped();
+	/** [server] set weapon parameter when is dropped
+	 *
+	 * @param bIsInactive if is set to true, the weapon will be destroyed after a certain time if is still on idle state
+	 */
+	void OnDropped(bool bIsInactive = false);
 	
 	/** get current weapon state */
 	EWeaponState GetCurrentState() const { return CurrentState; }

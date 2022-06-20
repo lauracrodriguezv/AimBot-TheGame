@@ -11,6 +11,33 @@ class UImage;
 class UProgressBar;
 class UTextBlock;
 class UBPE_TimerWidget;
+class UBPE_CrosshairWidget;
+
+
+USTRUCT()
+struct FWeaponIcon
+{
+	GENERATED_BODY()
+
+	UPROPERTY(Transient)
+	TObjectPtr<UImage> Icon;
+	
+	FLinearColor IconColor;
+
+	/** render scale when a weapon icon is selected */
+	UPROPERTY(EditDefaultsOnly, Category="Weapon")
+	FVector2D SelectedScale;
+
+	/** render scale when a weapon icon is not selected, by default in the widget blueprint the icons are set to this scale */
+	UPROPERTY(EditDefaultsOnly, Category="Weapon")
+	FVector2D NotSelectedScale;
+	
+	FWeaponIcon() : Icon(nullptr), IconColor(FLinearColor::Transparent), SelectedScale(FVector2D(2.0f, 2.0f)),
+		NotSelectedScale(FVector2D(0.8f, 0.8f)) {};
+	
+	FWeaponIcon(UImage* Image, FLinearColor NewColor) : Icon(Image), IconColor(NewColor), SelectedScale(FVector2D(2.0f, 2.0f)),
+		NotSelectedScale(FVector2D(0.8f, 0.8f)) {};
+};
 
 UCLASS()
 class BESTPROJECTEVER_API UBPE_CharacterOverlay : public UUserWidget
@@ -23,32 +50,37 @@ protected:
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon
 	
-	/** yellow weapon icon */
+	/** left weapon icon */
 	UPROPERTY(meta = (BindWidget))
-	UImage* YellowWeapon;
+	UImage* LeftWeaponIcon;
 
-	/** blue weapon icon */
+	/** center weapon icon */
 	UPROPERTY(meta = (BindWidget))
-	UImage* BlueWeapon;
+	UImage* CenterWeaponIcon;
 
-	/** red weapon icon */
+	/** right weapon icon */
 	UPROPERTY(meta = (BindWidget))
-	UImage* RedWeapon;
+	UImage* RightWeaponIcon;
+
+	/** current index of weapon images */
+	int32 WeaponIndex;
+	
+	/** weapon icons set depending on current weapon equipped */
+	UPROPERTY(BlueprintReadWrite, Category="Weapon")
+	TArray<UImage*> WeaponImages;
 
 	/** current weapon icon selected */
 	UPROPERTY(BlueprintReadOnly, Category="Weapon")
 	UImage* CurrentIconSelected;
 
-	/** render scale when a weapon icon is selected */
-	UPROPERTY(EditDefaultsOnly, Category="Weapon")
-	FVector2D SelectedScale;
-
-	/** render scale when a weapon icon is not selected, by default in the widget blueprint the icons are set to this scale */
-	UPROPERTY(EditDefaultsOnly, Category="Weapon")
-	FVector2D NotSelectedScale;
+	/** crosshair widget */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBPE_CrosshairWidget> W_Crosshair;
 
 	/** map to access the icons with the color type of the weapon */
-	TMap<EColorType, UImage*> IconsWeapon;
+	TMap<EColorType, FWeaponIcon> WeaponIcons;
+
+	TMap<EColorType, FLinearColor> CurrentWeaponColor;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Health
@@ -79,9 +111,9 @@ protected:
 
 	virtual void NativeConstruct() override;
 
-	/** [local] change icons render properties */
+	/** [local] change icons render properties depending on current weapon color type */
 	UFUNCTION()
-	void SetIconRenderParameters(UImage* Icon);
+	void SetIconRenderParameters(EColorType WeaponColorType);
 
 	/** [local] */
 	void InitializeWeaponIcons();

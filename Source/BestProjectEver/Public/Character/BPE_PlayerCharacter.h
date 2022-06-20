@@ -230,7 +230,7 @@ protected:
 	void PickupWeapon(ABPE_Weapon* NewWeapon);
 
 	/** [server] drop all weapons in inventory */
-	virtual void DropWeapon() override;
+	virtual void DropWeapon(bool bIsInactive = false) override;
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetAsCurrentWeapon(ABPE_Weapon* Weapon);

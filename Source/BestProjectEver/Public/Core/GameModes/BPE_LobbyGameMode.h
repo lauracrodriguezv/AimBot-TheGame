@@ -24,4 +24,7 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 	void TravelToMatchMap();
+
+	/** Inactive: actor is not being used, is death... */
+	void DestroyInactiveActor(AActor* ActorToDestroy);
 };

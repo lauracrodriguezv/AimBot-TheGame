@@ -31,11 +31,14 @@ ABPE_SpawnPad::ABPE_SpawnPad()
 	SpawnTransform->SetupAttachment(SpawnPadBaseMesh);
 	SpawnTransform->SetRelativeLocation(FVector(0.0f, 0.0f, 95.0f));
 
+	FrameButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FrameButtonMesh"));
+	FrameButtonMesh->SetupAttachment(RootComponent);
+	
 	ButtonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ButtonMesh"));
-	ButtonMesh->SetupAttachment(RootComponent);
+	ButtonMesh->SetupAttachment(FrameButtonMesh);
 	
 	ActivationTrigger = CreateDefaultSubobject<USphereComponent>(TEXT("ActivationTrigger"));
-	ActivationTrigger->SetupAttachment(ButtonMesh);
+	ActivationTrigger->SetupAttachment(FrameButtonMesh);
 	ActivationTrigger->SetCollisionResponseToAllChannels(ECR_Ignore);
 	ActivationTrigger->SetSphereRadius(130.0f);
 
@@ -49,6 +52,8 @@ ABPE_SpawnPad::ABPE_SpawnPad()
 	RingMovementTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("RingMovementTimeline"));
 
 	NewLocationMultiplier = FVector(0.0f, 0.0f, 200.0f);
+	SetButtonEmissiveDelay = 2.0f;
+	ButtonEmissive = 6.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -155,6 +160,32 @@ void ABPE_SpawnPad::ActiveEffectsOnSpawn()
 	if(IsValid(RingMovementTimeline))
 	{
 		RingMovementTimeline->PlayFromStart();
+	}
+
+	Multicast_SetButtonMeshMaterial();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_SpawnPad::Multicast_SetButtonMeshMaterial_Implementation()
+{
+	if(IsValid(ButtonMesh))
+	{
+		ButtonMaterial = ButtonMesh->CreateAndSetMaterialInstanceDynamicFromMaterial(0,ButtonMesh->GetMaterial(0));
+		if(IsValid(ButtonMaterial))
+		{
+			ButtonMaterial->SetScalarParameterValue("Emissive", ButtonEmissive);
+			GetWorldTimerManager().SetTimer(TimerHandle_ButtonEmissive, this, &ABPE_SpawnPad::TurnOffButtonEmissive,
+				SetButtonEmissiveDelay, false, SetButtonEmissiveDelay);
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_SpawnPad::TurnOffButtonEmissive()
+{
+	if(IsValid(ButtonMaterial))
+	{
+		ButtonMaterial->SetScalarParameterValue("Emissive", 0.0f);
 	}
 }
 

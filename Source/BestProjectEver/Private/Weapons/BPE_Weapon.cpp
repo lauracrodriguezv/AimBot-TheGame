@@ -8,6 +8,7 @@
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Core/GameModes/BPE_LobbyGameMode.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "ImageWriteQueue/Public/ImagePixelData.h"
@@ -61,6 +62,8 @@ ABPE_Weapon::ABPE_Weapon()
 	ShootLoudness = 1.0f;
 
 	ImpulseOnDropped = 1000.0f;
+
+	DestroyDelay = 10.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -390,7 +393,7 @@ void ABPE_Weapon::OnPickup(AActor* NewOwner)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::OnDropped()
+void ABPE_Weapon::OnDropped(bool bIsInactive)
 {
 	if(IsHidden())
 	{
@@ -406,6 +409,11 @@ void ABPE_Weapon::OnDropped()
 	if(IsValid(WeaponMesh))
 	{
 		WeaponMesh->AddImpulse(FMath::VRand() * ImpulseOnDropped, NAME_None, true);
+	}
+
+	if(bIsInactive)
+	{
+		OnStopInteraction();
 	}
 }
 
@@ -475,13 +483,28 @@ void ABPE_Weapon::OnRep_ColorType()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::OnStopInteraction()
 {
-	if(CurrentState != EWeaponState::Equipped)
+	if(CurrentState == EWeaponState::Idle && HasAuthority())
 	{
 		Multicast_UpdateState();
 		if(IsValid(WeaponMesh))
 		{
 			WeaponMesh->AddImpulse(FMath::VRand() * 1000.0f, NAME_None, true);
 		}
+
+		GetWorldTimerManager().SetTimer(TimerHandle_DestroyWeapon, this, &ABPE_Weapon::DestroyInactiveWeapon, DestroyDelay, false, DestroyDelay);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::DestroyInactiveWeapon()
+{
+	if(CurrentState == EWeaponState::Idle)
+	{
+		ABPE_LobbyGameMode* LobbyGameMode = GetWorld()->GetAuthGameMode<ABPE_LobbyGameMode>();
+		if(IsValid(LobbyGameMode))
+		{
+			LobbyGameMode->DestroyInactiveActor(this);
+		}	
 	}
 }
 

@@ -84,6 +84,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Patrol")
 	TObjectPtr<ABPE_PathFollowing> PatrolPathReference;
 
+	/** Handle for efficient management of destroy delay */
+	FTimerHandle TimerHandle_Destroy;
+	
+	/** Minimum time before actor is destroyed when is inactive (In the LobbyGameMode, inactive is when spawn pad stops
+	 * interacting with this actor or is death */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="GameMode", meta=(ClampMin=0.0f))
+	float DestroyDelay;
+
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon
 
@@ -110,12 +118,15 @@ protected:
 	
 	virtual void HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser) override;
 	
-	virtual void DropWeapon() override;
+	virtual void DropWeapon(bool bIsInactive = false) override;
 	
 	UFUNCTION()
 	void OnRep_ColorType();
 	
-
+	/** In the LobbyGameMode, inactive is when spawn pad stops interacting with this actor or is death */ 
+	UFUNCTION()
+	void DestroyInactiveEnemy();
+	
 public:
 
 	//------------------------------------------------------------------------------------------------------------------

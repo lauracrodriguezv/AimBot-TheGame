@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/BPE_Weapon.h"
+#include "Core/GameModes/BPE_LobbyGameMode.h"
 
 ABPE_Enemy::ABPE_Enemy()
 {
@@ -15,6 +16,8 @@ ABPE_Enemy::ABPE_Enemy()
 
 	ImpulseOnStopInteraction = 1000.0f;
 	UpdateMaterialOnEnemyStatus();
+
+	DestroyDelay = 2.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -128,15 +131,24 @@ bool ABPE_Enemy::IsWeaponEquipped() const
 void ABPE_Enemy::HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser)
 {
 	Super::HandleCharacterDeath(DamagedActor, InstigatedBy, DamageCauser);
-	DropWeapon();
+
+	if(GetWorld()->GetAuthGameMode<AGameModeBase>()->IsA(ABPE_LobbyGameMode::StaticClass()))
+	{
+		GetWorldTimerManager().SetTimer(TimerHandle_Destroy, this,&ABPE_Enemy::DestroyInactiveEnemy,DestroyDelay, false, DestroyDelay);
+		DropWeapon(true);
+	}
+	else
+	{
+		DropWeapon();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Enemy::DropWeapon()
+void ABPE_Enemy::DropWeapon(bool bIsInactive)
 {
 	if(IsValid(CurrentWeapon))
 	{
-		CurrentWeapon->OnDropped();
+		CurrentWeapon->OnDropped(bIsInactive);
 		CurrentWeapon = nullptr;
 	}
 }
@@ -198,6 +210,20 @@ void ABPE_Enemy::OnStopInteraction()
 		Multicast_UpdateMeshPhysics();
 		GetMesh()->AddImpulse(FMath::VRand() * ImpulseOnStopInteraction, NAME_None, true);
 	}
+
+	DropWeapon(true);
+	
+	GetWorldTimerManager().SetTimer(TimerHandle_Destroy, this,&ABPE_Enemy::DestroyInactiveEnemy,DestroyDelay, false, DestroyDelay);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Enemy::DestroyInactiveEnemy()
+{
+	ABPE_LobbyGameMode* LobbyGameMode = GetWorld()->GetAuthGameMode<ABPE_LobbyGameMode>();
+	if(IsValid(LobbyGameMode))
+	{
+		LobbyGameMode->DestroyInactiveActor(this);
+	}	
 }
 
 //----------------------------------------------------------------------------------------------------------------------

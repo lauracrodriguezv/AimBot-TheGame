@@ -39,6 +39,9 @@ protected:
 	TObjectPtr<UArrowComponent> SpawnTransform;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
+	TObjectPtr<UStaticMeshComponent> FrameButtonMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	TObjectPtr<UStaticMeshComponent> ButtonMesh;
 
 	/** area to enable interaction */
@@ -78,6 +81,23 @@ protected:
 	/** for visual effect when an actor is spawned */
 	UPROPERTY(EditAnywhere, Category= "Spawner")
 	UCurveFloat* RingMovementCurve;
+
+	//------------------------------------------------------------------------------------------------------------------
+
+	/** Delay for reset emissive of button material */
+	UPROPERTY(EditDefaultsOnly, Category="Materials")
+	float SetButtonEmissiveDelay;
+
+	/** Button emissive on interaction*/
+	UPROPERTY(EditDefaultsOnly, Category="Materials")
+	float ButtonEmissive;
+	
+	/** Handle for efficient management of set button material emissive */
+	FTimerHandle TimerHandle_ButtonEmissive;
+
+	/** Dynamic instance of Button material to communicate spawn behavior */
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> ButtonMaterial;
 	
 public:	
 	
@@ -105,8 +125,17 @@ protected:
 	/** [server] spawn an actor */
 	void SpawnActor();
 
+	//------------------------------------------------------------------------------------------------------------------
+	// Visual effects
+	
 	/** [server] active visual effects when an actor is spawned */
 	void ActiveEffectsOnSpawn();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_SetButtonMeshMaterial();
+
+	UFUNCTION()
+	void TurnOffButtonEmissive();
 
 	/** [server] set new ring position on spawned */
 	UFUNCTION()

@@ -220,8 +220,7 @@ void ABPE_Weapon::HandleIdleState()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::HandleEquippedState()
 {
-	UpdatePhysicsProperties(ECollisionEnabled::NoCollision, false,
-				ECollisionEnabled::NoCollision);
+	UpdatePhysicsProperties(ECollisionEnabled::NoCollision, false,ECollisionEnabled::NoCollision);
 
 	if(HasAuthority())
 	{

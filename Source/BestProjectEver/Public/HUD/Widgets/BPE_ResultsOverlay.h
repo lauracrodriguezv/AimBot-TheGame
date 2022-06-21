@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BestProjectEver/MatchDefinitions.h"
 #include "Blueprint/UserWidget.h"
 #include "BPE_ResultsOverlay.generated.h"
 
@@ -25,6 +26,9 @@ class BESTPROJECTEVER_API UBPE_ResultsOverlay : public UUserWidget
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> InformationText;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> TopScoringPlayersText;
+
 	//------------------------------------------------------------------------------------------------------------------
 	//Match Time
 
@@ -36,5 +40,9 @@ public:
 
 	/** show the player the time left to end current match state */
 	void UpdateMatchTimer(const float TimeLeft);
+
+	void SetMatchResultText(EMatchResult MatchResult);
+
+	void SetTopScoringPlayersText(const TArray<APlayerState*> TopScoringPlayers, const APlayerState* PlayerStateReference);
 };
 

@@ -5,6 +5,7 @@
 
 #include "Character/BPE_Enemy.h"
 #include "Core/GameModes/BPE_GameplayGameMode.h"
+#include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Math/UnitConversion.h"
 #include "Net/UnrealNetwork.h"
@@ -12,6 +13,7 @@
 ABPE_GameState::ABPE_GameState()
 {
 	bAreAllEnemiesDead = false;
+	TopScore = 0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -73,10 +75,46 @@ void ABPE_GameState::OnRep_EnemiesAlive()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameState::HandleMatchResults()
+{
+	MatchResult = bAreAllEnemiesDead ? EMatchResult::Victory : EMatchResult::Defeated;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+TArray<APlayerState*> ABPE_GameState::GetTopScoringPlayers()
+{
+	TArray<APlayerState*> TopScoringPlayers;
+	
+	for (APlayerState* Player : PlayerArray)
+	{
+		if(IsValid(Player))
+		{
+			if(TopScoringPlayers.Num() == 0)
+			{
+				TopScore = Player->GetScore();
+			}
+			else if(Player->GetScore() == TopScore)
+			{
+				TopScoringPlayers.AddUnique(Player);
+			}
+			else if(Player->GetScore() > TopScore)
+			{
+				TopScoringPlayers.Empty();
+				TopScoringPlayers.AddUnique(Player);
+				TopScore = Player->GetScore();
+			}	
+		}
+	}
+
+	return TopScoringPlayers;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ABPE_GameState, TimeLeft);
 	DOREPLIFETIME(ABPE_GameState, EnemiesAlive);
+	DOREPLIFETIME(ABPE_GameState, MatchResult);
 }
 

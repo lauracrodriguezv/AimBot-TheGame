@@ -76,9 +76,6 @@ protected:
 	/** Called when the state transitions to Cooldown */
 	void HandleCooldownTime();
 
-	/** Called when the state transitions to Cooldown */
-	void HandleMatchResults();
-
 	/** Transition from WaitingToStart to InProgress */
 	virtual void StartMatch() override;
 

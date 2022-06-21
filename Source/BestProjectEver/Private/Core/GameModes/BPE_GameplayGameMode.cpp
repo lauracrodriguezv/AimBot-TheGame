@@ -75,28 +75,6 @@ void ABPE_GameplayGameMode::HandleCooldownTime()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_GameplayGameMode::HandleMatchResults()
-{
-	if(IsValid(GameStateReference))
-	{
-		if(GameStateReference->AreAllEnemiesDead())
-		{
-			if(GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("You Win!!"));		
-			}
-		}
-		else
-		{
-			if(GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("You lose!"));		
-			}
-		}
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameplayGameMode::StartMatch()
 {
 	TimeLeft = MatchTime;
@@ -108,7 +86,10 @@ void ABPE_GameplayGameMode::StartCooldown()
 {
 	TimeLeft = CooldownTime;
 	SetMatchState(MatchState::Cooldown);
-	HandleMatchResults();
+	if(IsValid(GameStateReference))
+	{
+		GameStateReference->HandleMatchResults();	
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

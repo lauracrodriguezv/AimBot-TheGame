@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "BestProjectEver/MatchDefinitions.h"
 #include "BPE_GameState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeLeftUpdated, const float, TimeLeft);
@@ -22,6 +23,8 @@ class BESTPROJECTEVER_API ABPE_GameState : public AGameState
 protected:
 
 	uint8 bAreAllEnemiesDead : 1;
+
+	int32 TopScore;
 	
 	/** time left to end current match state */
 	UPROPERTY(ReplicatedUsing=OnRep_TimeLeft, VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")
@@ -29,6 +32,9 @@ protected:
 
 	UPROPERTY(ReplicatedUsing=OnRep_EnemiesAlive, BlueprintReadOnly, Category="Game Mode")
 	int32 EnemiesAlive;
+
+	UPROPERTY(Replicated)
+	EMatchResult MatchResult;
 
 public:
 
@@ -70,5 +76,12 @@ public:
 
 	int32 GetEnemiesOnMatch() const { return EnemiesAlive; }
 
+	/** Called when the state transitions to Cooldown */
+	void HandleMatchResults();
+
+	EMatchResult GetMatchResult() const { return MatchResult; }
+
 	bool AreAllEnemiesDead() const { return bAreAllEnemiesDead; }
+
+	TArray<APlayerState*> GetTopScoringPlayers();
 };

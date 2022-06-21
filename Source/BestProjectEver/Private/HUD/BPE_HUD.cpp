@@ -127,9 +127,11 @@ void ABPE_HUD::UpdateMatchTimeLeft(const float TimeLeft)
 	}
 	else if(MatchState == MatchState::Cooldown)
 	{
-		if(IsValid(ResultsOverlay))
+		if(IsValid(ResultsOverlay) && IsValid(GameStateReference))
 		{
 			ResultsOverlay->UpdateMatchTimer(TimeLeft);
+			ResultsOverlay->SetMatchResultText(GameStateReference->GetMatchResult());
+			ResultsOverlay->SetTopScoringPlayersText(GameStateReference->GetTopScoringPlayers(), PlayerStateReference);
 		}
 	}
 }

@@ -247,6 +247,10 @@ protected:
 	/** [server and client] weapon inventory handler */
 	void OnInventoryChanged();
 
+	//------------------------------------------------------------------------------------------------------------------
+	
+	void PauseGame();
+	
 public:
 
 	virtual void Tick(float DeltaSeconds) override;

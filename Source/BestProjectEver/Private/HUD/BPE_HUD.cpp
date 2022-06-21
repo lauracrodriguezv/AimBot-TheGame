@@ -14,6 +14,7 @@
 #include "HUD/Widgets/BPE_TimerWidget.h"
 #include "HUD/Widgets/BPE_AnnouncementOverlay.h"
 #include "HUD/Widgets/BPE_ResultsOverlay.h"
+#include "HUD/Widgets/BPE_PauseMenu.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_HUD::BeginPlay()
@@ -87,6 +88,21 @@ void ABPE_HUD::RemoveCharacterOverlay()
 	if(IsValid(CharacterOverlay))
 	{
 		CharacterOverlay->RemoveFromParent();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::AddPauseMenu(bool bWasPausedByOtherPlayer)
+{
+	APlayerController* PlayerController = GetOwningPlayerController();
+	if(IsValid(PlayerController) && IsValid(PauseMenuClass))
+	{
+		PauseMenu = CreateWidget<UBPE_PauseMenu>(PlayerController, PauseMenuClass);
+		if(IsValid(PauseMenu))
+		{
+			PauseMenu->AddToViewport();
+			PauseMenu->SetPauseMenuInformation(bWasPausedByOtherPlayer);
+		}
 	}
 }
 

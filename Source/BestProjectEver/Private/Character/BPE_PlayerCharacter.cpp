@@ -445,6 +445,23 @@ void ABPE_PlayerCharacter::OnInventoryChanged()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::PauseGame()
+{
+	ABPE_PlayerController* PlayerController = Cast<ABPE_PlayerController>(GetController());
+	if(IsValid(PlayerController))
+	{
+		if(HasAuthority())
+		{
+			PlayerController->SetPause(true, FCanUnpause());
+		}
+		else
+		{
+			PlayerController->ServerPause();
+		}	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 {
 	ABPE_Weapon* LastOverlappingWeapon = OverlappingWeapon;
@@ -598,6 +615,8 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("PreviousWeapon", IE_Pressed, this,  &ABPE_PlayerCharacter::EquipPreviousWeapon);
 
 	PlayerInputComponent->BindAction("Interact",IE_Pressed, this, &ABPE_PlayerCharacter::Interact);
+
+	PlayerInputComponent->BindAction("Pause",IE_Pressed, this, &ABPE_PlayerCharacter::PauseGame);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

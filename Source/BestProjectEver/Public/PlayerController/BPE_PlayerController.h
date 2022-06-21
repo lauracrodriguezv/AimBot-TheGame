@@ -7,6 +7,9 @@
 #include "BPE_PlayerController.generated.h"
 
 class ABPE_HUD;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameIsPaused, APlayerController*, PlayerWhoPaused);
+
 /**
  * 
  */
@@ -33,6 +36,10 @@ protected:
 
 	/** Handle for efficient management of Respawn timer */
 	FTimerHandle TimerHandle_Respawn;
+
+	uint8 bCanUnPause : 1;
+
+	FOnGameIsPaused OnGameIsPaused;
 
 public:
 
@@ -63,8 +70,13 @@ protected:
 	UFUNCTION(Client, Reliable)
 	void Client_UpdateHud();
 
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_OnGamePaused(APlayerState* PlayerWhoPaused);
+
 public:
 
 	/** check if all player inputs are enabled or just camera movements */
 	bool AreGameplayInputsEnabled() const { return  bAreGameplayInputsEnabled; }
+
+	virtual bool SetPause(bool bPause, FCanUnpause CanUnpauseDelegate) override;
 };

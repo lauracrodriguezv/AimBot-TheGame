@@ -91,3 +91,22 @@ void ABPE_PlayerController::RequestRespawn()
 		GameplayGameMode->RespawnPlayer(this,GetPawn());
 	}
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerController::Multicast_OnGamePaused_Implementation(APlayerState* PlayerWhoPaused)
+{
+	bShowMouseCursor = true;
+	HUD = Cast<ABPE_HUD>(GetHUD());
+	if(IsValid(HUD))
+	{
+		HUD->AddPauseMenu(PlayerState == PlayerWhoPaused);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerController::SetPause(bool bPause, FCanUnpause CanUnpauseDelegate)
+{
+	Multicast_OnGamePaused(PlayerState);
+
+	return Super::SetPause(bPause, CanUnpauseDelegate);
+}

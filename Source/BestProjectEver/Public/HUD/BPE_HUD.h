@@ -17,6 +17,7 @@ class UBPE_TimerWidget;
 class UBPE_AnnouncementOverlay;
 class UBPE_ResultsOverlay;
 class ABPE_PlayerState;
+class UBPE_PauseMenu;
 /**
  * 
  */
@@ -59,6 +60,14 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Player State")
 	TObjectPtr<ABPE_PlayerState> PlayerStateReference;
+
+	/** widget when match is in Cooldown time */
+	UPROPERTY(EditAnywhere, Category = "Player State")
+	TSubclassOf<UUserWidget> PauseMenuClass;
+
+	/** widget when match is Cooldown time reference */
+	UPROPERTY(BlueprintReadOnly, Category = "Player State")
+	TObjectPtr<UBPE_PauseMenu> PauseMenu;
 
 protected:
 
@@ -116,4 +125,7 @@ public:
 	/** Remove character overlay widget to the viewport */
 	UFUNCTION()
 	void RemoveCharacterOverlay();
+
+	UFUNCTION()
+	void AddPauseMenu(bool bWasPausedByOtherPlayer);
 };

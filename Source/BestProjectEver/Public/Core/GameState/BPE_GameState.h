@@ -32,7 +32,7 @@ protected:
 	int32 EnemiesAlive;
 
 	UPROPERTY(Transient)
-	TArray<APlayerState*> PlayersWhoPaused;
+	TArray<TObjectPtr<APlayerState>> PlayersWhoPaused;
 
 public:
 

@@ -61,6 +61,20 @@ void ABPE_PlayerCharacter::InitializeReference()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	PlayerControllerReference = Cast<ABPE_PlayerController>(NewController);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+	PlayerControllerReference = Cast<ABPE_PlayerController>(GetController());
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::HandleCharacterDeath(AActor* KilledActor, AController* InstigatedBy, AActor* Killer)
 {
 	Super::HandleCharacterDeath(KilledActor, InstigatedBy, Killer);
@@ -642,7 +656,6 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
 	DOREPLIFETIME(ABPE_PlayerCharacter, bIsAiming);
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, Inventory, COND_OwnerOnly);
-	DOREPLIFETIME(ABPE_PlayerCharacter, PlayerControllerReference);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

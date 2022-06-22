@@ -79,7 +79,7 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<ABPE_GameState> GameStateReference;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Transient)
 	TObjectPtr<ABPE_PlayerController> PlayerControllerReference;
 	
 	//------------------------------------------------------------------------------------------------------------------
@@ -125,6 +125,10 @@ protected:
 
 	/** [server]  */
 	virtual void HandleCharacterDeath(AActor* KilledActor, AController* InstigatedBy, AActor* Killer) override;
+
+	virtual void PossessedBy(AController* NewController) override;
+
+	virtual void OnRep_Controller() override;
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Input handlers
@@ -291,5 +295,5 @@ public:
 	/** check if all player inputs are enabled or just camera movements and if it is not dead */
 	bool AreGameplayInputsEnabled() const;
 
-	void SetPlayerController(ABPE_PlayerController* PlayerController) { PlayerControllerReference = PlayerController; }
+	//void SetPlayerController(ABPE_PlayerController* PlayerController) { PlayerControllerReference = PlayerController; }
 };

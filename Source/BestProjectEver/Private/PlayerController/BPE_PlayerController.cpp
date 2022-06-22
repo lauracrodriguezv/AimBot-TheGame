@@ -46,12 +46,6 @@ void ABPE_PlayerController::BeginPlay()
 void ABPE_PlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
-	ABPE_PlayerCharacter* PlayerCharacter = Cast<ABPE_PlayerCharacter>(InPawn);
-	if(IsValid(PlayerCharacter))
-	{
-		PlayerCharacter->SetPlayerController(this);
-	}
 	
 	if(HasAuthority())
 	{

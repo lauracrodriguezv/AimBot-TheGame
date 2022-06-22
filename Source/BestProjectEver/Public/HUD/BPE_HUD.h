@@ -6,6 +6,7 @@
 #include "BestProjectEver/ColorType.h"
 #include "BestProjectEver/HealthData.h"
 #include "GameFramework/HUD.h"
+#include "BestProjectEver/PlayerDefinitions.h"
 #include "BPE_HUD.generated.h"
 
 class UBPE_CharacterOverlay;
@@ -69,6 +70,10 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Player State")
 	TObjectPtr<UBPE_PauseMenu> PauseMenu;
 
+	/** widget when match is Cooldown time reference */
+	UPROPERTY(BlueprintReadOnly, Category = "Player State")
+	TObjectPtr<UBPE_PauseMenu> PauseByOtherPlayer;
+
 protected:
 
 	virtual void BeginPlay() override;
@@ -126,6 +131,12 @@ public:
 	UFUNCTION()
 	void RemoveCharacterOverlay();
 
-	UFUNCTION()
-	void AddPauseMenu(bool bWasPausedByOtherPlayer);
+	/** Create and add pause menu widget to the viewport */
+	void AddPauseMenu();
+
+	/** Remove pause menu widget to the viewport */
+	void RemovePauseMenu();
+
+	/** Set pause menus visibility */
+	void UpdatePauseMenu(EPauseState PauseState);
 };

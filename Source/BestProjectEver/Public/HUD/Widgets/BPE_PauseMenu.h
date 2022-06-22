@@ -18,6 +18,8 @@ class BESTPROJECTEVER_API UBPE_PauseMenu : public UUserWidget
 	GENERATED_BODY()
 
 protected:
+
+	virtual void NativeConstruct() override;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> PauseTittleText;
@@ -25,7 +27,12 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ResumeButton;
 
+protected:
+
+	UFUNCTION()
+	void ResumeGame();
+	
 public:
 
-	void SetPauseMenuInformation(bool bWasPausedByOwner);
+	void SetPauseMenuInformation(bool BWasPauseRequestByOwner);
 };

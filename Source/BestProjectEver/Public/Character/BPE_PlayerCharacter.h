@@ -14,6 +14,7 @@ class UBPE_InventoryComponent;
 class USoundCue;
 class ABPE_SpawnPad;
 class ABPE_PlayerController;
+class ABPE_GameState;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCurrentWeapon, EColorType, WeaponColorType);
 
@@ -74,6 +75,12 @@ protected:
 
 	/** speed to return to DefaultFOV from CurrentFOV */
 	float ZoomOutInterpSpeed;
+
+	UPROPERTY(Transient)
+	TObjectPtr<ABPE_GameState> GameStateReference;
+
+	UPROPERTY(Replicated)
+	TObjectPtr<ABPE_PlayerController> PlayerControllerReference;
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Inventory
@@ -133,6 +140,8 @@ protected:
 	void LookUpAtRate(float Value);
 
 	virtual void AddControllerPitchInput(float Value) override;
+
+	virtual void AddControllerYawInput(float Val) override;
 
 	virtual void Jump() override;
 
@@ -281,4 +290,6 @@ public:
 
 	/** check if all player inputs are enabled or just camera movements and if it is not dead */
 	bool AreGameplayInputsEnabled() const;
+
+	void SetPlayerController(ABPE_PlayerController* PlayerController) { PlayerControllerReference = PlayerController; }
 };

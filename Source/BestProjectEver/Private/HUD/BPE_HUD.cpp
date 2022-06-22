@@ -92,16 +92,68 @@ void ABPE_HUD::RemoveCharacterOverlay()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::AddPauseMenu(bool bWasPausedByOtherPlayer)
+void ABPE_HUD::AddPauseMenu()
 {
+	if(IsValid(PauseMenu) && IsValid(PauseByOtherPlayer))
+	{
+		return;
+	}
+	
 	APlayerController* PlayerController = GetOwningPlayerController();
 	if(IsValid(PlayerController) && IsValid(PauseMenuClass))
 	{
 		PauseMenu = CreateWidget<UBPE_PauseMenu>(PlayerController, PauseMenuClass);
-		if(IsValid(PauseMenu))
+		PauseByOtherPlayer = CreateWidget<UBPE_PauseMenu>(PlayerController, PauseMenuClass);
+		if(IsValid(PauseMenu) && IsValid(PauseByOtherPlayer))
 		{
 			PauseMenu->AddToViewport();
-			PauseMenu->SetPauseMenuInformation(bWasPausedByOtherPlayer);
+			PauseMenu->SetPauseMenuInformation(true);
+			
+			PauseByOtherPlayer->AddToViewport();
+			PauseByOtherPlayer->SetPauseMenuInformation(false);
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::RemovePauseMenu()
+{
+	if(IsValid(PauseMenu) && IsValid(PauseByOtherPlayer))
+	{
+		PauseMenu->RemoveFromParent();
+		PauseMenu = nullptr;
+		
+		PauseByOtherPlayer->RemoveFromParent();
+		PauseByOtherPlayer = nullptr;
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::UpdatePauseMenu(EPauseState PauseState)
+{
+	switch (PauseState)
+	{
+	case EPauseState::PausedBySelf:
+		{
+			PauseMenu->SetVisibility(ESlateVisibility::Visible);
+			PauseByOtherPlayer->SetVisibility(ESlateVisibility::Collapsed);	
+			break;
+		}
+	case EPauseState::PausedByOtherPlayer:
+		{
+			PauseByOtherPlayer->SetVisibility(ESlateVisibility::Visible);	
+			PauseMenu->SetVisibility(ESlateVisibility::Collapsed);
+			break;
+		}
+	case  EPauseState::UnPause:
+		{
+			PauseMenu->SetVisibility(ESlateVisibility::Collapsed);
+			PauseByOtherPlayer->SetVisibility(ESlateVisibility::Collapsed);
+			break;
+		}
+	default:
+		{
+			break;
 		}
 	}
 }
@@ -164,6 +216,7 @@ void ABPE_HUD::UpdateOverlay(const FName NewMatchState)
 	}
 	else if (MatchState == MatchState::Cooldown)
 	{
+		RemovePauseMenu();
 		RemoveCharacterOverlay();
 		AddResultsOverlay();
 	}

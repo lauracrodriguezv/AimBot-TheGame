@@ -4,10 +4,11 @@
 #include "Core/GameState/BPE_GameState.h"
 
 #include "Character/BPE_Enemy.h"
-#include "Core/GameModes/BPE_GameplayGameMode.h"
+#include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Math/UnitConversion.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerController/BPE_PlayerController.h"
 
 ABPE_GameState::ABPE_GameState()
 {
@@ -64,6 +65,55 @@ void ABPE_GameState::DecreaseEnemiesAlive()
 			bAreAllEnemiesDead = true;
 		}	
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameState::Multicast_SetPause_Implementation(bool bPause, APlayerState* InstigatedBy)
+{
+	OnSetPause.Broadcast(bPause);
+
+	if(bPause)
+	{
+		PlayersWhoPaused.AddUnique(InstigatedBy);	
+	}
+	else
+	{
+		PlayersWhoPaused.Remove(InstigatedBy);
+	}
+	
+	const float TimeDilation = !bPause? 1.0f : 0.000001f;
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), TimeDilation);
+
+	UpdatePlayerPauseState();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameState::UpdatePlayerPauseState()
+{
+	ABPE_PlayerController* PlayerController = Cast<ABPE_PlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if(IsValid(PlayerController))
+	{
+		if(IsGamePaused())
+		{
+			if(IsValid(PlayerController->GetPlayerState<APlayerState>()))
+			{
+				const EPauseState PauseState = WasPauseInstigatedByPlayer(PlayerController->GetPlayerState<APlayerState>())?
+					EPauseState::PausedBySelf : EPauseState::PausedByOtherPlayer;
+			
+				PlayerController->SetPauseState(PauseState);	
+			}
+		}
+		else
+		{
+			PlayerController->SetPauseState(EPauseState::UnPause);
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_GameState::WasPauseInstigatedByPlayer(const APlayerState* Player) const
+{
+	return PlayersWhoPaused.Contains(Player);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

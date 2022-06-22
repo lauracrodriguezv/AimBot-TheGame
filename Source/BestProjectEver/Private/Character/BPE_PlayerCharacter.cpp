@@ -5,6 +5,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/BPE_HealthComponent.h"
+#include "Core/GameState/BPE_GameState.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -55,6 +56,8 @@ void ABPE_PlayerCharacter::InitializeReference()
 {
 	DefaultFOV = CameraComponent->FieldOfView;
 	CurrentFOV = DefaultFOV;
+
+	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -111,21 +114,39 @@ void ABPE_PlayerCharacter::MoveRight(float Value)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::TurnAtRate(float Value)
 {
-	// calculate delta for this frame from the rate information
-	AddControllerYawInput(Value * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+	if(IsValid(GameStateReference) && !GameStateReference->IsGamePaused())
+	{
+		// calculate delta for this frame from the rate information
+		AddControllerYawInput(Value * BaseTurnRate * GetWorld()->GetDeltaSeconds());	
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::LookUpAtRate(float Value)
 {
-	// calculate delta for this frame from the rate information
-	AddControllerPitchInput(Value * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+	if(IsValid(GameStateReference) && !GameStateReference->IsGamePaused())
+	{
+		// calculate delta for this frame from the rate information
+		AddControllerPitchInput(Value * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::AddControllerPitchInput(float Value)
 {
-	Super::AddControllerPitchInput(bIsLookInverted ? -Value : Value);
+	if(IsValid(GameStateReference) && !GameStateReference->IsGamePaused())
+	{
+		Super::AddControllerPitchInput(bIsLookInverted ? -Value : Value);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::AddControllerYawInput(float Val)
+{
+	if(IsValid(GameStateReference) && !GameStateReference->IsGamePaused())
+	{
+		Super::AddControllerYawInput(Val);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -447,17 +468,9 @@ void ABPE_PlayerCharacter::OnInventoryChanged()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::PauseGame()
 {
-	ABPE_PlayerController* PlayerController = Cast<ABPE_PlayerController>(GetController());
-	if(IsValid(PlayerController))
+	if(IsValid(PlayerControllerReference) && AreGameplayInputsEnabled())
 	{
-		if(HasAuthority())
-		{
-			PlayerController->SetPause(true, FCanUnpause());
-		}
-		else
-		{
-			PlayerController->ServerPause();
-		}	
+		PlayerControllerReference->SetGamePause(true);
 	}
 }
 
@@ -629,6 +642,7 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
 	DOREPLIFETIME(ABPE_PlayerCharacter, bIsAiming);
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, Inventory, COND_OwnerOnly);
+	DOREPLIFETIME(ABPE_PlayerCharacter, PlayerControllerReference);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -650,10 +664,9 @@ FVector ABPE_PlayerCharacter::GetPawnViewLocation() const
 //----------------------------------------------------------------------------------------------------------------------
 bool ABPE_PlayerCharacter::AreGameplayInputsEnabled() const
 {
-	const ABPE_PlayerController* PlayerController = Cast<ABPE_PlayerController>(Controller);
-	if(IsValid(GetHealthComponent()) && IsValid(PlayerController))
+	if(IsValid(GetHealthComponent()) && IsValid(PlayerControllerReference))
 	{
-		return !GetHealthComponent()->IsDead() && PlayerController->AreGameplayInputsEnabled();
+		return !GetHealthComponent()->IsDead() && PlayerControllerReference->AreGameplayInputsEnabled();
 	}
 	return false;
 }

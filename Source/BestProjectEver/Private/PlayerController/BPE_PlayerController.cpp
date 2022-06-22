@@ -3,15 +3,31 @@
 
 #include "PlayerController/BPE_PlayerController.h"
 
+#include "Character/BPE_PlayerCharacter.h"
 #include "Core/GameModes/BPE_GameplayGameMode.h"
 #include "Core/GameState/BPE_GameState.h"
 #include "HUD/BPE_HUD.h"
+#include "Kismet/GameplayStatics.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_PlayerController::ABPE_PlayerController()
 {
 	TimeToRespawn = 1.0f;
 	bAreGameplayInputsEnabled = true;
+
+	PauseState = EPauseState::UnPause;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerController::SetPauseState(EPauseState NewPauseState)
+{
+	PauseState = NewPauseState;
+	
+	HUD = Cast<ABPE_HUD>(GetHUD());
+	if(IsValid(HUD))
+	{
+		HUD->UpdatePauseMenu(PauseState);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -19,7 +35,7 @@ void ABPE_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	ABPE_GameState* GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
+	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
 	if(IsValid(GameStateReference))
 	{
 		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_PlayerController::OnMatchStateChanged);
@@ -31,6 +47,12 @@ void ABPE_PlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
+	ABPE_PlayerCharacter* PlayerCharacter = Cast<ABPE_PlayerCharacter>(InPawn);
+	if(IsValid(PlayerCharacter))
+	{
+		PlayerCharacter->SetPlayerController(this);
+	}
+	
 	if(HasAuthority())
 	{
 		/** This delay is created because GetHUD() is not valid at the first tick, that's why the HUD was not updated on client */
@@ -47,6 +69,7 @@ void ABPE_PlayerController::Client_UpdateHud_Implementation()
 	{
 		HUD->AddCharacterOverlay();
 		HUD->BindDelegates();
+		HUD->AddPauseMenu();
 	}
 }
 
@@ -93,20 +116,32 @@ void ABPE_PlayerController::RequestRespawn()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerController::Multicast_OnGamePaused_Implementation(APlayerState* PlayerWhoPaused)
+void ABPE_PlayerController::SetGamePause(bool bPause)
 {
-	bShowMouseCursor = true;
-	HUD = Cast<ABPE_HUD>(GetHUD());
-	if(IsValid(HUD))
+	if(HasAuthority())
 	{
-		HUD->AddPauseMenu(PlayerState == PlayerWhoPaused);
+		if(IsValid(GameStateReference))
+		{
+			GameStateReference->Multicast_SetPause(bPause, PlayerState);
+		}
 	}
+	else
+	{
+		Server_SetMatchPause(bPause);
+	}
+	
+	bShowMouseCursor = bPause;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_PlayerController::SetPause(bool bPause, FCanUnpause CanUnpauseDelegate)
+void ABPE_PlayerController::Server_SetMatchPause_Implementation(bool bPause)
 {
-	Multicast_OnGamePaused(PlayerState);
-
-	return Super::SetPause(bPause, CanUnpauseDelegate);
+	SetGamePause(bPause);
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerController::Server_SetMatchPause_Validate(bool bPause)
+{
+	return true;
+}
+

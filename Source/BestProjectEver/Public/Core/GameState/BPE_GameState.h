@@ -9,6 +9,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeLeftUpdated, const float, TimeLeft);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchStateSet, const FName, MatchState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnemyDies, const int32, EnemiesAlive);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSetPause, const bool, bPause);
 
 class ABPE_GameplayGameMode;
 /**
@@ -30,6 +31,9 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_EnemiesAlive, BlueprintReadOnly, Category="Game Mode")
 	int32 EnemiesAlive;
 
+	UPROPERTY(Transient)
+	TArray<APlayerState*> PlayersWhoPaused;
+
 public:
 
 	ABPE_GameState();
@@ -42,6 +46,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnEnemyDies OnEnemyDeath;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnSetPause OnSetPause;
 	
 protected:
 
@@ -56,6 +63,9 @@ protected:
 	UFUNCTION()
 	void OnRep_EnemiesAlive();
 
+	/** update player pause state on set pause */
+	void UpdatePlayerPauseState();
+	
 public:
 
 	virtual void OnRep_MatchState() override;
@@ -71,4 +81,11 @@ public:
 	int32 GetEnemiesOnMatch() const { return EnemiesAlive; }
 
 	bool AreAllEnemiesDead() const { return bAreAllEnemiesDead; }
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_SetPause(bool bPause, APlayerState* InstigatedBy);
+
+	bool IsGamePaused() const { return !PlayersWhoPaused.IsEmpty(); }
+
+	bool WasPauseInstigatedByPlayer(const APlayerState* Player) const;
 };

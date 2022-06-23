@@ -19,6 +19,8 @@ ABPE_PlayerController::ABPE_PlayerController()
 void ABPE_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetPlayerName();
 	
 	ABPE_GameState* GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
 	if(IsValid(GameStateReference))
@@ -31,8 +33,6 @@ void ABPE_PlayerController::BeginPlay()
 void ABPE_PlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
-	SetPlayerName();
 	
 	if(HasAuthority())
 	{

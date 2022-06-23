@@ -53,11 +53,14 @@ protected:
 
 	virtual void NativeConstruct() override;
 
+	/** Enable buttons depending on network role */
 	void InitializeButtons();
 
+	/** User server travel if has authority or client travel if it is a client */
 	UFUNCTION()
 	void TravelToShowroom();
 
+	/** User server travel if has authority or client travel if it is a client */
 	UFUNCTION()
 	void TravelToMainMenu();
 
@@ -66,7 +69,7 @@ public:
 	/** show the player the time left to end current match state */
 	void UpdateMatchTimer(const float TimeLeft);
 
-	void SetMatchResultText(EMatchResult MatchResult);
+	void ShowMatchResult(EMatchResult MatchResult);
 
 	void ShowTopScoringPlayers(const TArray<APlayerState*>& TopScoringPlayers);
 };

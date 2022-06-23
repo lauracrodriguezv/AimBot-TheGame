@@ -183,7 +183,7 @@ void ABPE_HUD::AddResultsOverlay()
 
 		if(IsValid(GameStateReference))
 		{
-			ResultsOverlay->SetMatchResultText(GameStateReference->GetMatchResult());
+			ResultsOverlay->ShowMatchResult(GameStateReference->GetMatchResult());
 			ResultsOverlay->ShowTopScoringPlayers(GameStateReference->GetTopScoringPlayers());	
 		}
 	}

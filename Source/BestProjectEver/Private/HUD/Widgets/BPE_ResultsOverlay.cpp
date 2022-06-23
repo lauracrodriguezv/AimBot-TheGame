@@ -81,7 +81,7 @@ void UBPE_ResultsOverlay::UpdateMatchTimer(const float TimeLeft)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_ResultsOverlay::SetMatchResultText(EMatchResult MatchResult)
+void UBPE_ResultsOverlay::ShowMatchResult(EMatchResult MatchResult)
 {
 	const FString Text = MatchResult == EMatchResult::Victory ? "You Win!!!" : "You Lose.";
 	if(IsValid((InformationText)))

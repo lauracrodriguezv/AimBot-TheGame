@@ -88,7 +88,7 @@ void ABPE_GameplayGameMode::StartCooldown()
 	SetMatchState(MatchState::Cooldown);
 	if(IsValid(GameStateReference))
 	{
-		GameStateReference->HandleMatchResults();	
+		GameStateReference->DetermineMatchResult();	
 	}
 }
 

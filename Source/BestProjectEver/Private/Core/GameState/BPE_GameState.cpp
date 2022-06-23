@@ -75,13 +75,14 @@ void ABPE_GameState::OnRep_EnemiesAlive()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_GameState::HandleMatchResults()
+void ABPE_GameState::DetermineMatchResult()
 {
 	MatchResult = bAreAllEnemiesDead ? EMatchResult::Victory : EMatchResult::Defeated;
+	SetTopScoringPlayers();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-TArray<APlayerState*> ABPE_GameState::GetTopScoringPlayers()
+void ABPE_GameState::SetTopScoringPlayers()
 {	
 	for (APlayerState* Player : PlayerArray)
 	{
@@ -104,8 +105,6 @@ TArray<APlayerState*> ABPE_GameState::GetTopScoringPlayers()
 			}	
 		}
 	}
-
-	return TopScoringPlayers;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

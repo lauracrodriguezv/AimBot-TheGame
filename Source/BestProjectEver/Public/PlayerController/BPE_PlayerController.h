@@ -71,6 +71,10 @@ public:
 	/** check if all player inputs are enabled or just camera movements */
 	bool AreGameplayInputsEnabled() const { return  bAreGameplayInputsEnabled; }
 
+	/**
+	* Jumps the server to new level.
+	* @param URL the URL that we are traveling to
+	* */
 	UFUNCTION(Server, WithValidation, Reliable)
-	void Server_TravelToMap(const FString& FURL);
+	void Server_TravelToMap(const FString& URL);
 };

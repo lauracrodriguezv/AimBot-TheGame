@@ -24,8 +24,10 @@ protected:
 
 	uint8 bAreAllEnemiesDead : 1;
 
+	/** current top score */
 	int32 TopScore;
 
+	/** players with the highest score */
 	UPROPERTY(Replicated)
 	TArray<APlayerState*> TopScoringPlayers;
 	
@@ -33,9 +35,10 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_TimeLeft, VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")
 	float TimeLeft;
 
+	/** current enemies amount on the match */
 	UPROPERTY(ReplicatedUsing=OnRep_EnemiesAlive, BlueprintReadOnly, Category="Game Mode")
 	int32 EnemiesAlive;
-
+	
 	UPROPERTY(Replicated)
 	EMatchResult MatchResult;
 
@@ -80,11 +83,13 @@ public:
 	int32 GetEnemiesOnMatch() const { return EnemiesAlive; }
 
 	/** Called when the state transitions to Cooldown */
-	void HandleMatchResults();
+	void DetermineMatchResult();
 
 	EMatchResult GetMatchResult() const { return MatchResult; }
 
 	bool AreAllEnemiesDead() const { return bAreAllEnemiesDead; }
 
-	TArray<APlayerState*> GetTopScoringPlayers();
+	void SetTopScoringPlayers();
+
+	const TArray<APlayerState*>& GetTopScoringPlayers() const { return TopScoringPlayers; }
 };

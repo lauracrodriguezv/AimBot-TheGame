@@ -44,14 +44,7 @@ void UBPE_ResultsOverlay::TravelToShowroom()
 {
 	if(IsValid(PlayerControllerReference))
 	{
-		if(PlayerControllerReference->HasAuthority())
-		{
-			PlayerControllerReference->Server_TravelToMap("/Game/Maps/Showroom?listen");	
-		}
-		else
-		{
-			PlayerControllerReference->ClientTravel("/Game/Maps/Showroom", TRAVEL_Absolute, true);
-		}
+		PlayerControllerReference->Server_TravelToMap("/Game/Maps/Showroom?listen");	
 	}
 }
 

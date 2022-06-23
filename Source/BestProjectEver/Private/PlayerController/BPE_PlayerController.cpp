@@ -53,13 +53,13 @@ void ABPE_PlayerController::SetPlayerName()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerController::Server_TravelToMap_Implementation(const FString& FURL)
+void ABPE_PlayerController::Server_TravelToMap_Implementation(const FString& URL)
 {
-	GetWorld()->ServerTravel(FURL);
+	GetWorld()->ServerTravel(URL);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_PlayerController::Server_TravelToMap_Validate(const FString& FURL)
+bool ABPE_PlayerController::Server_TravelToMap_Validate(const FString& URL)
 {
 	return true;
 }

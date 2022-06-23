@@ -13,7 +13,6 @@
 ABPE_GameState::ABPE_GameState()
 {
 	bAreAllEnemiesDead = false;
-	TopScore = 0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -78,12 +77,14 @@ void ABPE_GameState::OnRep_EnemiesAlive()
 void ABPE_GameState::DetermineMatchResult()
 {
 	MatchResult = bAreAllEnemiesDead ? EMatchResult::Victory : EMatchResult::Defeated;
-	SetTopScoringPlayers();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_GameState::SetTopScoringPlayers()
-{	
+TArray<APlayerState*> ABPE_GameState::GetTopScoringPlayers() const 
+{
+	int32 TopScore = 0.0f;
+	TArray<APlayerState*> TopScoringPlayers;
+	
 	for (APlayerState* Player : PlayerArray)
 	{
 		if(IsValid(Player) && !FMath::IsNearlyZero(Player->GetScore()))
@@ -105,6 +106,7 @@ void ABPE_GameState::SetTopScoringPlayers()
 			}	
 		}
 	}
+	return TopScoringPlayers;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -114,6 +116,5 @@ void ABPE_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ABPE_GameState, TimeLeft);
 	DOREPLIFETIME(ABPE_GameState, EnemiesAlive);
 	DOREPLIFETIME(ABPE_GameState, MatchResult);
-	DOREPLIFETIME(ABPE_GameState, TopScoringPlayers);
 }
 

@@ -23,13 +23,6 @@ class BESTPROJECTEVER_API ABPE_GameState : public AGameState
 protected:
 
 	uint8 bAreAllEnemiesDead : 1;
-
-	/** current top score */
-	int32 TopScore;
-
-	/** players with the highest score */
-	UPROPERTY(Replicated)
-	TArray<APlayerState*> TopScoringPlayers;
 	
 	/** time left to end current match state */
 	UPROPERTY(ReplicatedUsing=OnRep_TimeLeft, VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")
@@ -89,7 +82,5 @@ public:
 
 	bool AreAllEnemiesDead() const { return bAreAllEnemiesDead; }
 
-	void SetTopScoringPlayers();
-
-	const TArray<APlayerState*>& GetTopScoringPlayers() const { return TopScoringPlayers; }
+	TArray<APlayerState*> GetTopScoringPlayers() const;
 };

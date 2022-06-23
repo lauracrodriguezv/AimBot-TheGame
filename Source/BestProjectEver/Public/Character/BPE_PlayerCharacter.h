@@ -120,6 +120,9 @@ protected:
 
 	void InitializeReference();
 
+	UFUNCTION()
+	void OnMatchStateChange(const FName MatchState);
+
 	//------------------------------------------------------------------------------------------------------------------
 	// Player State
 

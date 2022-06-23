@@ -55,6 +55,9 @@ protected:
 
 	virtual void OnUnPossess() override;
 
+	/** Set player name according to the order in which player joined the game */
+	void SetPlayerName();
+
 	UFUNCTION()
 	void OnMatchStateChanged(const FName MatchState);
 	
@@ -76,7 +79,7 @@ public:
 
 	/** check if all player inputs are enabled or just camera movements */
 	bool AreGameplayInputsEnabled() const { return  bAreGameplayInputsEnabled; }
-
+	
 	/** Pause the game for all player on match */
 	void SetGamePause(bool bPause);
 
@@ -84,4 +87,11 @@ public:
 	void Server_SetMatchPause(bool bPause);
 
 	void SetPauseState(EPauseState NewPauseState);
+	
+	/**
+	* Jumps the server to new level.
+	* @param URL the URL that we are traveling to
+	* */
+	UFUNCTION(Server, WithValidation, Reliable)
+	void Server_TravelToMap(const FString& URL);
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "BestProjectEver/MatchDefinitions.h"
 #include "BPE_GameState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimeLeftUpdated, const float, TimeLeft);
@@ -28,8 +29,12 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_TimeLeft, VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")
 	float TimeLeft;
 
+	/** current enemies amount on the match */
 	UPROPERTY(ReplicatedUsing=OnRep_EnemiesAlive, BlueprintReadOnly, Category="Game Mode")
 	int32 EnemiesAlive;
+	
+	UPROPERTY(Replicated)
+	EMatchResult MatchResult;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<APlayerState>> PlayersWhoPaused;
@@ -80,12 +85,19 @@ public:
 
 	int32 GetEnemiesOnMatch() const { return EnemiesAlive; }
 
-	bool AreAllEnemiesDead() const { return bAreAllEnemiesDead; }
+	/** Called when the state transitions to Cooldown */
+	void DetermineMatchResult();
 
+	EMatchResult GetMatchResult() const { return MatchResult; }
+
+	bool AreAllEnemiesDead() const { return bAreAllEnemiesDead; }
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_SetPause(bool bPause, APlayerState* InstigatedBy);
 
 	bool IsGamePaused() const { return !PlayersWhoPaused.IsEmpty(); }
 
 	bool WasPauseInstigatedByPlayer(const APlayerState* Player) const;
+	
+	TArray<APlayerState*> GetTopScoringPlayers() const;
 };

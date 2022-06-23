@@ -245,11 +245,16 @@ void ABPE_HUD::RemoveAnnouncementOverlay()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_HUD::AddResultsOverlay()
 {
-	APlayerController* PlayerController = GetOwningPlayerController();
-	if(IsValid(PlayerController) && IsValid(ResultsOverlayClass))
+	if(IsValid(GetOwningPlayerController()) && IsValid(ResultsOverlayClass))
 	{
-		ResultsOverlay = CreateWidget<UBPE_ResultsOverlay>(PlayerController, ResultsOverlayClass);
+		ResultsOverlay = CreateWidget<UBPE_ResultsOverlay>(GetOwningPlayerController(), ResultsOverlayClass);
 		ResultsOverlay->AddToViewport();
+
+		if(IsValid(GameStateReference))
+		{
+			ResultsOverlay->ShowMatchResult(GameStateReference->GetMatchResult());
+			ResultsOverlay->ShowTopScoringPlayers(GameStateReference->GetTopScoringPlayers());	
+		}
 	}
 }
 

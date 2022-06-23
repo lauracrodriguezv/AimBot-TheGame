@@ -5,6 +5,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "Components/BPE_HealthComponent.h"
+#include "Core/GameModes/BPE_GameplayGameMode.h"
 #include "Core/GameState/BPE_GameState.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -58,6 +59,10 @@ void ABPE_PlayerCharacter::InitializeReference()
 	CurrentFOV = DefaultFOV;
 
 	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
+	if(IsValid(GameStateReference))
+	{
+		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_PlayerCharacter::OnMatchStateChange);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -72,6 +77,15 @@ void ABPE_PlayerCharacter::OnRep_Controller()
 {
 	Super::OnRep_Controller();
 	PlayerControllerReference = Cast<ABPE_PlayerController>(GetController());
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnMatchStateChange(const FName MatchState)
+{
+	if(MatchState == MatchState::Cooldown)
+	{
+		StopWeaponFire();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -218,7 +232,7 @@ void ABPE_PlayerCharacter::StartWeaponFire()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::StopWeaponFire()
 {
-	if(IsValid(CurrentWeapon) && AreGameplayInputsEnabled())
+	if(IsValid(CurrentWeapon))
 	{
 		if(HasAuthority())
 		{

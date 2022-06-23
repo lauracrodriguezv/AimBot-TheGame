@@ -123,10 +123,47 @@ void ABPE_GameState::OnRep_EnemiesAlive()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameState::DetermineMatchResult()
+{
+	MatchResult = bAreAllEnemiesDead ? EMatchResult::Victory : EMatchResult::Defeated;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+TArray<APlayerState*> ABPE_GameState::GetTopScoringPlayers() const 
+{
+	int32 TopScore = 0.0f;
+	TArray<APlayerState*> TopScoringPlayers;
+	
+	for (APlayerState* Player : PlayerArray)
+	{
+		if(IsValid(Player) && !FMath::IsNearlyZero(Player->GetScore()))
+		{
+			if(TopScoringPlayers.Num() == 0)
+			{
+				TopScoringPlayers.AddUnique(Player);
+				TopScore = Player->GetScore();
+			}
+			else if(FMath::IsNearlyEqual(Player->GetScore(), TopScore))
+			{
+				TopScoringPlayers.AddUnique(Player);
+			}
+			else if(Player->GetScore() > TopScore)
+			{
+				TopScoringPlayers.Empty();
+				TopScoringPlayers.AddUnique(Player);
+				TopScore = Player->GetScore();
+			}	
+		}
+	}
+	return TopScoringPlayers;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ABPE_GameState, TimeLeft);
 	DOREPLIFETIME(ABPE_GameState, EnemiesAlive);
+	DOREPLIFETIME(ABPE_GameState, MatchResult);
 }
 

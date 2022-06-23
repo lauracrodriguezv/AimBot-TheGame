@@ -46,6 +46,9 @@ protected:
 
 	virtual void OnUnPossess() override;
 
+	/** Set player name according to the order in which player joined the game */
+	void SetPlayerName();
+
 	UFUNCTION()
 	void OnMatchStateChanged(const FName MatchState);
 	
@@ -67,4 +70,7 @@ public:
 
 	/** check if all player inputs are enabled or just camera movements */
 	bool AreGameplayInputsEnabled() const { return  bAreGameplayInputsEnabled; }
+
+	UFUNCTION(Server, WithValidation, Reliable)
+	void Server_TravelToMap(const FString& FURL);
 };

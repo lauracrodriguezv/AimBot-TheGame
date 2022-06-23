@@ -9,6 +9,8 @@
 
 class UTextBlock;
 class UBPE_TimerWidget;
+class UButton;
+class ABPE_PlayerController;
 /**
  * 
  */
@@ -16,7 +18,12 @@ UCLASS()
 class BESTPROJECTEVER_API UBPE_ResultsOverlay : public UUserWidget
 {
 	GENERATED_BODY()
+	
+protected:
 
+	UPROPERTY(Transient)
+	TObjectPtr<ABPE_PlayerController> PlayerControllerReference;
+	
 	//------------------------------------------------------------------------------------------------------------------
 	//Information
 
@@ -28,13 +35,31 @@ class BESTPROJECTEVER_API UBPE_ResultsOverlay : public UUserWidget
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> TopScoringPlayersText;
+	
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> MainMenuButton;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> ShowroomButton;
+	
 	//------------------------------------------------------------------------------------------------------------------
 	//Match Time
 
 	/** countdown on match in progress */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBPE_TimerWidget> W_Timer;
+	
+protected:
+
+	virtual void NativeConstruct() override;
+
+	void InitializeButtons();
+
+	UFUNCTION()
+	void TravelToShowroom();
+
+	UFUNCTION()
+	void TravelToMainMenu();
 
 public:
 
@@ -43,6 +68,6 @@ public:
 
 	void SetMatchResultText(EMatchResult MatchResult);
 
-	void SetTopScoringPlayersText(const TArray<APlayerState*> TopScoringPlayers, const APlayerState* PlayerStateReference);
+	void ShowTopScoringPlayers(const TArray<APlayerState*>& TopScoringPlayers);
 };
 

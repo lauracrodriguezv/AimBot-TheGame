@@ -127,11 +127,9 @@ void ABPE_HUD::UpdateMatchTimeLeft(const float TimeLeft)
 	}
 	else if(MatchState == MatchState::Cooldown)
 	{
-		if(IsValid(ResultsOverlay) && IsValid(GameStateReference))
+		if(IsValid(ResultsOverlay))
 		{
 			ResultsOverlay->UpdateMatchTimer(TimeLeft);
-			ResultsOverlay->SetMatchResultText(GameStateReference->GetMatchResult());
-			ResultsOverlay->SetTopScoringPlayersText(GameStateReference->GetTopScoringPlayers(), PlayerStateReference);
 		}
 	}
 }
@@ -178,11 +176,16 @@ void ABPE_HUD::RemoveAnnouncementOverlay()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_HUD::AddResultsOverlay()
 {
-	APlayerController* PlayerController = GetOwningPlayerController();
-	if(IsValid(PlayerController) && IsValid(ResultsOverlayClass))
+	if(IsValid(GetOwningPlayerController()) && IsValid(ResultsOverlayClass))
 	{
-		ResultsOverlay = CreateWidget<UBPE_ResultsOverlay>(PlayerController, ResultsOverlayClass);
+		ResultsOverlay = CreateWidget<UBPE_ResultsOverlay>(GetOwningPlayerController(), ResultsOverlayClass);
 		ResultsOverlay->AddToViewport();
+
+		if(IsValid(GameStateReference))
+		{
+			ResultsOverlay->SetMatchResultText(GameStateReference->GetMatchResult());
+			ResultsOverlay->ShowTopScoringPlayers(GameStateReference->GetTopScoringPlayers());	
+		}
 	}
 }
 

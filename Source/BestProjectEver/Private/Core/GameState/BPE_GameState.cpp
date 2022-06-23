@@ -82,18 +82,17 @@ void ABPE_GameState::HandleMatchResults()
 
 //----------------------------------------------------------------------------------------------------------------------
 TArray<APlayerState*> ABPE_GameState::GetTopScoringPlayers()
-{
-	TArray<APlayerState*> TopScoringPlayers;
-	
+{	
 	for (APlayerState* Player : PlayerArray)
 	{
-		if(IsValid(Player))
+		if(IsValid(Player) && !FMath::IsNearlyZero(Player->GetScore()))
 		{
 			if(TopScoringPlayers.Num() == 0)
 			{
+				TopScoringPlayers.AddUnique(Player);
 				TopScore = Player->GetScore();
 			}
-			else if(Player->GetScore() == TopScore)
+			else if(FMath::IsNearlyEqual(Player->GetScore(), TopScore))
 			{
 				TopScoringPlayers.AddUnique(Player);
 			}
@@ -116,5 +115,6 @@ void ABPE_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(ABPE_GameState, TimeLeft);
 	DOREPLIFETIME(ABPE_GameState, EnemiesAlive);
 	DOREPLIFETIME(ABPE_GameState, MatchResult);
+	DOREPLIFETIME(ABPE_GameState, TopScoringPlayers);
 }
 

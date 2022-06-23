@@ -25,6 +25,9 @@ protected:
 	uint8 bAreAllEnemiesDead : 1;
 
 	int32 TopScore;
+
+	UPROPERTY(Replicated)
+	TArray<APlayerState*> TopScoringPlayers;
 	
 	/** time left to end current match state */
 	UPROPERTY(ReplicatedUsing=OnRep_TimeLeft, VisibleAnywhere, BlueprintReadOnly, Category="Game Mode")

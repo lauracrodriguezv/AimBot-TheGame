@@ -31,6 +31,9 @@ protected:
 	/** "go here to start the game" */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	TObjectPtr<UWidgetComponent> InformationWidget;
+
+	UPROPERTY(ReplicatedUsing=OnRep_TravelSucceed)
+	uint8 bTravelSucceeded : 1;
 	
 public:	
 	
@@ -42,8 +45,13 @@ protected:
 
 	void InitializeReferences();
 
+	UFUNCTION()
+	void OnRep_TravelSucceed();
+
 	/** [server] called when something starts overlaps ActivationTrigger component */
 	UFUNCTION()
 	void OnActivationTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

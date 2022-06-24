@@ -72,3 +72,22 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+Builds/Windows/Engine/Content/SlateDebug/Fonts/LastResort.tps
+Builds/Windows/Manifest_UFSFiles_Win64.txt
+Builds/Windows/Manifest_NonUFSFiles_Win64.txt
+Builds/Windows/Manifest_DebugFiles_Win64.txt
+Builds/Windows/Engine/Extras/GPUDumpViewer/OpenGPUDumpViewer.sh
+Builds/Windows/Engine/Extras/GPUDumpViewer/OpenGPUDumpViewer.bat
+Builds/Windows/Engine/Extras/GPUDumpViewer/GPUDumpViewer.html
+Builds/Windows/Engine/Content/SlateDebug/Fonts/LastResort.ttf
+Builds/Windows/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/PxPvdSDKPROFILE_x64.pdb
+Builds/Windows/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/PxFoundationPROFILE_x64.pdb
+Builds/Windows/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/PhysX3PROFILE_x64.pdb
+Builds/Windows/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/PhysX3CookingPROFILE_x64.pdb
+Builds/Windows/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/PhysX3CommonPROFILE_x64.pdb
+Builds/Windows/BestProjectEver/Content/Paks/global.utoc
+Builds/Windows/BestProjectEver/Content/Paks/global.ucas
+Builds/Windows/BestProjectEver/Content/Paks/BestProjectEver-Windows.utoc
+Builds/Windows/BestProjectEver/Content/Paks/BestProjectEver-Windows.ucas
+Builds/Windows/BestProjectEver/Content/Paks/BestProjectEver-Windows.pak
+Builds/Windows/BestProjectEver/Binaries/Win64/BestProjectEver.pdb

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "BPE_BaseCharacter.h"
 #include "BestProjectEver/ColorType.h"
+#include "Materials/MaterialInstanceConstant.h"
 #include "BPE_PlayerCharacter.generated.h"
 
 class UCameraComponent;
@@ -52,6 +53,10 @@ protected:
 	
 	UPROPERTY(ReplicatedUsing=OnRep_Aiming, BlueprintReadOnly, Category = "Aiming")
 	uint8 bIsAiming : 1;
+
+	/** Minimum distance between camera and actor */
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
+	float CameraThreshold;
 	
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	float BaseTurnRate;
@@ -81,6 +86,14 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<ABPE_PlayerController> PlayerControllerReference;
+
+	/** Translucent material uses when mesh blocks the visibility */
+	UPROPERTY(EditDefaultsOnly, Category="Materials")
+	TObjectPtr<UMaterialInstanceConstant> PlayerAimMaterialInstanceConstant;
+
+	/** Translucent material uses when mesh blocks the visibility */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Materials")
+	TObjectPtr<UMaterialInterface> DefaultPlayerMaterial;
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Inventory
@@ -132,6 +145,8 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void OnRep_Controller() override;
+
+	void HideCharacterIfCameraClose();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Input handlers
@@ -172,6 +187,8 @@ protected:
 
 	/** [client] call the server to interact with game element */
 	void Interact();
+
+	void ActivateSpawnPad();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Weapon
@@ -185,10 +202,10 @@ protected:
 
 	/** [server] Interact */
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Interact();
+	void Server_ActivateSpawnPad();
 
 	/** [server] interact with overlapping spawn pad */
-	void HandleInteract();
+	void OnSpawnPadActivated();
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SetAiming();

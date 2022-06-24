@@ -22,6 +22,4 @@ public:
 
 	/** check how many players are to start the travel to the gameplay map */
 	virtual void PostLogin(APlayerController* NewPlayer) override;
-
-	void TravelToMatchMap();
 };

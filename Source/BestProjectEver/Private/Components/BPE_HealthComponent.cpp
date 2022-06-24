@@ -49,6 +49,18 @@ void UBPE_HealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damag
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void UBPE_HealthComponent::Heal(const float HealAmount)
+{
+	if (HealAmount <= 0.0f || bIsDead)
+	{
+		return;
+	}
+
+	CurrentHealth = FMath::Clamp(CurrentHealth + HealAmount, 0.0f, MaxHealth);
+	OnHealthChange();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void UBPE_HealthComponent::OnRep_Health()
 {
 	OnHealthChange();

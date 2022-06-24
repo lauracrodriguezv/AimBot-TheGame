@@ -81,7 +81,7 @@ void ABPE_GameState::Multicast_SetPause_Implementation(bool bPause, APlayerState
 		PlayersWhoPaused.Remove(InstigatedBy);
 	}
 	
-	const float TimeDilation = !bPause? 1.0f : 0.000001f;
+	const float TimeDilation = !IsGamePaused()? 1.0f : 0.000001f;
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), TimeDilation);
 
 	UpdatePlayerPauseState();
@@ -156,6 +156,13 @@ TArray<APlayerState*> ABPE_GameState::GetTopScoringPlayers() const
 		}
 	}
 	return TopScoringPlayers;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_GameState::TravelToMatchMap()
+{
+	return GetWorld()->ServerTravel(FString("/Game/Maps/GameplayMap?listen"));
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------

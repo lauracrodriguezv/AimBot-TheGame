@@ -21,6 +21,11 @@ namespace MatchState
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_GameplayGameMode::ABPE_GameplayGameMode()
 {
+	
+#if !WITH_EDITOR
+	bUseSeamlessTravel = true;	
+#endif
+	
 	bDelayedStart = true;
 	
 	MatchTime = 120.0f;

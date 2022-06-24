@@ -43,6 +43,7 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	ZoomOutInterpSpeed =  20.0f;
 
 	Team = ETeam::Player;
+	CameraThreshold = 200.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -62,6 +63,11 @@ void ABPE_PlayerCharacter::InitializeReference()
 	if(IsValid(GameStateReference))
 	{
 		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_PlayerCharacter::OnMatchStateChange);
+	}
+
+	if(IsValid(GetMesh()))
+	{
+		DefaultPlayerMaterial = GetMesh()->GetMaterial(0);
 	}
 }
 
@@ -86,6 +92,20 @@ void ABPE_PlayerCharacter::OnMatchStateChange(const FName MatchState)
 	{
 		StopWeaponFire();
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::HideCharacterIfCameraClose()
+{
+	const bool bIsCameraToCloseToPlayer = (CameraComponent->GetComponentLocation() - GetActorLocation()).Size() < CameraThreshold;
+	if(IsValid(GetMesh()) && IsValid(CameraComponent))
+	{
+		GetMesh()->SetVisibility(!bIsCameraToCloseToPlayer);
+	}
+	/*if(IsValid(CurrentWeapon) && IsValid(CurrentWeapon->GetWeaponMesh()))
+	{
+		CurrentWeapon->GetWeaponMesh()->bOwnerNoSee = bIsCameraToCloseToPlayer;
+	}*/
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -313,6 +333,15 @@ bool ABPE_PlayerCharacter::Server_SetAiming_Validate()
 void ABPE_PlayerCharacter::OnIsAimingChanged()
 {
 	GetCharacterMovement()->MaxWalkSpeed = bIsAiming? AimWalkSpeed : DefaultWalkSpeed;
+
+	if(IsLocallyControlled())
+	{
+		UMaterialInterface* PlayerMaterial = bIsAiming ? PlayerAimMaterialInstanceConstant : DefaultPlayerMaterial;
+		if(GetMesh())
+		{
+			GetMesh()->SetMaterial(0, PlayerMaterial);
+		}
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -324,16 +353,13 @@ void ABPE_PlayerCharacter::OnRep_Aiming()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::EquipWeapon()
 {
-	if(IsValid(OverlappingWeapon) && AreGameplayInputsEnabled())
+	if(HasAuthority())
 	{
-		if(HasAuthority())
-		{
-			HandleEquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			Server_EquipWeapon(OverlappingWeapon);
-		}
+		HandleEquipWeapon(OverlappingWeapon);
+	}
+	else
+	{
+		Server_EquipWeapon(OverlappingWeapon);
 	}
 }
 
@@ -394,33 +420,47 @@ void ABPE_PlayerCharacter::HandleEquipWeapon(ABPE_Weapon* WeaponToEquip)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Interact()
 {
-	if(IsValid(OverlappingSpawnPad) && AreGameplayInputsEnabled())
+	if(AreGameplayInputsEnabled())
 	{
-		if(HasAuthority())
+		if(IsValid(OverlappingWeapon))
 		{
-			HandleInteract();
+			EquipWeapon();
 		}
-		else
+	
+		if(IsValid(OverlappingSpawnPad))
 		{
-			Server_Interact();
-		}
+			ActivateSpawnPad();
+		}	
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::Server_Interact_Implementation()
+void ABPE_PlayerCharacter::ActivateSpawnPad()
 {
-	HandleInteract();
+	if(HasAuthority())
+	{
+		OnSpawnPadActivated();
+	}
+	else
+	{
+		Server_ActivateSpawnPad();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_PlayerCharacter::Server_Interact_Validate()
+void ABPE_PlayerCharacter::Server_ActivateSpawnPad_Implementation()
+{
+	OnSpawnPadActivated();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_ActivateSpawnPad_Validate()
 {
 	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::HandleInteract()
+void ABPE_PlayerCharacter::OnSpawnPadActivated()
 {
 	if(IsValid(OverlappingSpawnPad))
 	{
@@ -618,10 +658,13 @@ void ABPE_PlayerCharacter::InterpolateFieldOfView(float DeltaSeconds)
 void ABPE_PlayerCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	
-	if(IsValid(CurrentWeapon))
+
+	if(IsLocallyControlled())
 	{
-		InterpolateFieldOfView(DeltaSeconds);
+		if(IsValid(CurrentWeapon))
+		{
+			InterpolateFieldOfView(DeltaSeconds);
+		}
 	}
 }
 
@@ -646,8 +689,6 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ABPE_PlayerCharacter::StartWeaponFire);
 	PlayerInputComponent->BindAction("Fire", IE_Released, this,  &ABPE_PlayerCharacter::StopWeaponFire);
-
-	PlayerInputComponent->BindAction("Equip",IE_Pressed, this, &ABPE_PlayerCharacter::EquipWeapon);
 
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &ABPE_PlayerCharacter::Aim);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &ABPE_PlayerCharacter::Aim);

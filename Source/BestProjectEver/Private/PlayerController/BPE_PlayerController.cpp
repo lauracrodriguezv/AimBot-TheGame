@@ -61,7 +61,7 @@ void ABPE_PlayerController::OnPossess(APawn* InPawn)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerController::SetPlayerName()
 {
-	const ABPE_GameState* GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
+	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
 	if(IsValid(GameStateReference) && IsValid(PlayerState))
 	{
 		PlayerState->SetPlayerName(FString("Player ") + FString::FromInt(GameStateReference->PlayerArray.IndexOfByKey(PlayerState) + 1));

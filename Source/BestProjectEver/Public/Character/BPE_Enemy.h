@@ -82,7 +82,7 @@ protected:
 	TMap<EEnemyStatus, FEnemyParameterOnNewState> ParameterOnNewStatus;
 
 	/** target AI controller is perceived */
-	UPROPERTY(BlueprintReadOnly, Category="Weapon")
+	UPROPERTY(ReplicatedUsing=OnRep_TargetViewLocation, BlueprintReadOnly, Category="Weapon")
 	FVector TargetViewLocation;
 
 	/** patrol path */
@@ -130,6 +130,10 @@ protected:
 	void OnRep_ColorType();
 
 	virtual void FollowSplinePath_Implementation(const FVector& NextPointLocation) override;
+
+	/** for debug */
+	UFUNCTION()
+	void OnRep_TargetViewLocation();
 
 public:
 

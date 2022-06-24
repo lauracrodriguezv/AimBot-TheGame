@@ -68,6 +68,8 @@ protected:
 
 public:	
 
+	void Heal(const float HealAmount);
+	
 	bool IsDead() const { return bIsDead; }
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

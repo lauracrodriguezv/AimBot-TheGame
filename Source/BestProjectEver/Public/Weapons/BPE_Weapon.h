@@ -76,22 +76,8 @@ protected:
 	
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon Data
-
-	UPROPERTY(ReplicatedUsing=OnRep_HitResult)
-	FHitResult HitResult;
-
-	UFUNCTION()
-	void OnRep_HitResult();
 	
 	TObjectPtr<ABPE_BaseCharacter> OwnerCharacter;
-
-	/** */
-	UPROPERTY(EditDefaultsOnly, Category= "Ammo")
-	int32 CurrentAmmo;
-
-	/** */
-	UPROPERTY(EditDefaultsOnly, Category= "Ammo")
-	int32 MagCapacity;
 	
 	/** current weapon state */
 	UPROPERTY(ReplicatedUsing=OnRep_WeaponState)
@@ -259,7 +245,7 @@ protected:
 	/** check if enemy hit has the same color type */
 	bool CanApplyDamage(const AActor* ActorHit) const;
 	
-	void ApplyDamage(const FHitResult& HitResult_);
+	void ApplyDamage(const FHitResult& HitResult);
 
 	/** [server] perform trace to set hit target */
 	void TraceUnderCrosshairs(FHitResult& OutHitResult);
@@ -269,9 +255,7 @@ protected:
 
 	/** [client] update owner rep handler */
 	virtual void OnRep_Owner() override;
-
-	void HandleAmmo();
-
+	
 	//------------------------------------------------------------------------------------------------------------------
 	//Effects 
 	
@@ -306,9 +290,7 @@ public:
 	float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	
 	FTransform GetMuzzleSocketTransform() const;
-
-	TObjectPtr<USkeletalMeshComponent> GetWeaponMesh() const { return WeaponMesh; }
-
+	
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon usage 
 	

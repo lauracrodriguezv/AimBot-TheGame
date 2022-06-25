@@ -16,7 +16,12 @@ ABPE_LobbyGameMode::ABPE_LobbyGameMode()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_LobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
-	
 	Super::PostLogin(NewPlayer);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_LobbyGameMode::TravelToMap(const FString& InURL, bool bAbsolute, bool bShouldSkipGameNotify)
+{
+	return GetWorld()->ServerTravel(InURL, bAbsolute, bShouldSkipGameNotify);
 }
 

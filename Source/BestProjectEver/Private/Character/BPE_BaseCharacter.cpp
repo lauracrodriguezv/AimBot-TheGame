@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/PawnNoiseEmitterComponent.h"
 #include "Core/GameModes/BPE_GameplayGameMode.h"
+#include "GameElements/BPE_HealingArea.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
@@ -38,7 +39,7 @@ void ABPE_BaseCharacter::BeginPlay()
 		AnimInstance = GetMesh()->GetAnimInstance();
 	}
 	
-	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &ABPE_BaseCharacter::HandleCharacterDamage);
+	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &ABPE_BaseCharacter::HandleCharacterHealthChange);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -52,13 +53,13 @@ void ABPE_BaseCharacter::HandleCharacterDeath(AActor* DamagedActor, AController*
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_BaseCharacter::HandleCharacterDamage(const FHealthData& HealthData)
+void ABPE_BaseCharacter::HandleCharacterHealthChange(const FHealthData& HealthData)
 {
 	if(IsValid(HealthComponent) && HealthComponent->IsDead()) 
 	{
 		if(HasAuthority())
 		{
-			HandleCharacterDeath(HealthData.DamagedActor, HealthData.InstigatedBy, HealthData.DamageCauser);	
+			HandleCharacterDeath(HealthData.AffectedActor, HealthData.InstigatedBy, HealthData.HealthChangeCauser);	
 		}
 		
 		PlayMontage(DamageMontage, "Dead");

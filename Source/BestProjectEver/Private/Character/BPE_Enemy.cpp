@@ -180,14 +180,6 @@ FRotator ABPE_Enemy::GetViewRotation() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Enemy::OnRep_TargetViewLocation()
-{
-	//DrawDebugSphere(GetWorld(), TargetViewLocation, 30.0f, 12.0f, FColor::Red, true, 1.0f, 0, 0.5f);
-	//DrawDebugDirectionalArrow(GetWorld(), CurrentWeapon->GetMuzzleSocketTransform().GetLocation(), TargetViewLocation, 30.0f, FColor::Blue, true,
-	//	2.0f, 0.0f, 3.0f);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Enemy::SetColorType(const EColorType NewColorType)
 {
 	ColorType = NewColorType;
@@ -249,5 +241,4 @@ void ABPE_Enemy::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(ABPE_Enemy, ColorType);
 	DOREPLIFETIME(ABPE_Enemy, CurrentWeapon);
 	DOREPLIFETIME(ABPE_Enemy, EnemyStatus);
-	DOREPLIFETIME(ABPE_Enemy, TargetViewLocation);
 }

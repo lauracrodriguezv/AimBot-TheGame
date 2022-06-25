@@ -43,7 +43,6 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	ZoomOutInterpSpeed =  20.0f;
 
 	Team = ETeam::Player;
-	CameraThreshold = 200.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -92,20 +91,6 @@ void ABPE_PlayerCharacter::OnMatchStateChange(const FName MatchState)
 	{
 		StopWeaponFire();
 	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_PlayerCharacter::HideCharacterIfCameraClose()
-{
-	const bool bIsCameraToCloseToPlayer = (CameraComponent->GetComponentLocation() - GetActorLocation()).Size() < CameraThreshold;
-	if(IsValid(GetMesh()) && IsValid(CameraComponent))
-	{
-		GetMesh()->SetVisibility(!bIsCameraToCloseToPlayer);
-	}
-	/*if(IsValid(CurrentWeapon) && IsValid(CurrentWeapon->GetWeaponMesh()))
-	{
-		CurrentWeapon->GetWeaponMesh()->bOwnerNoSee = bIsCameraToCloseToPlayer;
-	}*/
 }
 
 //----------------------------------------------------------------------------------------------------------------------

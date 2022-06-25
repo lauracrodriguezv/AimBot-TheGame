@@ -24,42 +24,10 @@ ABPE_HealingArea::ABPE_HealingArea()
 void ABPE_HealingArea::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	if(IsValid(AreaMeshComponent))
 	{
 		AreaMeshComponent->OnComponentBeginOverlap.AddDynamic(this, &ABPE_HealingArea::OnAreaMeshOverlap);
-		AreaMeshMaterialInstanceDynamic = AreaMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0,
-			AreaMeshComponent->GetMaterial(0));
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_HealingArea::HealCharacter(const ABPE_BaseCharacter* Character)
-{
-	if(IsValid(Character->GetHealthComponent()))
-	{
-		Character->GetHealthComponent()->Heal(HealingAmount);
-	}
-	if(IsValid(AreaMeshComponent))
-	{
-		AreaMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		if(IsValid(AreaMeshMaterialInstanceDynamic))
-		{
-			AreaMeshMaterialInstanceDynamic->SetScalarParameterValue("Opacity", 0.0f);	
-		}
-	}
-	GetWorldTimerManager().SetTimer(TimerHandle_Cooldown, this, &ABPE_HealingArea::RestoreHealingArea, CooldownTime);	
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void ABPE_HealingArea::RestoreHealingArea()
-{
-	if(IsValid(AreaMeshComponent))
-	{
-		AreaMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		if(IsValid(AreaMeshMaterialInstanceDynamic))
-		{
-			AreaMeshMaterialInstanceDynamic->SetScalarParameterValue("Opacity", 0.1f);	
-		}
 	}
 }
 
@@ -71,6 +39,33 @@ void ABPE_HealingArea::OnAreaMeshOverlap(UPrimitiveComponent* OverlappedComponen
 	if(IsValid(OverlappingCharacter))
 	{
 		HealCharacter(OverlappingCharacter);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HealingArea::HealCharacter(const ABPE_BaseCharacter* Character)
+{
+	if(HasAuthority() && IsValid(Character) && IsValid(Character->GetHealthComponent()))
+	{
+		Character->GetHealthComponent()->Heal(HealingAmount, this);
+	}
+
+	if(IsValid(AreaMeshComponent))
+	{
+		AreaMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AreaMeshComponent->SetVisibility(false);
+	}
+	
+	GetWorldTimerManager().SetTimer(TimerHandle_Cooldown, this, &ABPE_HealingArea::RestoreHealingArea, CooldownTime);	
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HealingArea::RestoreHealingArea()
+{
+	if(IsValid(AreaMeshComponent))
+	{
+		AreaMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		AreaMeshComponent->SetVisibility(true);
 	}
 }
 

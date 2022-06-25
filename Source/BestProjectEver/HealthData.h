@@ -12,15 +12,15 @@ struct FHealthData
 	float MaxHealth;
 
 	UPROPERTY()
-	TObjectPtr<AActor> DamagedActor;
+	TObjectPtr<AActor> AffectedActor;
 
 	UPROPERTY()
 	TObjectPtr<AController> InstigatedBy;
 
 	UPROPERTY()
-	TObjectPtr<AActor> DamageCauser;
+	TObjectPtr<AActor> HealthChangeCauser;
 
-	FHealthData() : CurrentHealth(0.0f), MaxHealth(100.0f), DamagedActor(nullptr), InstigatedBy(nullptr), DamageCauser(nullptr) {}
+	FHealthData() : CurrentHealth(0.0f), MaxHealth(100.0f), AffectedActor(nullptr), InstigatedBy(nullptr), HealthChangeCauser(nullptr) {}
 	FHealthData(const float Health, const float MaxHealth, AActor* DamagedActor, AController* DamagedController, AActor* Causer) :
-		CurrentHealth(Health), MaxHealth(MaxHealth), DamagedActor(DamagedActor), InstigatedBy(DamagedController), DamageCauser(Causer) {}
+		CurrentHealth(Health), MaxHealth(MaxHealth), AffectedActor(DamagedActor), InstigatedBy(DamagedController), HealthChangeCauser(Causer) {}
 };

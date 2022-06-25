@@ -49,7 +49,7 @@ void UBPE_HealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damag
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_HealthComponent::Heal(const float HealAmount)
+void UBPE_HealthComponent::Heal(const float HealAmount,  AActor* InstigatedBy)
 {
 	if (HealAmount <= 0.0f || bIsDead)
 	{

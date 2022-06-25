@@ -135,20 +135,29 @@ void ABPE_HUD::UpdatePauseMenu(EPauseState PauseState)
 	{
 	case EPauseState::PausedBySelf:
 		{
-			PauseMenu->SetVisibility(ESlateVisibility::Visible);
-			PauseByOtherPlayer->SetVisibility(ESlateVisibility::Collapsed);	
+			if(IsValid(PauseMenu) && IsValid(PauseByOtherPlayer))
+			{
+				PauseMenu->SetVisibility(ESlateVisibility::Visible);
+				PauseByOtherPlayer->SetVisibility(ESlateVisibility::Collapsed);	
+			}
 			break;
 		}
 	case EPauseState::PausedByOtherPlayer:
 		{
-			PauseByOtherPlayer->SetVisibility(ESlateVisibility::Visible);	
-			PauseMenu->SetVisibility(ESlateVisibility::Collapsed);
+			if(IsValid(PauseMenu) && IsValid(PauseByOtherPlayer))
+			{
+				PauseByOtherPlayer->SetVisibility(ESlateVisibility::Visible);	
+				PauseMenu->SetVisibility(ESlateVisibility::Collapsed);
+			}
 			break;
 		}
 	case  EPauseState::UnPause:
 		{
-			PauseMenu->SetVisibility(ESlateVisibility::Collapsed);
-			PauseByOtherPlayer->SetVisibility(ESlateVisibility::Collapsed);
+			if(IsValid(PauseMenu) && IsValid(PauseByOtherPlayer))
+			{
+				PauseMenu->SetVisibility(ESlateVisibility::Collapsed);
+				PauseByOtherPlayer->SetVisibility(ESlateVisibility::Collapsed);
+			}
 			break;
 		}
 	default:

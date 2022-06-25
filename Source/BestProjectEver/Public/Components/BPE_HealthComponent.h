@@ -68,7 +68,11 @@ protected:
 
 public:	
 
-	void Heal(const float HealAmount);
+	/** Increase current health
+	 * @param HealAmount Health to add to current health
+	 * @param InstigatedBy Actor who healed owner
+	 */
+	void Heal(const float HealAmount, AActor* InstigatedBy);
 	
 	bool IsDead() const { return bIsDead; }
 

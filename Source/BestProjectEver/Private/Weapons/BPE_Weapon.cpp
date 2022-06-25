@@ -8,7 +8,6 @@
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
-#include "Core/GameModes/BPE_LobbyGameMode.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "ImageWriteQueue/Public/ImagePixelData.h"
@@ -17,6 +16,7 @@
 #include "Weapons/BPE_Projectile.h"
 #include "Sound/SoundCue.h"
 
+//----------------------------------------------------------------------------------------------------------------------
 ABPE_Weapon::ABPE_Weapon()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -49,7 +49,7 @@ ABPE_Weapon::ABPE_Weapon()
 	AmmoEjectSocketName = "SCK_AmmoEject";
 	
 	bCanFire = true;
-	bIsAutomatic = true;
+	bIsAutomatic = false;
 
 	ZoomedFOV = 30.0f;
 	ZoomInterpSpeed = 20.0f;
@@ -57,16 +57,13 @@ ABPE_Weapon::ABPE_Weapon()
 	ShootType = EShootType::LineTrace;
 	MinDistanceToImpactPoint = 300.0f;
 
-	BaseDamage = 10.0f;
+	BaseDamage = 5.0f;
 
 	ShootLoudness = 1.0f;
 
 	ImpulseOnDropped = 1000.0f;
 
 	DestroyDelay = 10.0f;
-
-	CurrentAmmo = 0;
-	MagCapacity = 30;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -75,16 +72,6 @@ void ABPE_Weapon::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 
 	UpdateMeshColor();
-}
-
-void ABPE_Weapon::OnRep_HitResult()
-{
-	// DrawDebugLine(GetWorld(), HitResult.TraceStart, HitResult.TraceEnd, FColor::Cyan, true, 1.0f, 0, 0.5f);
-	// //DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 30.0f, 12.0f, FColor::Green, true, 1.0f, 0, 0.5f);
-	//
-	// FHitResult ClientHitResult;
-	// TraceUnderCrosshairs(ClientHitResult);
-	// DrawDebugSphere(GetWorld(), ClientHitResult.ImpactPoint, 30.0f, 12.0f, FColor::Green, true, 1.0f, 0, 0.5f);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -109,8 +96,6 @@ void ABPE_Weapon::InitializeReferences()
 	SetWidgetVisibility(false);
 
 	TimeBetweenShots = 60.0f / RoundsPerMinute;
-
-	CurrentAmmo = MagCapacity;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -248,7 +233,7 @@ void ABPE_Weapon::HandleEquippedState()
 void ABPE_Weapon::HandleWaitingToDestroyState()
 {
 	SetPhysicsPropertiesToEquip();
-			
+	bIsAutomatic = true;
 	if(HasAuthority())
 	{
 		SetLifeSpan(DestroyDelay);
@@ -277,7 +262,7 @@ void ABPE_Weapon::UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollis
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::Fire()
 {
-	//FHitResult HitResult;
+	FHitResult HitResult;
 
 	TraceUnderCrosshairs(HitResult);
 	const FVector MuzzleLocation = HitResult.TraceStart;
@@ -321,8 +306,6 @@ void ABPE_Weapon::Fire()
 		{
 			ApplyDamage(HitResult);
 		}
-
-		
 	}
 }
 
@@ -340,14 +323,14 @@ bool ABPE_Weapon::CanApplyDamage(const AActor* ActorHit) const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::ApplyDamage(const FHitResult& HitResult_)
+void ABPE_Weapon::ApplyDamage(const FHitResult& HitResult)
 {
-	AActor* DamagedActor = HitResult_.GetActor();
+	AActor* DamagedActor = HitResult.GetActor();
 	
 	if(IsValid(DamagedActor) && IsValid(OwnerCharacter))
 	{
-		const FVector ShootDirection = (HitResult_.TraceEnd - HitResult_.TraceStart).GetSafeNormal();
-		UGameplayStatics::ApplyPointDamage(DamagedActor, BaseDamage, ShootDirection, HitResult_,
+		const FVector ShootDirection = (HitResult.TraceEnd - HitResult.TraceStart).GetSafeNormal();
+		UGameplayStatics::ApplyPointDamage(DamagedActor, BaseDamage, ShootDirection, HitResult,
 			OwnerCharacter->GetInstigatorController(),OwnerCharacter, DamageType);	
 	}
 }
@@ -437,12 +420,6 @@ void ABPE_Weapon::OnRep_Owner()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::HandleAmmo()
-{
-	
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::OnPickup(AActor* NewOwner)
 {
 	if(IsValid(NewOwner))
@@ -482,7 +459,7 @@ void ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Implementation(const FVector& 
 
 	if(IsValid(ShootSound))
 	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShootSound, HitResult.TraceStart, ShootLoudness);
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ShootSound, MuzzleLocation, ShootLoudness);
 	}
 	
 	if (IsValid(CasingClass))
@@ -580,7 +557,6 @@ void ABPE_Weapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 	DOREPLIFETIME(ABPE_Weapon, CurrentState);
 	DOREPLIFETIME(ABPE_Weapon, ColorType);
-	DOREPLIFETIME(ABPE_Weapon, HitResult);
 }
 
 

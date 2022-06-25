@@ -22,4 +22,6 @@ public:
 
 	/** check how many players are to start the travel to the gameplay map */
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+	bool TravelToMap(const FString& InURL, bool bAbsolute = false, bool bShouldSkipGameNotify = false);
 };

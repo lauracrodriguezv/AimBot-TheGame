@@ -53,10 +53,6 @@ protected:
 	
 	UPROPERTY(ReplicatedUsing=OnRep_Aiming, BlueprintReadOnly, Category = "Aiming")
 	uint8 bIsAiming : 1;
-
-	/** Minimum distance between camera and actor */
-	UPROPERTY(EditDefaultsOnly, Category = "Camera")
-	float CameraThreshold;
 	
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	float BaseTurnRate;
@@ -145,8 +141,6 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void OnRep_Controller() override;
-
-	void HideCharacterIfCameraClose();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Input handlers

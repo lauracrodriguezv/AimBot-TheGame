@@ -49,7 +49,7 @@ protected:
 	FName WeaponSocketName;
 
 	//------------------------------------------------------------------------------------------------------------------
-	// Animation
+	// Animation and effects
 	
 	/** anim instance reference */
 	UPROPERTY(BlueprintReadOnly, Category = "Animation")
@@ -69,7 +69,7 @@ protected:
 	virtual void HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser);
 
 	UFUNCTION()
-	virtual void HandleCharacterDamage(const FHealthData& HealthData);
+	virtual void HandleCharacterHealthChange(const FHealthData& HealthData);
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Weapon

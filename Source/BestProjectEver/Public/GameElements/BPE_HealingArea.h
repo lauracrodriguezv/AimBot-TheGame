@@ -15,18 +15,19 @@ class BESTPROJECTEVER_API ABPE_HealingArea : public AActor
 
 protected:
 
+	/** Area to heal overlapping character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	TObjectPtr<UStaticMeshComponent> AreaMeshComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Materials")
-	TObjectPtr<UMaterialInstanceDynamic> AreaMeshMaterialInstanceDynamic;
-
+	/** Health applied to heal overlapping character */
 	UPROPERTY(EditAnywhere, Category="Healing")
 	float HealingAmount;
 
+	/** Time to reset healing area */
 	UPROPERTY(EditAnywhere, Category="Healing")
 	float CooldownTime;
 
+	/** Handle for efficient management of restore healing area timer */
 	FTimerHandle TimerHandle_Cooldown;
 	
 public:
@@ -38,13 +39,14 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void HealCharacter(const ABPE_BaseCharacter* Character);
-
-	/** Area can heal again */
-	UFUNCTION()
-	void RestoreHealingArea();
-
-	UFUNCTION()
 	void OnAreaMeshOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+	/** heal overlapping character */
+	UFUNCTION()
+	void HealCharacter(const ABPE_BaseCharacter* Character);
+	
+	/** area can heal again */
+	UFUNCTION()
+	void RestoreHealingArea();
+	
 };

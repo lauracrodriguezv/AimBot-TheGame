@@ -100,7 +100,4 @@ public:
 	bool WasPauseInstigatedByPlayer(const APlayerState* Player) const;
 	
 	TArray<APlayerState*> GetTopScoringPlayers() const;
-
-	UFUNCTION()
-	bool TravelToMatchMap();
 };

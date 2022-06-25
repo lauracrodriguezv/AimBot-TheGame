@@ -14,15 +14,13 @@ ABPE_GameStarter::ABPE_GameStarter()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	PortalFrameMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PortalFrameMesh"));
-	SetRootComponent(PortalFrameMesh);
-
 	PortalPlaneMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PortalPlaneMesh"));
 	PortalPlaneMesh->SetupAttachment(RootComponent);
 
 	ActivationTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("ActivationTrigger"));
 	ActivationTrigger->SetupAttachment(PortalPlaneMesh);
 	ActivationTrigger->SetCollisionResponseToAllChannels(ECR_Ignore);
+	ActivationTrigger->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
 	InformationWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InformationWidget"));
 	InformationWidget->SetupAttachment(RootComponent);
@@ -38,10 +36,8 @@ void ABPE_GameStarter::BeginPlay()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameStarter::InitializeReferences()
 {
-	bTravelSucceeded = false;
-	if(HasAuthority() && IsValid(ActivationTrigger))
+	if(IsValid(ActivationTrigger))
 	{
-		ActivationTrigger->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 		ActivationTrigger->OnComponentBeginOverlap.AddDynamic(this, &ABPE_GameStarter::OnActivationTriggerOverlap);
 	}
 
@@ -52,28 +48,42 @@ void ABPE_GameStarter::InitializeReferences()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_GameStarter::OnRep_TravelSucceed()
-{
-	if(IsValid(InformationWidget))
-	{
-		InformationWidget->SetVisibility(bTravelSucceeded);
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameStarter::OnActivationTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	GetWorld()->ServerTravel(FString("/Game/Maps/GameplayMap?listen"));
+{	
+	TravelToGameplayMap();
+	
 	if(IsValid(InformationWidget))
 	{
-		InformationWidget->SetVisibility(bTravelSucceeded);
+		InformationWidget->SetVisibility(true);
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_GameStarter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+void ABPE_GameStarter::TravelToGameplayMap()
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ABPE_GameStarter, bTravelSucceeded);
+	if(HasAuthority())
+	{
+		ABPE_LobbyGameMode* LobbyGameMode = Cast<ABPE_LobbyGameMode>(GetWorld()->GetAuthGameMode());
+		if(IsValid(LobbyGameMode))
+		{
+			LobbyGameMode->TravelToMap(FString("/Game/Maps/GameplayMap?listen"));	
+		}
+	}
+	else
+	{
+		Server_TravelToGameplayMap();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_GameStarter::Server_TravelToGameplayMap_Implementation()
+{
+	TravelToGameplayMap();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_GameStarter::Server_TravelToGameplayMap_Validate()
+{
+	return true;
 }

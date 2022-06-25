@@ -159,13 +159,6 @@ TArray<APlayerState*> ABPE_GameState::GetTopScoringPlayers() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_GameState::TravelToMatchMap()
-{
-	return GetWorld()->ServerTravel(FString("/Game/Maps/GameplayMap?listen"));
-
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void ABPE_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

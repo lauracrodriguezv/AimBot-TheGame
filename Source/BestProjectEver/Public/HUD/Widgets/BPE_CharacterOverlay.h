@@ -116,6 +116,10 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> UltimateText;
 
+	/** image overlay on ultimate */
+	UPROPERTY(meta = (BindWidget))
+	UImage* UltimateBackground;
+
 protected:
 
 	virtual void NativeConstruct() override;
@@ -137,6 +141,8 @@ public:
 	/** show the player when he lacks to be able to activate the ultimate */
 	void UpdateUltimateDisplay(const float CurrentUltimateValue, const float MaxUltimateValue);
 
+	void SetBackgroundVisibilityOnUltimate(bool bIsUsingUltimate);
+	
 	/** show the player the time left to end current match state */
 	void UpdateMatchTimer(const float TimeLeft);
 

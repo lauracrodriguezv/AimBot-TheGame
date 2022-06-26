@@ -85,7 +85,10 @@ protected:
 	void UpdateHealth(const FHealthData& HealthData);
 
 	UFUNCTION()
-	void UpdateUltimate(const float CurrentUltimateValue, const float MaxUltimateValue);
+	void UpdateUltimateValue(const float CurrentUltimateValue, const float MaxUltimateValue);
+
+	UFUNCTION()
+	void UpdateUltimateStatus(const bool bIsUsingUltimate);
 
 	/** update weapon icon depending on the color type of the current weapon */
 	UFUNCTION()

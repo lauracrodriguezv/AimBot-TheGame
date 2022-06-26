@@ -537,6 +537,8 @@ void ABPE_PlayerCharacter::OnUltimateValueUpdated()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnIsUsingUltimateChanged()
 {
+	OnChangeUltimateStatus.Broadcast(bIsUsingUltimate);
+	
 	GetCharacterMovement()->MaxWalkSpeed = bIsUsingUltimate? UltimateWalkSpeed : DefaultWalkSpeed;
 	PlayRate = bIsUsingUltimate? UltimateRate : 1.0f;
 	

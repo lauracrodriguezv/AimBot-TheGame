@@ -43,7 +43,8 @@ void ABPE_HUD::BindDelegates()
 	{
 		PlayerCharacter->OnChangeCurrentWeaponDelegate.AddDynamic(this, &ABPE_HUD::UpdateCurrentWeaponIcon);
 		PlayerCharacter->GetHealthComponent()->OnHealthChangeDelegate.AddDynamic(this, &ABPE_HUD::UpdateHealth);
-		PlayerCharacter->OnUltimateUpdate.AddDynamic(this, &ABPE_HUD::UpdateUltimate);
+		PlayerCharacter->OnUltimateUpdate.AddDynamic(this, &ABPE_HUD::UpdateUltimateValue);
+		PlayerCharacter->OnChangeUltimateStatus.AddDynamic(this,  &ABPE_HUD::UpdateUltimateStatus);
 	}
 
 	if(IsValid(PlayerOwner) && !IsValid(PlayerStateReference))
@@ -187,11 +188,20 @@ void ABPE_HUD::UpdateHealth(const FHealthData& HealthData)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::UpdateUltimate(const float CurrentUltimateValue, const float MaxUltimateValue)
+void ABPE_HUD::UpdateUltimateValue(const float CurrentUltimateValue, const float MaxUltimateValue)
 {
 	if(IsValid(CharacterOverlay))
 	{
 		CharacterOverlay->UpdateUltimateDisplay(CurrentUltimateValue, MaxUltimateValue);	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::UpdateUltimateStatus(const bool bIsUsingUltimate)
+{
+	if(IsValid(CharacterOverlay))
+	{
+		CharacterOverlay->SetBackgroundVisibilityOnUltimate(bIsUsingUltimate);	
 	}
 }
 

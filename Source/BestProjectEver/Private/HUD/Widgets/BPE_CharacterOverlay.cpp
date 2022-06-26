@@ -15,6 +15,7 @@ void UBPE_CharacterOverlay::NativeConstruct()
 	
 	InitializeWeaponIcons();
 	WeaponIndex = 0;
+	UltimateBackground->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -58,6 +59,16 @@ void UBPE_CharacterOverlay::UpdateUltimateDisplay(const float CurrentUltimateVal
 	if(IsValid(UltimateText))
 	{
 		UltimateText->SetText(FText::FromString(Text));	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_CharacterOverlay::SetBackgroundVisibilityOnUltimate(bool bIsUsingUltimate)
+{
+	if(IsValid(UltimateBackground))
+	{
+		const ESlateVisibility UltimateBackgroundVisibility = bIsUsingUltimate? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed;
+		UltimateBackground->SetVisibility(UltimateBackgroundVisibility);	
 	}
 }
 

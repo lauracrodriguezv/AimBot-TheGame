@@ -20,6 +20,7 @@ class UMaterialInstanceConstant;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCurrentWeapon, EColorType, WeaponColorType);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdate, const float, CurrentUltimate, const float, MaxUltimate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusChanged, const bool, bIsUsingUltimate);
 
 UCLASS()
 class BESTPROJECTEVER_API ABPE_PlayerCharacter : public ABPE_BaseCharacter, public IBPE_Damagable
@@ -53,6 +54,10 @@ public:
 	/** Delegate called when current ultimate value changes */
 	UPROPERTY(BlueprintAssignable)
 	FOnUltimateUpdate OnUltimateUpdate;
+
+	/** Delegate called when bIsUsingUltimate changes */
+	UPROPERTY(BlueprintAssignable)
+	FOnUltimateStatusChanged OnChangeUltimateStatus;
 
 protected:
 	

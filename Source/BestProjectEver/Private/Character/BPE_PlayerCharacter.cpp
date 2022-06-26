@@ -14,6 +14,10 @@
 #include "Weapons/BPE_Weapon.h"
 #include "GameElements/BPE_SpawnPad.h"
 #include "PlayerController/BPE_PlayerController.h"
+#include "Sound/SoundCue.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Materials/MaterialInstanceConstant.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_PlayerCharacter::ABPE_PlayerCharacter()
@@ -337,7 +341,7 @@ void ABPE_PlayerCharacter::OnIsAimingChanged()
 	
 	if(IsLocallyControlled())
 	{
-		UMaterialInterface* PlayerMaterial = bIsAiming ? PlayerAimMaterialInstanceConstant : DefaultPlayerMaterial;
+		UMaterialInterface* PlayerMaterial = bIsAiming ? PlayerAimMaterialInstanceConstant : bIsUsingUltimate? RainbowMaterialInstanceConstant : DefaultPlayerMaterial;
 		if(GetMesh())
 		{
 			GetMesh()->SetMaterial(0, PlayerMaterial);
@@ -542,6 +546,39 @@ void ABPE_PlayerCharacter::OnIsUsingUltimateChanged()
 		{
 			const EColorType WeaponColorType = bIsUsingUltimate? EColorType::Multicolor : Inventory[i]->GetDefaultColorType();
 			Inventory[i]->SetCurrentColorType(WeaponColorType);
+		}
+	}
+	
+	PlayUltimateEffects();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::PlayUltimateEffects()
+{
+	UMaterialInterface* PlayerMaterial = bIsUsingUltimate ? RainbowMaterialInstanceConstant : DefaultPlayerMaterial;
+	if(GetMesh())
+	{
+		GetMesh()->SetMaterial(0, PlayerMaterial);
+	}
+	
+	if(bIsUsingUltimate)
+	{
+		if(IsValid(UltimateEffect))
+		{
+			const FVector UltimateEffectSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200.0f);
+			UltimateParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), UltimateEffect, UltimateEffectSpawnPoint, GetActorRotation());
+		}
+
+		if(IsValid(UltimateSound))
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), UltimateSound, GetActorLocation());
+		}	
+	}
+	else
+	{
+		if(IsValid(UltimateParticleComponent))
+		{
+			UltimateParticleComponent->DestroyComponent();
 		}
 	}
 }

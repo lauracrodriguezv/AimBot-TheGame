@@ -6,7 +6,6 @@
 #include "BPE_BaseCharacter.h"
 #include "BestProjectEver/ColorType.h"
 #include "Interfaces/BPE_Damagable.h"
-#include "Materials/MaterialInstanceConstant.h"
 #include "BPE_PlayerCharacter.generated.h"
 
 class UCameraComponent;
@@ -17,6 +16,7 @@ class USoundCue;
 class ABPE_SpawnPad;
 class ABPE_PlayerController;
 class ABPE_GameState;
+class UMaterialInstanceConstant;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCurrentWeapon, EColorType, WeaponColorType);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdate, const float, CurrentUltimate, const float, MaxUltimate);
@@ -38,6 +38,9 @@ protected:
 	/** Camera boom */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UParticleSystemComponent> UltimateParticleComponent;
 
 public:
 
@@ -136,6 +139,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Materials")
 	TObjectPtr<UMaterialInstanceConstant> PlayerAimMaterialInstanceConstant;
 
+	/** Rainbow material uses when is using ultimate */
+	UPROPERTY(EditDefaultsOnly, Category="Materials")
+	TObjectPtr<UMaterialInstanceConstant> RainbowMaterialInstanceConstant;
+
 	/** Translucent material uses when mesh blocks the visibility */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Materials")
 	TObjectPtr<UMaterialInterface> DefaultPlayerMaterial;
@@ -173,8 +180,15 @@ protected:
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects
 	
-	UPROPERTY(EditAnywhere, Category = "Sound")
+	UPROPERTY(EditAnywhere, Category = "Effects|Sound")
 	TObjectPtr<USoundCue> PickupSound;
+
+	/** particle effect on ultimate activation */
+	UPROPERTY(EditAnywhere, Category = "Effects|Particles")
+	TObjectPtr<UParticleSystem> UltimateEffect;
+
+	UPROPERTY(EditAnywhere, Category = "Effects|Sound")
+	TObjectPtr<USoundCue> UltimateSound;
 
 protected:
 
@@ -267,6 +281,9 @@ protected:
 
 	/** [server and client] Ultimate value has changed */
 	void OnUltimateValueUpdated();
+
+	/** [server and client] */
+	void PlayUltimateEffects();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Weapon

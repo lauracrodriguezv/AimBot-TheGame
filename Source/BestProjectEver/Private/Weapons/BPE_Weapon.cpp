@@ -94,7 +94,8 @@ void ABPE_Weapon::InitializeReferences()
 	}
 
 	SetWidgetVisibility(false);
-
+	SetCurrentColorType(DefaultColorType);
+	
 	TimeBetweenShots = 60.0f / RoundsPerMinute;
 }
 
@@ -453,7 +454,8 @@ void ABPE_Weapon::OnDropped()
 	
 	SetOwner(nullptr);
 	SetState(EWeaponState::Idle);
-
+	CurrentColorType = DefaultColorType;
+	
 	if(IsValid(WeaponMesh))
 	{
 		WeaponMesh->AddImpulse(FMath::VRand() * ImpulseOnDropped, NAME_None, true);
@@ -523,7 +525,6 @@ void ABPE_Weapon::SetCurrentColorType(const EColorType ColorType)
 void ABPE_Weapon::SetDefaultColorType(const EColorType ColorType)
 {
 	DefaultColorType = ColorType;
-	CurrentColorType = DefaultColorType;
 	IBPE_InteractWithColorType::SetDefaultColorType(ColorType);
 }
 

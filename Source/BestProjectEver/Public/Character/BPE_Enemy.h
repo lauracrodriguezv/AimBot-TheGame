@@ -6,6 +6,7 @@
 #include "BestProjectEver/ColorType.h"
 #include "Character/BPE_BaseCharacter.h"
 #include "BestProjectEver/EnemyDefinitions.h"
+#include "Interfaces/BPE_Damagable.h"
 #include "Interfaces/BPE_FollowSplinePath.h"
 #include "Interfaces/BPE_InteractWithColorType.h"
 #include "BPE_Enemy.generated.h"
@@ -41,7 +42,7 @@ class ABPE_Weapon;
 class UBPE_FollowSplineComponent;
 
 UCLASS()
-class BESTPROJECTEVER_API ABPE_Enemy : public ABPE_BaseCharacter, public IBPE_InteractWithColorType, public IBPE_FollowSplinePath
+class BESTPROJECTEVER_API ABPE_Enemy : public ABPE_BaseCharacter, public IBPE_InteractWithColorType, public IBPE_FollowSplinePath, public IBPE_Damagable
 {
 	GENERATED_BODY()
 
@@ -61,7 +62,7 @@ protected:
 	
 	/** to determine which color type weapon can hurt this enemy */
 	UPROPERTY(ReplicatedUsing=OnRep_ColorType, EditAnywhere, Category = "Enemy State")
-	EColorType ColorType;
+	EColorType DefaultColorType;
 
 	/** Material based on color type */
 	UPROPERTY(EditDefaultsOnly, Category = "Enemy State")
@@ -96,6 +97,10 @@ protected:
 	 * interacting with this actor or is death */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Enemy State", meta=(ClampMin=0.0f))
 	float DestroyDelay;
+
+	/** XP given on actor takes any damage */
+	UPROPERTY(EditAnywhere, Category="Ultimate")
+	float XPValue;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon
@@ -165,16 +170,23 @@ public:
 	//Color Type
 
 	/** change mesh color depending on color type */
-	virtual void UpdateMeshColor() override;
+	virtual void UpdateMeshColorType(const EColorType ColorType) override;
 	
 	/** get enemy color type */
-	virtual EColorType GetColorType() const override { return ColorType; }
+	virtual EColorType GetDefaultColorType() const override { return DefaultColorType; }
 
 	/** set enemy color type */
-	virtual void SetColorType(const EColorType NewColorType) override;
+	virtual void SetDefaultColorType(const EColorType NewColorType) override;
 
 	/** game element dropped current actor */
 	virtual void OnStopInteraction() override;
+
+	//------------------------------------------------------------------------------------------------------------------
+	//Damageable
+
+	virtual bool CanBeDamageableWithColor(const EColorType DamageColorType) const override;
+
+	virtual float GetUltimateXP() const override;
 
 	//------------------------------------------------------------------------------------------------------------------
 	

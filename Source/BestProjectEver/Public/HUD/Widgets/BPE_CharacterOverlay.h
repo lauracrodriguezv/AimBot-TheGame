@@ -107,6 +107,15 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> EnemiesText;
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Ultimate
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UProgressBar> UltimateProgressBar;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> UltimateText;
+
 protected:
 
 	virtual void NativeConstruct() override;
@@ -124,6 +133,9 @@ public:
 	void UpdateWeaponIcons(EColorType WeaponColorType);
 	
 	void UpdateHealthDisplay(float Health, float MaxHealth);
+
+	/** show the player when he lacks to be able to activate the ultimate */
+	void UpdateUltimateDisplay(const float CurrentUltimateValue, const float MaxUltimateValue);
 
 	/** show the player the time left to end current match state */
 	void UpdateMatchTimer(const float TimeLeft);

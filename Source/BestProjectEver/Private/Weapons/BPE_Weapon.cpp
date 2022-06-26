@@ -71,7 +71,7 @@ void ABPE_Weapon::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	UpdateMeshColor();
+	UpdateMeshColorType(DefaultColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ void ABPE_Weapon::SetState(EWeaponState State)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::UpdateMeshColor()
+void ABPE_Weapon::UpdateMeshColorType(const EColorType ColorType)
 {
 	if(IsValid(WeaponMesh) && MaterialColor.Contains(ColorType))
 	{
@@ -267,14 +267,10 @@ void ABPE_Weapon::Fire()
 	TraceUnderCrosshairs(HitResult);
 	const FVector MuzzleLocation = HitResult.TraceStart;
 	Multicast_PlayMuzzleFireEffects(MuzzleLocation);
-
-	if(OwnerCharacter->IsA(ABPE_PlayerCharacter::StaticClass()))
+	
+	if(IsValid(PlayerOwner))
 	{
-		ABPE_PlayerCharacter* PlayerOwner = Cast<ABPE_PlayerCharacter>(OwnerCharacter);
-		if(IsValid(PlayerOwner))
-		{
-			PlayerOwner->CharacterMakeNoise(ShootLoudness, MuzzleLocation);
-		}
+		PlayerOwner->CharacterMakeNoise(ShootLoudness, MuzzleLocation);
 	}
 
 	if(HitResult.bBlockingHit)
@@ -301,25 +297,33 @@ void ABPE_Weapon::Fire()
 				break;
 			}
 		}
-
-		if(CanApplyDamage(HitResult.GetActor()))
-		{
-			ApplyDamage(HitResult);
-		}
+		
+		ApplyDamageOnHit(HitResult);
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool ABPE_Weapon::CanApplyDamage(const AActor* ActorHit) const
+void ABPE_Weapon::ApplyDamageOnHit(const FHitResult& HitResult)
 {
-	//IDamagable 
-	const ABPE_Enemy* EnemyHit = Cast<ABPE_Enemy>(ActorHit);
-	if(IsValid(EnemyHit)) //EnemyHit.IsA(IDamagable)
+	AActor* HitActor = HitResult.GetActor();
+	if(IsValid(HitActor) && HitActor->Implements<UBPE_Damagable>())
 	{
-		//IDamagable::GetColorType_Execute(EnemyHit);
-		return EnemyHit->GetColorType() == ColorType;
+		const IBPE_Damagable* ActorDamageable = Cast<IBPE_Damagable>(HitActor);
+		if(ActorDamageable->CanBeDamageableWithColor(CurrentColorType))
+		{
+			if(IsValid(PlayerOwner))
+			{
+				PlayerOwner->AddUltimateXP(ActorDamageable->GetUltimateXP());
+			}
+			
+			const FVector ShootDirection = (HitResult.TraceEnd - HitResult.TraceStart).GetSafeNormal();
+			if(IsValid(OwnerCharacter))
+			{
+				UGameplayStatics::ApplyPointDamage(HitActor, BaseDamage, ShootDirection, HitResult,
+					OwnerCharacter->GetInstigatorController(),OwnerCharacter, DamageType);		
+			}
+		}
 	}
-	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -408,15 +412,22 @@ void ABPE_Weapon::Tick(float DeltaSeconds)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::SetOwner(AActor* NewOwner)
 {
-	Super::SetOwner(NewOwner);	
-	OwnerCharacter = Cast<ABPE_BaseCharacter>(NewOwner);
+	Super::SetOwner(NewOwner);
+	OnSetNewOwner();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::OnRep_Owner()
 {
 	Super::OnRep_Owner();
+	OnSetNewOwner();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnSetNewOwner()
+{
 	OwnerCharacter = Cast<ABPE_BaseCharacter>(Owner);
+	PlayerOwner = Cast<ABPE_PlayerCharacter>(Owner);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -502,16 +513,24 @@ bool ABPE_Weapon::Multicast_PlayMuzzleFireEffects_Validate(const FVector& Muzzle
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::SetColorType(const EColorType NewColorType)
+void ABPE_Weapon::SetCurrentColorType(const EColorType ColorType)
 {	
-	ColorType = NewColorType;
-	IBPE_InteractWithColorType::SetColorType(NewColorType);
+	CurrentColorType = ColorType;
+	IBPE_InteractWithColorType::SetCurrentColorType(ColorType);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::SetDefaultColorType(const EColorType ColorType)
+{
+	DefaultColorType = ColorType;
+	CurrentColorType = DefaultColorType;
+	IBPE_InteractWithColorType::SetDefaultColorType(ColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::OnRep_ColorType()
 {
-	UpdateMeshColor();
+	UpdateMeshColorType(CurrentColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -556,7 +575,8 @@ void ABPE_Weapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ABPE_Weapon, CurrentState);
-	DOREPLIFETIME(ABPE_Weapon, ColorType);
+	DOREPLIFETIME(ABPE_Weapon, CurrentColorType);
+	DOREPLIFETIME(ABPE_Weapon, DefaultColorType);
 }
 
 

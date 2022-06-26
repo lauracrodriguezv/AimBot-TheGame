@@ -3,6 +3,7 @@
 
 #include "Character/BPE_Enemy.h"
 
+#include "Character/BPE_PlayerCharacter.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BPE_FollowSplineComponent.h"
 #include "Engine/TextRenderActor.h"
@@ -15,7 +16,7 @@
 ABPE_Enemy::ABPE_Enemy()
 {
 	Team = ETeam::Enemy;
-	ColorType = EColorType::Red;
+	DefaultColorType = EColorType::Red;
 
 	ImpulseOnStopInteraction = 1000.0f;
 	UpdateMaterialOnEnemyStatus();
@@ -23,13 +24,15 @@ ABPE_Enemy::ABPE_Enemy()
 	DestroyDelay = 2.0f;
 	
 	FollowSplineComponent = CreateDefaultSubobject<UBPE_FollowSplineComponent>(TEXT("FollowSplineComponent"));
+
+	XPValue = 10.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Enemy::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	UpdateMeshColor();
+	UpdateMeshColorType(DefaultColorType);
 	UpdateMaterialOnEnemyStatus();
 }
 
@@ -53,7 +56,7 @@ void ABPE_Enemy::SpawnWeapon()
 		{
 			CurrentWeapon->OnPickup(this);
 			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, WeaponSocketName);
-			CurrentWeapon->SetColorType(GetColorType());
+			CurrentWeapon->SetDefaultColorType(DefaultColorType);
 		}
 	}
 }
@@ -116,7 +119,7 @@ void ABPE_Enemy::OnRep_EnemyStatus()
 //----------------------------------------------------------------------------------------------------------------------	
 void ABPE_Enemy::OnRep_ColorType()
 {
-	UpdateMeshColor();
+	UpdateMeshColorType(DefaultColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------	
@@ -180,14 +183,14 @@ FRotator ABPE_Enemy::GetViewRotation() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Enemy::SetColorType(const EColorType NewColorType)
+void ABPE_Enemy::SetDefaultColorType(const EColorType NewColorType)
 {
-	ColorType = NewColorType;
-	IBPE_InteractWithColorType::SetColorType(NewColorType);
+	DefaultColorType = NewColorType;
+	IBPE_InteractWithColorType::SetCurrentColorType(NewColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Enemy::UpdateMeshColor()
+void ABPE_Enemy::UpdateMeshColorType(const EColorType ColorType)
 {
 	if(IsValid(GetMesh()) && BodyMaterialColor.Contains(ColorType))
 	{
@@ -199,7 +202,7 @@ void ABPE_Enemy::UpdateMeshColor()
 
 		if(IsValid(CurrentWeapon))
 		{
-			CurrentWeapon->SetColorType(GetColorType());
+			CurrentWeapon->SetDefaultColorType(ColorType);
 		}
 	}
 }
@@ -234,11 +237,23 @@ void ABPE_Enemy::OnStopInteraction()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+bool ABPE_Enemy::CanBeDamageableWithColor(const EColorType DamageColorType) const
+{
+	return DefaultColorType == DamageColorType || DamageColorType == EColorType::Multicolor;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+float ABPE_Enemy::GetUltimateXP() const
+{
+	return XPValue;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Enemy::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(ABPE_Enemy, ColorType);
+	DOREPLIFETIME(ABPE_Enemy, DefaultColorType);
 	DOREPLIFETIME(ABPE_Enemy, CurrentWeapon);
 	DOREPLIFETIME(ABPE_Enemy, EnemyStatus);
 }

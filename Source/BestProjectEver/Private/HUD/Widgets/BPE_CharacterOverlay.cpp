@@ -46,6 +46,22 @@ void UBPE_CharacterOverlay::UpdateHealthDisplay(float Health, float MaxHealth)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void UBPE_CharacterOverlay::UpdateUltimateDisplay(const float CurrentUltimateValue, const float MaxUltimateValue)
+{
+	const float UltimatePercent = CurrentUltimateValue / MaxUltimateValue;
+	if(IsValid(UltimateProgressBar))
+	{
+		UltimateProgressBar->SetPercent(UltimatePercent);
+	}
+	
+	const FString Text = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(CurrentUltimateValue), FMath::CeilToInt(MaxUltimateValue));
+	if(IsValid(UltimateText))
+	{
+		UltimateText->SetText(FText::FromString(Text));	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void UBPE_CharacterOverlay::UpdateMatchTimer(const float TimeLeft)
 {
 	if(IsValid(W_Timer))

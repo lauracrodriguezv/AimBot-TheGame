@@ -17,6 +17,7 @@ class ABPE_Casing;
 class USoundCue;
 class UMaterialInstanceConstant;
 class USoundBase;
+class ABPE_PlayerCharacter;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -67,8 +68,12 @@ protected:
 	//Weapon Type
 
 	/** to determine which enemy it can apply damage */
+	UPROPERTY(ReplicatedUsing=OnRep_ColorType, BlueprintReadOnly, Category= "Weapon State")
+	EColorType CurrentColorType;
+
+	/** Color set at the beginning of the match */
 	UPROPERTY(ReplicatedUsing=OnRep_ColorType, EditAnywhere, Category = "Weapon State")
-	EColorType ColorType;
+	EColorType DefaultColorType; 
 
 	/** Material based on color type */
 	UPROPERTY(EditDefaultsOnly, Category = "Materials")
@@ -78,6 +83,9 @@ protected:
 	//Weapon Data
 	
 	TObjectPtr<ABPE_BaseCharacter> OwnerCharacter;
+
+	UPROPERTY(Transient)
+	TObjectPtr<ABPE_PlayerCharacter> PlayerOwner;
 	
 	/** current weapon state */
 	UPROPERTY(ReplicatedUsing=OnRep_WeaponState)
@@ -243,7 +251,7 @@ protected:
 	virtual void Fire();
 
 	/** check if enemy hit has the same color type */
-	bool CanApplyDamage(const AActor* ActorHit) const;
+	void ApplyDamageOnHit(const FHitResult& HitResult);
 	
 	void ApplyDamage(const FHitResult& HitResult);
 
@@ -255,6 +263,9 @@ protected:
 
 	/** [client] update owner rep handler */
 	virtual void OnRep_Owner() override;
+
+	/** [server and client] on owner is set */ 
+	void OnSetNewOwner();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	//Effects 
@@ -304,13 +315,18 @@ public:
 	//Color Type
 	
 	/** change mesh color depending on color type */
-	virtual void UpdateMeshColor() override;
+	virtual void UpdateMeshColorType(const EColorType ColorType) override;
 
 	/** get weapon color type */
-	virtual EColorType GetColorType() const override { return ColorType; }
+	virtual EColorType GetCurrentColorType() const override { return CurrentColorType; }
+
+	/** get weapon default color type */
+	virtual EColorType GetDefaultColorType() const override { return DefaultColorType; }
 
 	/** set weapon color type */
-	virtual void SetColorType(const EColorType NewColorType) override;
+	virtual void SetCurrentColorType(const EColorType ColorType) override;
+
+	virtual void SetDefaultColorType(const EColorType ColorType) override;
 
 	/** game element dropped current actor */
 	virtual void OnStopInteraction() override;

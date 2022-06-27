@@ -82,6 +82,18 @@ protected:
 
 	TMap<EColorType, FLinearColor> CurrentWeaponColor;
 
+	/** Current weapon ammunition */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> AmmoText;
+
+	/** Extra ammunition player carries */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> CarriedAmmoText;
+
+	/** "Ammo: " text. Collapsed by default in blueprint */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> AmmoTittle;
+
 	//------------------------------------------------------------------------------------------------------------------
 	//Health
 
@@ -149,4 +161,8 @@ public:
 	void UpdateScoreText(const float Score);
 
 	void UpdateEnemiesAliveText(const int32 EnemiesAlive);
+
+	void UpdateCurrentWeaponAmmo(const int32 CurrentAmmo, const int32 MagCapacity);
+
+	void UpdateCarriedAmmo(const int32 CarriedAmmo);
 };

@@ -19,6 +19,7 @@ class UBPE_AnnouncementOverlay;
 class UBPE_ResultsOverlay;
 class ABPE_PlayerState;
 class UBPE_PauseMenu;
+class ABPE_Weapon;
 /**
  * 
  */
@@ -90,9 +91,9 @@ protected:
 	UFUNCTION()
 	void UpdateUltimateStatus(const bool bIsUsingUltimate);
 
-	/** update weapon icon depending on the color type of the current weapon */
+	/** update weapon information when player's current weapon has changed */
 	UFUNCTION()
-	void UpdateCurrentWeaponIcon(const EColorType WeaponColorType);
+	void UpdateCurrentWeaponInformation(const ABPE_Weapon* CurrentWeapon);
 
 	/** show the player the time left to end current match state */
 	UFUNCTION()
@@ -121,6 +122,16 @@ protected:
 	/** update total enemies alive on the match */
 	UFUNCTION()
 	void UpdateEnemiesAlive(const int32 EnemiesAlive);
+
+	/** Update ammo value text
+	 * @param CurrentAmmo The total ammo current weapon has
+	 * @param MagCapacity The max total ammo current weapon can holding 
+	 */
+	UFUNCTION()
+	void UpdateWeaponAmmo(const int32 CurrentAmmo, const int32 MagCapacity);
+
+	UFUNCTION()
+	void UpdateCarriedAmmo(const int32 CarriedAmmo);
 
 public:
 

@@ -105,6 +105,14 @@ protected:
 	/** true by default and when TimerHandle_AutoFire has finished */
 	uint8 bCanFire : 1;
 
+	/** Material fired against the selected target */
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentAmmo, BlueprintReadOnly, Category="Ammo")
+	int32 CurrentAmmo;
+
+	/** Max ammunition weapon can carried */
+	UPROPERTY(EditAnywhere, Category="Ammo")
+	int32 MagCapacity;
+
 	UPROPERTY(EditAnywhere, meta=(ClampMin = 0.0), Category= "Weapon State")
 	float BaseDamage;
 	
@@ -276,6 +284,20 @@ protected:
 	UFUNCTION(NetMulticast, Unreliable, WithValidation)
 	void Multicast_PlayImpactFireEffects(const FVector& ImpactPoint);
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Ammo
+
+	/** [server] update current weapon ammo
+	 * @param Ammo ammunition reloaded to current weapon or removed
+	 */
+	void UpdateAmmo(const int32 Ammo = -1);
+	
+	UFUNCTION()
+	void OnRep_CurrentAmmo();
+
+	/** [server and client] current ammo has changed */
+	void OnAmmoChanged();
+	
 public:
 	
 	virtual void Tick(float DeltaSeconds) override;
@@ -289,6 +311,11 @@ public:
 
 	/** [server] set weapon parameter when is dropped */
 	void OnDropped();
+
+	/** [server] update current weapon ammo
+	 * @param AmmoReloaded ammunition reloaded to current weapon or removed
+	 */
+	void OnReloading(const int32 AmmoReloaded);
 	
 	/** get current weapon state */
 	EWeaponState GetCurrentState() const { return CurrentState; }
@@ -301,6 +328,16 @@ public:
 	float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	
 	FTransform GetMuzzleSocketTransform() const;
+
+	int32 GetMagCapacity() const { return MagCapacity; }
+
+	int32 GetCurrentAmmo() const { return CurrentAmmo; }
+
+	/** Weapon does not have ammo */
+	bool IsEmpty() const;
+
+	/** Weapon has all ammunition it can carried */
+	bool IsMagFull() const;
 	
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon usage 

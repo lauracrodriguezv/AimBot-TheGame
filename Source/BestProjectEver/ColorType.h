@@ -5,5 +5,6 @@ enum class EColorType : uint8
 {
 	Yellow,
 	Blue,
-	Red
+	Red,
+	Multicolor
 };

@@ -22,12 +22,16 @@ class BESTPROJECTEVER_API IBPE_InteractWithColorType
 	GENERATED_BODY()
 
 public:
-	
-	virtual EColorType GetColorType() const PURE_VIRTUAL(IBPE_InteractWithColorType::GetColorType, return EColorType::Blue;)
-	
-	virtual void SetColorType(const EColorType NewColorType) { UpdateMeshColor(); }
 
-	virtual void UpdateMeshColor() PURE_VIRTUAL(IBPE_InteractWithColorType::UpdateMeshColor, ;)
+	virtual EColorType GetDefaultColorType() const PURE_VIRTUAL(IBPE_InteractWithColorType::GetColorType, return EColorType::Blue;)
+
+	virtual EColorType GetCurrentColorType() const { return EColorType::Blue; };
+
+	virtual void SetDefaultColorType(const EColorType ColorType) { OnColorTypeChanged(ColorType); }
+
+	virtual void SetCurrentColorType(const EColorType ColorType) { OnColorTypeChanged(ColorType); }
+
+	virtual void OnColorTypeChanged(const EColorType ColorType) PURE_VIRTUAL(IBPE_InteractWithColorType::UpdateMeshColor, ;)
 
 	virtual void OnStopInteraction() PURE_VIRTUAL(IBPE_InteractWithColorType::OnStopInteraction, ;)
 };

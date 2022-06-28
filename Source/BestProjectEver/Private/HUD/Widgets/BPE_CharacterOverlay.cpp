@@ -15,6 +15,7 @@ void UBPE_CharacterOverlay::NativeConstruct()
 	
 	InitializeWeaponIcons();
 	WeaponIndex = 0;
+	UltimateBackground->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -43,6 +44,32 @@ void UBPE_CharacterOverlay::UpdateHealthDisplay(float Health, float MaxHealth)
 	
 	FString Text = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
 	HealthText->SetText(FText::FromString(Text));
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_CharacterOverlay::UpdateUltimateDisplay(const float CurrentUltimateValue, const float MaxUltimateValue)
+{
+	const float UltimatePercent = CurrentUltimateValue / MaxUltimateValue;
+	if(IsValid(UltimateProgressBar))
+	{
+		UltimateProgressBar->SetPercent(UltimatePercent);
+	}
+	
+	const FString Text = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(CurrentUltimateValue), FMath::CeilToInt(MaxUltimateValue));
+	if(IsValid(UltimateText))
+	{
+		UltimateText->SetText(FText::FromString(Text));	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_CharacterOverlay::SetBackgroundVisibilityOnUltimate(bool bIsUsingUltimate)
+{
+	if(IsValid(UltimateBackground))
+	{
+		const ESlateVisibility UltimateBackgroundVisibility = bIsUsingUltimate? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed;
+		UltimateBackground->SetVisibility(UltimateBackgroundVisibility);	
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------

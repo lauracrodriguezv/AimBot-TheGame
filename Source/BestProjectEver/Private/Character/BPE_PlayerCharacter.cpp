@@ -14,6 +14,10 @@
 #include "Weapons/BPE_Weapon.h"
 #include "GameElements/BPE_SpawnPad.h"
 #include "PlayerController/BPE_PlayerController.h"
+#include "Sound/SoundCue.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Materials/MaterialInstanceConstant.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_PlayerCharacter::ABPE_PlayerCharacter()
@@ -43,6 +47,19 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	ZoomOutInterpSpeed =  20.0f;
 
 	Team = ETeam::Player;
+
+	bIsUsingUltimate = false;
+	bCanUseUltimate = false;
+	MaxUltimateXP = 100.0f;
+	CurrentUltimateXP = 0.0f;
+	MaxUltimateDuration = 10.0f;
+	CurrentUltimateDuration = 0.0f;
+	UltimateRate = 0.01f;
+	UltimateWalkSpeed = 1'500.0f;
+	UltimatePlayRate = 2.0f;
+	XPValue = -10.0f;
+
+	PlayRate = 1.0f;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -317,11 +334,23 @@ bool ABPE_PlayerCharacter::Server_SetAiming_Validate()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnIsAimingChanged()
 {
-	GetCharacterMovement()->MaxWalkSpeed = bIsAiming? AimWalkSpeed : DefaultWalkSpeed;
-
+	if(!bIsUsingUltimate)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : DefaultWalkSpeed;
+	}
+	
 	if(IsLocallyControlled())
 	{
-		UMaterialInterface* PlayerMaterial = bIsAiming ? PlayerAimMaterialInstanceConstant : DefaultPlayerMaterial;
+		UMaterialInterface* PlayerMaterial;
+		if(bIsAiming)
+		{
+			PlayerMaterial = PlayerAimMaterialInstanceConstant;
+		}
+		else
+		{
+			PlayerMaterial = bIsUsingUltimate? RainbowMaterialInstance : DefaultPlayerMaterial;
+		}
+		
 		if(GetMesh())
 		{
 			GetMesh()->SetMaterial(0, PlayerMaterial);
@@ -390,7 +419,7 @@ bool ABPE_PlayerCharacter::Server_EquipWeapon_Validate(ABPE_Weapon* WeaponToEqui
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::HandleEquipWeapon(ABPE_Weapon* WeaponToEquip)
 {
-	bool bIsColorInInventory = IsValid(FindWeaponWithColorType(WeaponToEquip->GetColorType()));
+	bool bIsColorInInventory = IsValid(FindWeaponWithColorType(WeaponToEquip->GetDefaultColorType()));
 	if(bIsColorInInventory)
 	{
 		/*Check the ammo to reload current weapon or add to inventory this new weapon if it is more powerful*/
@@ -415,7 +444,7 @@ void ABPE_PlayerCharacter::Interact()
 		if(IsValid(OverlappingSpawnPad))
 		{
 			ActivateSpawnPad();
-		}	
+		}
 	}
 }
 
@@ -429,6 +458,142 @@ void ABPE_PlayerCharacter::ActivateSpawnPad()
 	else
 	{
 		Server_ActivateSpawnPad();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::StartUltimate()
+{
+	if(AreGameplayInputsEnabled())
+	{
+		if(HasAuthority())
+		{
+			HandleUltimateStart();
+		}
+		else
+		{
+			Server_StartUltimate();
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Server_StartUltimate_Implementation()
+{
+	StartUltimate();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_StartUltimate_Validate()
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::HandleUltimateStart()
+{
+	if(bCanUseUltimate && !bIsUsingUltimate)
+	{
+		bIsUsingUltimate = true;
+		OnIsUsingUltimateChanged();
+		
+		bCanUseUltimate = false;
+			
+		CurrentUltimateDuration = MaxUltimateDuration;
+		const FTimerDelegate UltimateTimerDelegate = FTimerDelegate::CreateUObject(this, &ABPE_PlayerCharacter::UpdateUltimateDuration, UltimateRate);
+		GetWorldTimerManager().SetTimer(TimerHandle_Ultimate, UltimateTimerDelegate, UltimateRate, true);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::UpdateUltimateDuration(const float Value)
+{
+	CurrentUltimateDuration = FMath::Clamp(CurrentUltimateDuration - Value, 0.0f, MaxUltimateDuration);
+	OnUltimateValueUpdated();
+	
+	if(FMath::IsNearlyZero(CurrentUltimateDuration))
+	{
+		CurrentUltimateXP = 0.0f;
+		bIsUsingUltimate = false;
+		OnIsUsingUltimateChanged();
+		
+		GetWorldTimerManager().ClearTimer(TimerHandle_Ultimate);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnRep_UsingUltimate()
+{
+	OnIsUsingUltimateChanged();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnRep_UltimateValue()
+{
+	OnUltimateValueUpdated();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnUltimateValueUpdated()
+{
+	if(bIsUsingUltimate)
+	{
+		OnUltimateUpdate.Broadcast(CurrentUltimateDuration * 10.0f, MaxUltimateDuration * 10.0f);
+	}
+	else
+	{
+		OnUltimateUpdate.Broadcast(CurrentUltimateXP, MaxUltimateXP);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnIsUsingUltimateChanged()
+{
+	OnChangeUltimateStatus.Broadcast(bIsUsingUltimate);
+	
+	GetCharacterMovement()->MaxWalkSpeed = bIsUsingUltimate? UltimateWalkSpeed : DefaultWalkSpeed;
+	PlayRate = bIsUsingUltimate? UltimateRate : 1.0f;
+	
+	for (int32 i = 0; i < Inventory.Num(); i++)
+	{
+		if (IsValid(Inventory[i]))
+		{
+			const EColorType WeaponColorType = bIsUsingUltimate? EColorType::Multicolor : Inventory[i]->GetDefaultColorType();
+			Inventory[i]->SetCurrentColorType(WeaponColorType);
+		}
+	}
+	
+	PlayUltimateEffects();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::PlayUltimateEffects()
+{
+	UMaterialInterface* PlayerMaterial = bIsUsingUltimate ? RainbowMaterialInstance : DefaultPlayerMaterial;
+	if(GetMesh())
+	{
+		GetMesh()->SetMaterial(0, PlayerMaterial);
+	}
+	
+	if(bIsUsingUltimate)
+	{
+		if(IsValid(UltimateEffect))
+		{
+			const FVector UltimateEffectSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200.0f);
+			UltimateParticleComponent = UGameplayStatics::SpawnEmitterAttached(UltimateEffect, GetMesh(), NAME_None, UltimateEffectSpawnPoint);
+		}
+
+		if(IsValid(UltimateSound))
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), UltimateSound, GetActorLocation());
+		}	
+	}
+	else
+	{
+		if(IsValid(UltimateParticleComponent))
+		{
+			UltimateParticleComponent->DestroyComponent();
+		}
 	}
 }
 
@@ -528,6 +693,18 @@ void ABPE_PlayerCharacter::PauseGame()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::CanBeDamageableWithColor(const EColorType DamageColorType) const
+{
+	return !bIsUsingUltimate;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+float ABPE_PlayerCharacter::GetUltimateXP() const
+{
+	return XPValue;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::SetOverlappingWeapon(ABPE_Weapon* Weapon)
 {
 	ABPE_Weapon* LastOverlappingWeapon = OverlappingWeapon;
@@ -559,9 +736,17 @@ void ABPE_PlayerCharacter::OnCurrentWeaponChanged()
 
 	PlayMontage(SwapWeaponMontage, FName(), 2.0);
 
-	if(IsValid(CurrentWeapon) && IsLocallyControlled())
+	if(IsValid(CurrentWeapon))
 	{
-		OnChangeCurrentWeaponDelegate.Broadcast(CurrentWeapon->GetColorType());
+		if(IsLocallyControlled())
+		{
+			OnChangeCurrentWeaponDelegate.Broadcast(CurrentWeapon->GetDefaultColorType());
+		}
+
+		if(bIsUsingUltimate)
+		{
+			CurrentWeapon->SetCurrentColorType(EColorType::Multicolor);
+		}
 	}
 }
 
@@ -614,7 +799,7 @@ ABPE_Weapon* ABPE_PlayerCharacter::FindWeaponWithColorType(EColorType ColorType)
 {
 	for (int32 i = 0; i < Inventory.Num(); i++)
 	{
-		if (Inventory[i]->GetColorType() == ColorType)
+		if (IsValid(Inventory[i]) && Inventory[i]->GetDefaultColorType() == ColorType)
 		{
 			return Inventory[i];
 		}
@@ -684,6 +869,8 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Interact",IE_Pressed, this, &ABPE_PlayerCharacter::Interact);
 
 	PlayerInputComponent->BindAction("Pause",IE_Pressed, this, &ABPE_PlayerCharacter::PauseGame);
+
+	PlayerInputComponent->BindAction("Ultimate",IE_Pressed, this, &ABPE_PlayerCharacter::StartUltimate);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -696,6 +883,9 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentWeapon);
 	DOREPLIFETIME(ABPE_PlayerCharacter, bIsAiming);
 	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, Inventory, COND_OwnerOnly);
+	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentUltimateXP);
+	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentUltimateDuration);
+	DOREPLIFETIME(ABPE_PlayerCharacter, bIsUsingUltimate);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -724,3 +914,16 @@ bool ABPE_PlayerCharacter::AreGameplayInputsEnabled() const
 	return false;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::AddUltimateXP(float XPAmount)
+{
+	if(bIsUsingUltimate)
+	{
+		return;
+	}
+
+	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + XPAmount, 0.0f, MaxUltimateXP);
+	OnUltimateValueUpdated();
+	
+	bCanUseUltimate = FMath::IsNearlyEqual(CurrentUltimateXP, MaxUltimateXP);
+}

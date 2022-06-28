@@ -107,6 +107,19 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> EnemiesText;
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Ultimate
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UProgressBar> UltimateProgressBar;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> UltimateText;
+
+	/** image overlay on ultimate */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> UltimateBackground;
+
 protected:
 
 	virtual void NativeConstruct() override;
@@ -125,6 +138,11 @@ public:
 	
 	void UpdateHealthDisplay(float Health, float MaxHealth);
 
+	/** show the player current value of ultimate */
+	void UpdateUltimateDisplay(const float CurrentUltimateValue, const float MaxUltimateValue);
+
+	void SetBackgroundVisibilityOnUltimate(bool bIsUsingUltimate);
+	
 	/** show the player the time left to end current match state */
 	void UpdateMatchTimer(const float TimeLeft);
 

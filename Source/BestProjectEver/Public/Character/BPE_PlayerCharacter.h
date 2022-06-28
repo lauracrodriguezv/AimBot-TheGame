@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "BPE_BaseCharacter.h"
 #include "BestProjectEver/ColorType.h"
-#include "Materials/MaterialInstanceConstant.h"
+#include "Interfaces/BPE_Damagable.h"
 #include "BPE_PlayerCharacter.generated.h"
 
 class UCameraComponent;
@@ -16,11 +16,14 @@ class USoundCue;
 class ABPE_SpawnPad;
 class ABPE_PlayerController;
 class ABPE_GameState;
+class UMaterialInstanceConstant;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCurrentWeapon, EColorType, WeaponColorType);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdate, const float, CurrentUltimate, const float, MaxUltimate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusChanged, const bool, bIsUsingUltimate);
 
 UCLASS()
-class BESTPROJECTEVER_API ABPE_PlayerCharacter : public ABPE_BaseCharacter
+class BESTPROJECTEVER_API ABPE_PlayerCharacter : public ABPE_BaseCharacter, public IBPE_Damagable
 {
 	GENERATED_BODY()
 
@@ -37,6 +40,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UParticleSystemComponent> UltimateParticleComponent;
+
 public:
 
 	ABPE_PlayerCharacter();
@@ -44,6 +50,14 @@ public:
 	/** delegate called when current weapon is set */
 	UPROPERTY(BlueprintAssignable)
 	FOnChangeCurrentWeapon OnChangeCurrentWeaponDelegate;
+
+	/** Delegate called when current ultimate value changes */
+	UPROPERTY(BlueprintAssignable)
+	FOnUltimateUpdate OnUltimateUpdate;
+
+	/** Delegate called when bIsUsingUltimate changes */
+	UPROPERTY(BlueprintAssignable)
+	FOnUltimateStatusChanged OnChangeUltimateStatus;
 
 protected:
 	
@@ -53,6 +67,14 @@ protected:
 	
 	UPROPERTY(ReplicatedUsing=OnRep_Aiming, BlueprintReadOnly, Category = "Aiming")
 	uint8 bIsAiming : 1;
+
+	/** Player has all xp to enable ultimate behavior */
+	UPROPERTY(BlueprintReadOnly, Category="Ultimate")
+	uint8 bCanUseUltimate : 1;
+
+	/** Ultimate behavior was activated */
+	UPROPERTY(ReplicatedUsing=OnRep_UsingUltimate, BlueprintReadOnly, Category="Ultimate")
+	uint8 bIsUsingUltimate : 1;
 	
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	float BaseTurnRate;
@@ -77,6 +99,41 @@ protected:
 	/** speed to return to DefaultFOV from CurrentFOV */
 	float ZoomOutInterpSpeed;
 
+	/** The maximum ground speed when is using ultimate behavior */
+	UPROPERTY(EditDefaultsOnly, Category="Ultimate")
+	float UltimateWalkSpeed;
+
+	/** Character animations' playback speed on ultimate */
+	UPROPERTY(EditDefaultsOnly, Category="Ultimate")
+	float UltimatePlayRate;
+	
+	/** Max ultimate xp to enable ultimate behaviour */
+	UPROPERTY(EditDefaultsOnly, Category="Ultimate", meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float MaxUltimateXP;
+
+	/** Current ultimate xp accumulated */
+	UPROPERTY(ReplicatedUsing=OnRep_UltimateValue, BlueprintReadOnly, Category="Ultimate")
+	float CurrentUltimateXP;
+
+	/** How long this ultimate behavior lasts */
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Ultimate|Time", meta = (ClampMin = 0.0f, UIMin = 0.0f))
+	float MaxUltimateDuration;
+
+	/** Time that has passed since the ultimate behavior was activated */
+	UPROPERTY(ReplicatedUsing=OnRep_UltimateValue, BlueprintReadOnly, Category="Ultimate|Time")
+	float CurrentUltimateDuration;
+
+	/** frequency to update current ultimate duration */
+	UPROPERTY(BlueprintReadOnly, Category="Ultimate|Time")
+	float UltimateRate;
+
+	/** XP given on actor takes any damage */
+	UPROPERTY(EditDefaultsOnly, Category="Ultimate")
+	float XPValue;
+
+	/** Handle for efficient management of current ultimate duration update */
+	FTimerHandle TimerHandle_Ultimate;
+	
 	UPROPERTY(Transient)
 	TObjectPtr<ABPE_GameState> GameStateReference;
 
@@ -86,6 +143,10 @@ protected:
 	/** Translucent material uses when mesh blocks the visibility */
 	UPROPERTY(EditDefaultsOnly, Category="Materials")
 	TObjectPtr<UMaterialInstanceConstant> PlayerAimMaterialInstanceConstant;
+
+	/** Rainbow material uses when is using ultimate */
+	UPROPERTY(EditDefaultsOnly, Category="Materials")
+	TObjectPtr<UMaterialInstanceConstant> RainbowMaterialInstance;
 
 	/** Translucent material uses when mesh blocks the visibility */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Materials")
@@ -113,6 +174,10 @@ protected:
 	//------------------------------------------------------------------------------------------------------------------
 	// Animations
 
+	/** Character animations' playback speed */
+	UPROPERTY(BlueprintReadOnly, Category="Animation")
+	float PlayRate;
+	
 	/** animation played on current weapon change */
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> SwapWeaponMontage;
@@ -120,8 +185,15 @@ protected:
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects
 	
-	UPROPERTY(EditAnywhere, Category = "Sound")
+	UPROPERTY(EditAnywhere, Category = "Effects|Sound")
 	TObjectPtr<USoundCue> PickupSound;
+
+	/** particle effect on ultimate activation */
+	UPROPERTY(EditAnywhere, Category = "Effects|Particles")
+	TObjectPtr<UParticleSystem> UltimateEffect;
+
+	UPROPERTY(EditAnywhere, Category = "Effects|Sound")
+	TObjectPtr<USoundCue> UltimateSound;
 
 protected:
 
@@ -183,6 +255,40 @@ protected:
 	void Interact();
 
 	void ActivateSpawnPad();
+
+	void StartUltimate();
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Ultimate
+
+	/** [server] start ultimate behavior */
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_StartUltimate();
+
+	/** [server] check if ultimate is available to start ultimate behavior */
+	void HandleUltimateStart();
+
+	/** [server] Update time that has passed since the ultimate behavior was activated */
+	UFUNCTION()
+	void UpdateUltimateDuration(const float Value);
+
+	/** [server and client] Ultimate behavior was activated or deactivated */
+	UFUNCTION()
+	void OnIsUsingUltimateChanged();
+
+	/** [client] bIsUsingUltimate rep handler */
+	UFUNCTION()
+	void OnRep_UsingUltimate();
+
+	/** [client] Current ultimate value rep handler */
+	UFUNCTION()
+	void OnRep_UltimateValue();
+
+	/** [server and client] Ultimate value has changed */
+	void OnUltimateValueUpdated();
+
+	/** [server and client] */
+	void PlayUltimateEffects();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Weapon
@@ -277,6 +383,13 @@ protected:
 	//------------------------------------------------------------------------------------------------------------------
 	
 	void PauseGame();
+
+	//------------------------------------------------------------------------------------------------------------------
+	//Damageable
+
+	virtual bool CanBeDamageableWithColor(const EColorType DamageColorType) const override;
+
+	virtual float GetUltimateXP() const override;
 	
 public:
 
@@ -309,5 +422,5 @@ public:
 	/** check if all player inputs are enabled or just camera movements and if it is not dead */
 	bool AreGameplayInputsEnabled() const;
 
-	//void SetPlayerController(ABPE_PlayerController* PlayerController) { PlayerControllerReference = PlayerController; }
+	void AddUltimateXP(float XPAmount);
 };

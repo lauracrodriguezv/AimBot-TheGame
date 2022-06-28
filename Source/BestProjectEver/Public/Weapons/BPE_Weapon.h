@@ -105,6 +105,14 @@ protected:
 	/** true by default and when TimerHandle_AutoFire has finished */
 	uint8 bCanFire : 1;
 
+	/** Material fired against the selected target */
+	UPROPERTY(ReplicatedUsing=OnRep_CurrentAmmo, BlueprintReadOnly, Category="Ammo")
+	int32 CurrentAmmo;
+
+	/** Max ammunition weapon can hold */
+	UPROPERTY(EditAnywhere, Category="Ammo")
+	int32 MagCapacity;
+
 	UPROPERTY(EditAnywhere, meta=(ClampMin = 0.0), Category= "Weapon State")
 	float BaseDamage;
 	
@@ -276,6 +284,20 @@ protected:
 	UFUNCTION(NetMulticast, Unreliable, WithValidation)
 	void Multicast_PlayImpactFireEffects(const FVector& ImpactPoint);
 
+	//------------------------------------------------------------------------------------------------------------------
+	//Ammo
+
+	/** [server] update current weapon ammo
+	 * @param Ammo ammunition reloaded or removed to current weapon
+	 */
+	void UpdateAmmo(const int32 Ammo);
+	
+	UFUNCTION()
+	void OnRep_CurrentAmmo();
+
+	/** [server and client] current ammo has changed */
+	void OnAmmoChanged();
+	
 public:
 	
 	virtual void Tick(float DeltaSeconds) override;
@@ -289,6 +311,14 @@ public:
 
 	/** [server] set weapon parameter when is dropped */
 	void OnDropped();
+
+	/** [server] update current weapon ammo
+	 * @param AmmoReloaded ammunition reloaded or removed to current weapon
+	 */
+	void OnReloading(const int32 AmmoReloaded);
+
+	/** Ammunition taken from current weapon */
+	void RemoveAmmo(const int32 AmmoAmount);
 	
 	/** get current weapon state */
 	EWeaponState GetCurrentState() const { return CurrentState; }
@@ -301,6 +331,16 @@ public:
 	float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	
 	FTransform GetMuzzleSocketTransform() const;
+
+	int32 GetMagCapacity() const { return MagCapacity; }
+
+	int32 GetCurrentAmmo() const { return CurrentAmmo; }
+
+	/** Weapon does not have ammo */
+	bool IsEmpty() const;
+
+	/** Weapon has all ammunition it can hold */
+	bool IsMagFull() const;
 	
 	//------------------------------------------------------------------------------------------------------------------
 	//Weapon usage 

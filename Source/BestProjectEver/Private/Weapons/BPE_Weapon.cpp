@@ -64,6 +64,8 @@ ABPE_Weapon::ABPE_Weapon()
 	ImpulseOnDropped = 1000.0f;
 
 	DestroyDelay = 10.0f;
+
+	MagCapacity = 30;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -97,6 +99,8 @@ void ABPE_Weapon::InitializeReferences()
 	SetCurrentColorType(DefaultColorType);
 	
 	TimeBetweenShots = 60.0f / RoundsPerMinute;
+
+	CurrentAmmo = MagCapacity;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -300,6 +304,10 @@ void ABPE_Weapon::Fire()
 		}
 		
 		ApplyDamageOnHit(HitResult);
+		if(IsValid(PlayerOwner))
+		{
+			RemoveAmmo(1);
+		}
 	}
 }
 
@@ -324,6 +332,28 @@ void ABPE_Weapon::ApplyDamageOnHit(const FHitResult& HitResult)
 					OwnerCharacter->GetInstigatorController(),OwnerCharacter, DamageType);		
 			}
 		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::UpdateAmmo(const int32 Ammo)
+{
+	CurrentAmmo = FMath::Clamp(CurrentAmmo + Ammo, 0.0f, MagCapacity);
+	OnAmmoChanged();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnRep_CurrentAmmo()
+{
+	OnAmmoChanged();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnAmmoChanged()
+{
+	if(IsValid(PlayerOwner) && PlayerOwner->IsLocallyControlled())
+	{
+		PlayerOwner->OnWeaponAmmoUpdate.Broadcast(CurrentAmmo, MagCapacity);	
 	}
 }
 
@@ -380,7 +410,7 @@ void ABPE_Weapon::StopFire()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::StartFire()
 {	
-	if(bCanFire)
+	if(bCanFire && !IsEmpty())
 	{
 		SetState(EWeaponState::Firing);
 		bCanFire = false;
@@ -394,7 +424,7 @@ void ABPE_Weapon::StartFire()
 void ABPE_Weapon::HandleReFiring()
 {
 	bCanFire = true;
-	if(bIsAutomatic && CurrentState == EWeaponState::Firing)
+	if(bIsAutomatic && CurrentState == EWeaponState::Firing && !IsEmpty())
 	{
 		Fire();
 	}
@@ -402,6 +432,23 @@ void ABPE_Weapon::HandleReFiring()
 	{
 		GetWorldTimerManager().ClearTimer(TimerHandle_AutoFire);
 	}
+
+	if(IsEmpty() && IsValid(PlayerOwner))
+	{
+		PlayerOwner->TryReload();
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_Weapon::IsEmpty() const
+{
+	return CurrentAmmo == 0;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_Weapon::IsMagFull() const
+{
+	return CurrentAmmo == MagCapacity;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -460,6 +507,18 @@ void ABPE_Weapon::OnDropped()
 	{
 		WeaponMesh->AddImpulse(FMath::VRand() * ImpulseOnDropped, NAME_None, true);
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::OnReloading(const int32 AmmoReloaded)
+{
+	UpdateAmmo(AmmoReloaded);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::RemoveAmmo(const int32 AmmoAmount)
+{
+	UpdateAmmo(-AmmoAmount);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -578,6 +637,7 @@ void ABPE_Weapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ABPE_Weapon, CurrentState);
 	DOREPLIFETIME(ABPE_Weapon, CurrentColorType);
 	DOREPLIFETIME(ABPE_Weapon, DefaultColorType);
+	DOREPLIFETIME(ABPE_Weapon, CurrentAmmo);
 }
 
 

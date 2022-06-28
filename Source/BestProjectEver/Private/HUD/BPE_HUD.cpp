@@ -15,6 +15,7 @@
 #include "HUD/Widgets/BPE_AnnouncementOverlay.h"
 #include "HUD/Widgets/BPE_ResultsOverlay.h"
 #include "HUD/Widgets/BPE_PauseMenu.h"
+#include "Weapons/BPE_Weapon.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_HUD::BeginPlay()
@@ -41,10 +42,12 @@ void ABPE_HUD::BindDelegates()
 	ABPE_PlayerCharacter* PlayerCharacter = Cast<ABPE_PlayerCharacter>( GetOwningPawn());
 	if(IsValid(PlayerCharacter))
 	{
-		PlayerCharacter->OnChangeCurrentWeaponDelegate.AddDynamic(this, &ABPE_HUD::UpdateCurrentWeaponIcon);
+		PlayerCharacter->OnChangeCurrentWeaponDelegate.AddDynamic(this, &ABPE_HUD::UpdateCurrentWeaponInformation);
 		PlayerCharacter->GetHealthComponent()->OnHealthChangeDelegate.AddDynamic(this, &ABPE_HUD::UpdateHealth);
 		PlayerCharacter->OnUltimateUpdate.AddDynamic(this, &ABPE_HUD::UpdateUltimateValue);
 		PlayerCharacter->OnChangeUltimateStatus.AddDynamic(this,  &ABPE_HUD::UpdateUltimateStatus);
+		PlayerCharacter->OnWeaponAmmoUpdate.AddDynamic(this, &ABPE_HUD::ABPE_HUD::UpdateWeaponAmmo);
+		PlayerCharacter->OnCarriedAmmoChanged.AddDynamic(this, &ABPE_HUD::UpdateCarriedAmmo);
 	}
 
 	if(IsValid(PlayerOwner) && !IsValid(PlayerStateReference))
@@ -170,11 +173,12 @@ void ABPE_HUD::UpdatePauseMenu(EPauseState PauseState)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_HUD::UpdateCurrentWeaponIcon(const EColorType WeaponColorType)
+void ABPE_HUD::UpdateCurrentWeaponInformation(const ABPE_Weapon* CurrentWeapon)
 {
-	if(IsValid(CharacterOverlay))
+	if(IsValid(CharacterOverlay) && IsValid(CurrentWeapon))
 	{
-		CharacterOverlay->UpdateWeaponIcons(WeaponColorType);	
+		CharacterOverlay->UpdateWeaponIcons(CurrentWeapon->GetDefaultColorType());
+		CharacterOverlay->UpdateCurrentWeaponAmmo(CurrentWeapon->GetCurrentAmmo(), CurrentWeapon->GetMagCapacity());
 	}
 }
 
@@ -302,5 +306,23 @@ void ABPE_HUD::UpdateEnemiesAlive(const int32 EnemiesAlive)
 	if(IsValid(CharacterOverlay))
 	{
 		CharacterOverlay->UpdateEnemiesAliveText(EnemiesAlive);	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::UpdateWeaponAmmo(const int32 CurrentAmmo, const int32 MagCapacity)
+{
+	if(IsValid(CharacterOverlay))
+	{
+		CharacterOverlay->UpdateCurrentWeaponAmmo(CurrentAmmo, MagCapacity);	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::UpdateCarriedAmmo(const int32 CarriedAmmo)
+{
+	if(IsValid(CharacterOverlay))
+	{
+		CharacterOverlay->UpdateCarriedAmmo(CarriedAmmo);	
 	}
 }

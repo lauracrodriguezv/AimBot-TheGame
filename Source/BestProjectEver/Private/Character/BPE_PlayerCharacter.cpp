@@ -60,6 +60,9 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	XPValue = -10.0f;
 
 	PlayRate = 1.0f;
+	
+	CarriedAmmo = 60;
+	MaxCarriedAmmo = 300;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -422,7 +425,7 @@ void ABPE_PlayerCharacter::HandleEquipWeapon(ABPE_Weapon* WeaponToEquip)
 	bool bIsColorInInventory = IsValid(FindWeaponWithColorType(WeaponToEquip->GetDefaultColorType()));
 	if(bIsColorInInventory)
 	{
-		/*Check the ammo to reload current weapon or add to inventory this new weapon if it is more powerful*/
+		TakeWeaponAmmo(WeaponToEquip);
 	}
 	else
 	{
@@ -598,6 +601,85 @@ void ABPE_PlayerCharacter::PlayUltimateEffects()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Reload()
+{
+	if(AreGameplayInputsEnabled() && CarriedAmmo > 0)
+	{
+		if(HasAuthority())
+		{
+			HandleReloading();
+		}
+		else
+		{
+			Server_Reload();
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::Server_Reload_Implementation()
+{
+	Reload();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::Server_Reload_Validate()
+{
+	return true;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::HandleReloading()
+{
+	if(IsValid(CurrentWeapon) && !CurrentWeapon->IsMagFull())
+	{
+		const int32 AvailableSpaceInMag = CurrentWeapon->GetMagCapacity() - CurrentWeapon->GetCurrentAmmo();
+		const int32 AmmoToReload = FMath::Min(AvailableSpaceInMag, CarriedAmmo);
+		
+		CarriedAmmo = FMath::Clamp(CarriedAmmo - AmmoToReload, 0, MaxCarriedAmmo);
+		OnCarriedAmmoUpdate();
+
+		CurrentWeapon->OnReloading(AmmoToReload);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::TakeWeaponAmmo(ABPE_Weapon* Weapon)
+{
+	if(IsValid(Weapon) && !Weapon->IsEmpty())
+	{
+		const int32 AvailableSpaceCarriedAmmo = MaxCarriedAmmo - CarriedAmmo;
+		const int32 AmmoToReload = FMath::Min(AvailableSpaceCarriedAmmo, Weapon->GetCurrentAmmo());
+		
+		CarriedAmmo = FMath::Clamp(CarriedAmmo + AmmoToReload, 0, MaxCarriedAmmo);
+		OnCarriedAmmoUpdate();
+		
+		Weapon->RemoveAmmo(AmmoToReload);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnRep_CarriedAmmo()
+{
+	OnCarriedAmmoUpdate();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerCharacter::OnCarriedAmmoUpdate()
+{
+	if(IsLocallyControlled())
+	{
+		OnCarriedAmmoChanged.Broadcast(CarriedAmmo);
+	}
+
+	if(IsValid(ReloadMontage) && IsValid(AnimInstance))
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+	}
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Server_ActivateSpawnPad_Implementation()
 {
 	OnSpawnPadActivated();
@@ -740,7 +822,8 @@ void ABPE_PlayerCharacter::OnCurrentWeaponChanged()
 	{
 		if(IsLocallyControlled())
 		{
-			OnChangeCurrentWeaponDelegate.Broadcast(CurrentWeapon->GetDefaultColorType());
+			OnCarriedAmmoChanged.Broadcast(CarriedAmmo);
+			OnChangeCurrentWeaponDelegate.Broadcast(CurrentWeapon);
 		}
 
 		if(bIsUsingUltimate)
@@ -871,6 +954,8 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction("Pause",IE_Pressed, this, &ABPE_PlayerCharacter::PauseGame);
 
 	PlayerInputComponent->BindAction("Ultimate",IE_Pressed, this, &ABPE_PlayerCharacter::StartUltimate);
+
+	PlayerInputComponent->BindAction("Reload",IE_Pressed, this, &ABPE_PlayerCharacter::Reload);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -886,6 +971,7 @@ void ABPE_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentUltimateXP);
 	DOREPLIFETIME(ABPE_PlayerCharacter, CurrentUltimateDuration);
 	DOREPLIFETIME(ABPE_PlayerCharacter, bIsUsingUltimate);
+	DOREPLIFETIME_CONDITION(ABPE_PlayerCharacter, CarriedAmmo, COND_OwnerOnly);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -926,4 +1012,15 @@ void ABPE_PlayerCharacter::AddUltimateXP(float XPAmount)
 	OnUltimateValueUpdated();
 	
 	bCanUseUltimate = FMath::IsNearlyEqual(CurrentUltimateXP, MaxUltimateXP);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool ABPE_PlayerCharacter::TryReload()
+{
+	if(CarriedAmmo > 0)
+	{
+		Reload();
+		return true;
+	}
+	return false;
 }

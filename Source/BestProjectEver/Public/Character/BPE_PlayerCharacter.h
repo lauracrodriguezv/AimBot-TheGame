@@ -18,9 +18,11 @@ class ABPE_PlayerController;
 class ABPE_GameState;
 class UMaterialInstanceConstant;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCurrentWeapon, EColorType, WeaponColorType);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCurrentWeapon, const ABPE_Weapon*, CurrentWeapon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdate, const float, CurrentUltimate, const float, MaxUltimate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusChanged, const bool, bIsUsingUltimate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSpendWeaponRound, const int32, CurrentAmmo, const int32, MagCapacity);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCarriedAmmoChanged, const int32, CarriedAmmo);
 
 UCLASS()
 class BESTPROJECTEVER_API ABPE_PlayerCharacter : public ABPE_BaseCharacter, public IBPE_Damagable
@@ -59,6 +61,14 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnUltimateStatusChanged OnChangeUltimateStatus;
 
+	/** Delegate called when current weapon's ammo has changed */
+	UPROPERTY(BlueprintAssignable)
+	FOnSpendWeaponRound OnWeaponAmmoUpdate;
+
+	/** Delegate called when player carried ammo has changed */
+	UPROPERTY(BlueprintAssignable)
+	FOnCarriedAmmoChanged OnCarriedAmmoChanged;
+
 protected:
 	
 	/** Camera can be inverted or normal */
@@ -75,6 +85,14 @@ protected:
 	/** Ultimate behavior was activated */
 	UPROPERTY(ReplicatedUsing=OnRep_UsingUltimate, BlueprintReadOnly, Category="Ultimate")
 	uint8 bIsUsingUltimate : 1;
+
+	/** Extra ammo to reload weapon when mag is not full */
+	UPROPERTY(ReplicatedUsing=OnRep_CarriedAmmo, EditDefaultsOnly, Category="Ammo")
+	int32 CarriedAmmo;
+
+	/** Max ammo player can carried */
+	UPROPERTY(EditDefaultsOnly, Category="Ammo")
+	int32 MaxCarriedAmmo;
 	
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	float BaseTurnRate;
@@ -181,6 +199,10 @@ protected:
 	/** animation played on current weapon change */
 	UPROPERTY(EditDefaultsOnly, Category = "Animation")
 	TObjectPtr<UAnimMontage> SwapWeaponMontage;
+
+	/** animation played on player reload weapon */
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TObjectPtr<UAnimMontage> ReloadMontage;
 	
 	//------------------------------------------------------------------------------------------------------------------
 	// Sounds And Effects
@@ -257,6 +279,8 @@ protected:
 	void ActivateSpawnPad();
 
 	void StartUltimate();
+
+	void Reload();
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Ultimate
@@ -353,6 +377,22 @@ protected:
 	UFUNCTION()
 	void InterpolateFieldOfView(float DeltaSeconds);
 
+	/** [client] carried ammo rep handler */
+	UFUNCTION()
+	void OnRep_CarriedAmmo();
+
+	/** [server and client] called when current carried ammo changes */
+	void OnCarriedAmmoUpdate();
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Reload();
+
+	/** [server] reload current weapon */
+	void HandleReloading();
+
+	/** [server] reload current carried ammo taking dropped weapon's ammo */
+	void TakeWeaponAmmo(ABPE_Weapon* Weapon);
+
 	//------------------------------------------------------------------------------------------------------------------
 	//Inventory
 
@@ -423,4 +463,11 @@ public:
 	bool AreGameplayInputsEnabled() const;
 
 	void AddUltimateXP(float XPAmount);
+
+	int32 GetCarriedAmmo() const { return CarriedAmmo; }
+
+	/** [server] auto reloading if current weapon is out of ammo
+	 * @return true if reload was success 
+	 */
+	bool TryReload();
 };

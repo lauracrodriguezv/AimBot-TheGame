@@ -102,6 +102,30 @@ void UBPE_CharacterOverlay::UpdateEnemiesAliveText(const int32 EnemiesAlive)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+void UBPE_CharacterOverlay::UpdateCurrentWeaponAmmo(const int32 CurrentAmmo, const int32 MagCapacity)
+{
+	if(IsValid(AmmoTittle) && AmmoTittle->GetVisibility() == ESlateVisibility::Collapsed)
+	{
+		AmmoTittle->SetVisibility(ESlateVisibility::Visible);
+	}
+	if(IsValid(AmmoText))
+	{
+		const FString Text = FString::FromInt(CurrentAmmo);
+		AmmoText->SetText(FText::FromString(Text));		
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void UBPE_CharacterOverlay::UpdateCarriedAmmo(const int32 CarriedAmmo)
+{
+	const FString Text = FString::FromInt(CarriedAmmo);
+	if(IsValid(CarriedAmmoText))
+	{
+		CarriedAmmoText->SetText(FText::FromString(Text));	
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void UBPE_CharacterOverlay::SetIconRenderParameters(EColorType WeaponColorType)
 {
 	if(WeaponIcons.Contains(WeaponColorType))

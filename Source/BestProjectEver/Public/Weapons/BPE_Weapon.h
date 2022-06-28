@@ -315,7 +315,7 @@ public:
 	//Color Type
 	
 	/** change mesh color depending on color type */
-	virtual void UpdateMeshColorType(const EColorType ColorType) override;
+	virtual void OnColorTypeChanged(const EColorType ColorType) override;
 
 	/** get weapon color type */
 	virtual EColorType GetCurrentColorType() const override { return CurrentColorType; }

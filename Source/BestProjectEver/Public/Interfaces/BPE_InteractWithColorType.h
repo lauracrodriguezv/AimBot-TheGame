@@ -27,11 +27,11 @@ public:
 
 	virtual EColorType GetCurrentColorType() const { return EColorType::Blue; };
 
-	virtual void SetDefaultColorType(const EColorType ColorType) { UpdateMeshColorType(ColorType); }
+	virtual void SetDefaultColorType(const EColorType ColorType) { OnColorTypeChanged(ColorType); }
 
-	virtual void SetCurrentColorType(const EColorType ColorType) { UpdateMeshColorType(ColorType); }
+	virtual void SetCurrentColorType(const EColorType ColorType) { OnColorTypeChanged(ColorType); }
 
-	virtual void UpdateMeshColorType(const EColorType ColorType) PURE_VIRTUAL(IBPE_InteractWithColorType::UpdateMeshColor, ;)
+	virtual void OnColorTypeChanged(const EColorType ColorType) PURE_VIRTUAL(IBPE_InteractWithColorType::UpdateMeshColor, ;)
 
 	virtual void OnStopInteraction() PURE_VIRTUAL(IBPE_InteractWithColorType::OnStopInteraction, ;)
 };

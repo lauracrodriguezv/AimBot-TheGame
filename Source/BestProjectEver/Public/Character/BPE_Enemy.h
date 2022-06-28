@@ -170,7 +170,7 @@ public:
 	//Color Type
 
 	/** change mesh color depending on color type */
-	virtual void UpdateMeshColorType(const EColorType ColorType) override;
+	virtual void OnColorTypeChanged(const EColorType ColorType) override;
 	
 	/** get enemy color type */
 	virtual EColorType GetDefaultColorType() const override { return DefaultColorType; }

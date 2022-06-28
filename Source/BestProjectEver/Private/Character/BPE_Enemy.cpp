@@ -32,7 +32,7 @@ ABPE_Enemy::ABPE_Enemy()
 void ABPE_Enemy::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	UpdateMeshColorType(DefaultColorType);
+	OnColorTypeChanged(DefaultColorType);
 	UpdateMaterialOnEnemyStatus();
 }
 
@@ -119,7 +119,7 @@ void ABPE_Enemy::OnRep_EnemyStatus()
 //----------------------------------------------------------------------------------------------------------------------	
 void ABPE_Enemy::OnRep_ColorType()
 {
-	UpdateMeshColorType(DefaultColorType);
+	OnColorTypeChanged(DefaultColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------	
@@ -190,7 +190,7 @@ void ABPE_Enemy::SetDefaultColorType(const EColorType NewColorType)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Enemy::UpdateMeshColorType(const EColorType ColorType)
+void ABPE_Enemy::OnColorTypeChanged(const EColorType ColorType)
 {
 	if(IsValid(GetMesh()) && BodyMaterialColor.Contains(ColorType))
 	{

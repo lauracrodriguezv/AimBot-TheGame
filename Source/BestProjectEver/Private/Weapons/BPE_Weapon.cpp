@@ -71,7 +71,7 @@ void ABPE_Weapon::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	UpdateMeshColorType(DefaultColorType);
+	OnColorTypeChanged(DefaultColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -166,7 +166,7 @@ void ABPE_Weapon::SetState(EWeaponState State)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::UpdateMeshColorType(const EColorType ColorType)
+void ABPE_Weapon::OnColorTypeChanged(const EColorType ColorType)
 {
 	if(IsValid(WeaponMesh) && MaterialColor.Contains(ColorType))
 	{
@@ -531,7 +531,7 @@ void ABPE_Weapon::SetDefaultColorType(const EColorType ColorType)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_Weapon::OnRep_ColorType()
 {
-	UpdateMeshColorType(CurrentColorType);
+	OnColorTypeChanged(CurrentColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

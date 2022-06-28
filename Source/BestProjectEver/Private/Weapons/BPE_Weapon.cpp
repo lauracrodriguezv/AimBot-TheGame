@@ -306,7 +306,7 @@ void ABPE_Weapon::Fire()
 		ApplyDamageOnHit(HitResult);
 		if(IsValid(PlayerOwner))
 		{
-			UpdateAmmo();
+			RemoveAmmo(1);
 		}
 	}
 }
@@ -336,7 +336,7 @@ void ABPE_Weapon::ApplyDamageOnHit(const FHitResult& HitResult)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void ABPE_Weapon::UpdateAmmo(const int32 Ammo /* = -1 */)
+void ABPE_Weapon::UpdateAmmo(const int32 Ammo)
 {
 	CurrentAmmo = FMath::Clamp(CurrentAmmo + Ammo, 0.0f, MagCapacity);
 	OnAmmoChanged();
@@ -513,6 +513,12 @@ void ABPE_Weapon::OnDropped()
 void ABPE_Weapon::OnReloading(const int32 AmmoReloaded)
 {
 	UpdateAmmo(AmmoReloaded);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::RemoveAmmo(const int32 AmmoAmount)
+{
+	UpdateAmmo(-AmmoAmount);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

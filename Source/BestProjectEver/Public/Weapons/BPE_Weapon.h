@@ -290,7 +290,7 @@ protected:
 	/** [server] update current weapon ammo
 	 * @param Ammo ammunition reloaded or removed to current weapon
 	 */
-	void UpdateAmmo(const int32 Ammo = -1);
+	void UpdateAmmo(const int32 Ammo);
 	
 	UFUNCTION()
 	void OnRep_CurrentAmmo();
@@ -316,6 +316,9 @@ public:
 	 * @param AmmoReloaded ammunition reloaded or removed to current weapon
 	 */
 	void OnReloading(const int32 AmmoReloaded);
+
+	/** Ammunition taken from current weapon */
+	void RemoveAmmo(const int32 AmmoAmount);
 	
 	/** get current weapon state */
 	EWeaponState GetCurrentState() const { return CurrentState; }

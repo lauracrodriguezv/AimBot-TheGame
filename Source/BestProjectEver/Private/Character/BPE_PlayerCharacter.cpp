@@ -642,7 +642,7 @@ void ABPE_PlayerCharacter::TakeWeaponAmmo(ABPE_Weapon* Weapon)
 		CarriedAmmo = FMath::Clamp(CarriedAmmo + AmmoToReload, 0, MaxCarriedAmmo);
 		OnCarriedAmmoUpdate();
 		
-		Weapon->OnReloading(-AmmoToReload);
+		Weapon->RemoveAmmo(AmmoToReload);
 	}
 }
 

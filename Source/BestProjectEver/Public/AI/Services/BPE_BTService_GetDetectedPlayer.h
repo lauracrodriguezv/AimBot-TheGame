@@ -25,15 +25,6 @@ protected:
 	/** target detected by controller location */
 	UPROPERTY(EditAnywhere, Category="Blackboard")
 	FName TargetLocationName;
-
-	UPROPERTY(Transient)
-	TObjectPtr<AAIController> AIController;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UBlackboardComponent> BlackboardComponent;
-
-	UPROPERTY(Transient)
-	TObjectPtr<ABPE_Enemy> EnemyOwner;
 	
 public:
 
@@ -43,13 +34,11 @@ protected:
 
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
-	virtual void OnSearchStart(FBehaviorTreeSearchData& SearchData) override;
-
 	/** update blackboard keys */
-	void SetBlackboardKeyValues(const TArray<AActor*>& PerceivedActors);
+	void SetBlackboardKeyValues(UBlackboardComponent* BlackboardComponent, const TArray<AActor*>& PerceivedActors) const;
 
 	/** reset blackboard keys */
-	void ResetBlackboardKeysValues();
+	void ResetBlackboardKeysValues(UBlackboardComponent* BlackboardComponent) const;
 
 public:
 	

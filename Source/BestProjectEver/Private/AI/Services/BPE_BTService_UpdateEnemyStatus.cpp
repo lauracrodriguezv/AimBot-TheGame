@@ -16,21 +16,17 @@ UBPE_BTService_UpdateEnemyStatus::UBPE_BTService_UpdateEnemyStatus()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_BTService_UpdateEnemyStatus::OnSearchStart(FBehaviorTreeSearchData& SearchData)
+void UBPE_BTService_UpdateEnemyStatus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	Super::OnSearchStart(SearchData);
+	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	AIController = SearchData.OwnerComp.GetAIOwner();
+	AAIController* AIController = OwnerComp.GetAIOwner();
+
+	ABPE_Enemy* EnemyOwner = nullptr;
 	if(IsValid(AIController))
 	{
 		EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
 	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void UBPE_BTService_UpdateEnemyStatus::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
-{
-	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 	
 	if(IsValid(AIController) && IsValid(EnemyOwner))
 	{

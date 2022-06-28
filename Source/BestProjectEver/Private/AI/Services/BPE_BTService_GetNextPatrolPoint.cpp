@@ -16,7 +16,6 @@ UBPE_BTService_GetNextPatrolPoint::UBPE_BTService_GetNextPatrolPoint()
 	PathPatrolReferenceName = "PathPatrolReference";
 	NextPatrolPointLocationName = "NextPatrolPointLocation";
 	PatrolIndexName = "PatrolIndex";
-	PatrolIndex = 0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -24,30 +23,21 @@ void UBPE_BTService_GetNextPatrolPoint::OnSearchStart(FBehaviorTreeSearchData& S
 {
 	Super::OnSearchStart(SearchData);
 
-	BlackboardComponent = SearchData.OwnerComp.GetBlackboardComponent();
-	
-	const AAIController* AIController = SearchData.OwnerComp.GetAIOwner();
-	if(IsValid(AIController))
-	{
-		EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
-	}
-	
-	GetBlackboardKeyValues();
-	SetNextPatrolPointLocation();
-}
+	UBlackboardComponent* BlackboardComponent = SearchData.OwnerComp.GetBlackboardComponent();
 
-//----------------------------------------------------------------------------------------------------------------------
-void UBPE_BTService_GetNextPatrolPoint::GetBlackboardKeyValues()
-{
+	const ABPE_PathFollowing* PathPatrolReference = nullptr;
+	int32 PatrolIndex = 0;
 	if(IsValid(BlackboardComponent))
 	{
 		PathPatrolReference = Cast<ABPE_PathFollowing>(BlackboardComponent->GetValueAsObject(PathPatrolReferenceName));
 		PatrolIndex = BlackboardComponent->GetValueAsInt(PatrolIndexName);
 	}
+	
+	SetNextPatrolPointLocation(BlackboardComponent, PathPatrolReference, PatrolIndex);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_BTService_GetNextPatrolPoint::SetNextPatrolPointLocation()
+void UBPE_BTService_GetNextPatrolPoint::SetNextPatrolPointLocation(UBlackboardComponent* BlackboardComponent, const ABPE_PathFollowing* PathPatrolReference, int32 PatrolIndex)
 {
 	if(IsValid(BlackboardComponent) && IsValid(PathPatrolReference))
 	{

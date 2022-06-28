@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AI/BPE_PatrolPath.h"
 #include "BehaviorTree/BTService.h"
 #include "BPE_BTService_GetNextPatrolPoint.generated.h"
 
@@ -19,9 +20,6 @@ class BESTPROJECTEVER_API UBPE_BTService_GetNextPatrolPoint : public UBTService
 
 protected:
 
-	/** next point index of path patrol */
-	int PatrolIndex;
-
 	/** path key enemy follows */
 	UPROPERTY(EditAnywhere, Category="Blackboard")
 	FName PathPatrolReferenceName;
@@ -34,15 +32,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Blackboard")
 	FName PatrolIndexName;
 
-	UPROPERTY(Transient)
-	TObjectPtr<ABPE_PathFollowing> PathPatrolReference;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UBlackboardComponent> BlackboardComponent;
-
-	UPROPERTY(Transient)
-	TObjectPtr<ABPE_Enemy> EnemyOwner;
-
 public:
 
 	UBPE_BTService_GetNextPatrolPoint();
@@ -51,9 +40,7 @@ protected:
 
 	virtual void OnSearchStart(FBehaviorTreeSearchData& SearchData) override;
 
-	void GetBlackboardKeyValues();
-
-	void SetNextPatrolPointLocation();
+	void SetNextPatrolPointLocation(UBlackboardComponent* BlackboardComponent, const ABPE_PathFollowing* PathPatrolReference, int32 PatrolIndex);
 
 public:
 	

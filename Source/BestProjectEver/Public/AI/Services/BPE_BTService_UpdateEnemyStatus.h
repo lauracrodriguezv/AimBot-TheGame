@@ -14,22 +14,12 @@ UCLASS()
 class BESTPROJECTEVER_API UBPE_BTService_UpdateEnemyStatus : public UBTService
 {
 	GENERATED_BODY()
-
-protected:
-
-	UPROPERTY(Transient)
-	TObjectPtr<AAIController> AIController;
-
-	UPROPERTY(Transient)
-	TObjectPtr<ABPE_Enemy> EnemyOwner;
 	
 public:
 
 	UBPE_BTService_UpdateEnemyStatus();
 	
 protected:
-
-	virtual void OnSearchStart(FBehaviorTreeSearchData& SearchData) override;
 	
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 

@@ -20,22 +20,18 @@ UBPE_BTService_GetDetectedTarget::UBPE_BTService_GetDetectedTarget()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_BTService_GetDetectedTarget::OnSearchStart(FBehaviorTreeSearchData& SearchData)
-{
-	Super::OnSearchStart(SearchData);
-
-	AIController = SearchData.OwnerComp.GetAIOwner();
-	if(IsValid(AIController))
-	{
-		BlackboardComponent = SearchData.OwnerComp.GetBlackboardComponent();
-		EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void UBPE_BTService_GetDetectedTarget::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
+
+	AAIController* AIController = OwnerComp.GetAIOwner();
+	UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
+
+	const ABPE_Enemy* EnemyOwner = nullptr;
+	if(IsValid(AIController))
+	{
+		EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
+	}
 	
 	if(IsValid(EnemyOwner))
 	{
@@ -47,22 +43,22 @@ void UBPE_BTService_GetDetectedTarget::TickNode(UBehaviorTreeComponent& OwnerCom
 			AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Hearing::StaticClass(), PerceivedActors);
 			if(PerceivedActors.IsEmpty())
 			{
-				ResetBlackboardKeysValues();
+				ResetBlackboardKeysValues(BlackboardComponent);
 			}
 			else
 			{
-				SetBlackboardKeyValues(PerceivedActors);
+				SetBlackboardKeyValues(BlackboardComponent, PerceivedActors);
 			}
 		}
 		else
 		{
-			SetBlackboardKeyValues(PerceivedActors);
+			SetBlackboardKeyValues(BlackboardComponent, PerceivedActors);
 		}
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_BTService_GetDetectedTarget::SetBlackboardKeyValues(const TArray<AActor*>& PerceivedActors)
+void UBPE_BTService_GetDetectedTarget::SetBlackboardKeyValues(UBlackboardComponent* BlackboardComponent, const TArray<AActor*>& PerceivedActors) const
 {
 	for (AActor* PerceivedActor : PerceivedActors)
 	{
@@ -76,7 +72,7 @@ void UBPE_BTService_GetDetectedTarget::SetBlackboardKeyValues(const TArray<AActo
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_BTService_GetDetectedTarget::ResetBlackboardKeysValues()
+void UBPE_BTService_GetDetectedTarget::ResetBlackboardKeysValues(UBlackboardComponent* BlackboardComponent) const
 {
 	if(IsValid(BlackboardComponent))
 	{

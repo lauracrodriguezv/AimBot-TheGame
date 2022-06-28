@@ -341,7 +341,16 @@ void ABPE_PlayerCharacter::OnIsAimingChanged()
 	
 	if(IsLocallyControlled())
 	{
-		UMaterialInterface* PlayerMaterial = bIsAiming ? PlayerAimMaterialInstanceConstant : bIsUsingUltimate? RainbowMaterialInstanceConstant : DefaultPlayerMaterial;
+		UMaterialInterface* PlayerMaterial;
+		if(bIsAiming)
+		{
+			PlayerMaterial = PlayerAimMaterialInstanceConstant;
+		}
+		else
+		{
+			PlayerMaterial = bIsUsingUltimate? RainbowMaterialInstance : DefaultPlayerMaterial;
+		}
+		
 		if(GetMesh())
 		{
 			GetMesh()->SetMaterial(0, PlayerMaterial);
@@ -435,7 +444,7 @@ void ABPE_PlayerCharacter::Interact()
 		if(IsValid(OverlappingSpawnPad))
 		{
 			ActivateSpawnPad();
-		}	
+		}
 	}
 }
 
@@ -455,13 +464,16 @@ void ABPE_PlayerCharacter::ActivateSpawnPad()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::StartUltimate()
 {
-	if(HasAuthority())
+	if(AreGameplayInputsEnabled())
 	{
-		HandleUltimateStart();
-	}
-	else
-	{
-		Server_StartUltimate();
+		if(HasAuthority())
+		{
+			HandleUltimateStart();
+		}
+		else
+		{
+			Server_StartUltimate();
+		}
 	}
 }
 
@@ -557,7 +569,7 @@ void ABPE_PlayerCharacter::OnIsUsingUltimateChanged()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::PlayUltimateEffects()
 {
-	UMaterialInterface* PlayerMaterial = bIsUsingUltimate ? RainbowMaterialInstanceConstant : DefaultPlayerMaterial;
+	UMaterialInterface* PlayerMaterial = bIsUsingUltimate ? RainbowMaterialInstance : DefaultPlayerMaterial;
 	if(GetMesh())
 	{
 		GetMesh()->SetMaterial(0, PlayerMaterial);
@@ -568,7 +580,7 @@ void ABPE_PlayerCharacter::PlayUltimateEffects()
 		if(IsValid(UltimateEffect))
 		{
 			const FVector UltimateEffectSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200.0f);
-			UltimateParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), UltimateEffect, UltimateEffectSpawnPoint, GetActorRotation());
+			UltimateParticleComponent = UGameplayStatics::SpawnEmitterAttached(UltimateEffect, GetMesh(), NAME_None, UltimateEffectSpawnPoint);
 		}
 
 		if(IsValid(UltimateSound))
@@ -905,7 +917,7 @@ bool ABPE_PlayerCharacter::AreGameplayInputsEnabled() const
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::AddUltimateXP(float XPAmount)
 {
-	if(bCanUseUltimate || bIsUsingUltimate)
+	if(bIsUsingUltimate)
 	{
 		return;
 	}

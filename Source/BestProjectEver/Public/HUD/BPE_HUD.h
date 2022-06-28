@@ -84,9 +84,11 @@ protected:
 	UFUNCTION()
 	void UpdateHealth(const FHealthData& HealthData);
 
+	/** update ultimate value on character overlay widget */
 	UFUNCTION()
 	void UpdateUltimateValue(const float CurrentUltimateValue, const float MaxUltimateValue);
 
+	/** update character overlay widget when ultimate is activated */
 	UFUNCTION()
 	void UpdateUltimateStatus(const bool bIsUsingUltimate);
 

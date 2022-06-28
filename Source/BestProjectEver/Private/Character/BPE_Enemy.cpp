@@ -186,7 +186,7 @@ FRotator ABPE_Enemy::GetViewRotation() const
 void ABPE_Enemy::SetDefaultColorType(const EColorType NewColorType)
 {
 	DefaultColorType = NewColorType;
-	IBPE_InteractWithColorType::SetCurrentColorType(NewColorType);
+	IBPE_InteractWithColorType::SetDefaultColorType(NewColorType);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

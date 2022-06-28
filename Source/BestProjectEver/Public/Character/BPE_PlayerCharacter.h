@@ -146,7 +146,7 @@ protected:
 
 	/** Rainbow material uses when is using ultimate */
 	UPROPERTY(EditDefaultsOnly, Category="Materials")
-	TObjectPtr<UMaterialInstanceConstant> RainbowMaterialInstanceConstant;
+	TObjectPtr<UMaterialInstanceConstant> RainbowMaterialInstance;
 
 	/** Translucent material uses when mesh blocks the visibility */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Materials")

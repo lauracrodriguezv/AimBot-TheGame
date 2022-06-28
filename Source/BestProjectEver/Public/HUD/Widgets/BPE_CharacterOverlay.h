@@ -118,7 +118,7 @@ protected:
 
 	/** image overlay on ultimate */
 	UPROPERTY(meta = (BindWidget))
-	UImage* UltimateBackground;
+	TObjectPtr<UImage> UltimateBackground;
 
 protected:
 
@@ -138,7 +138,7 @@ public:
 	
 	void UpdateHealthDisplay(float Health, float MaxHealth);
 
-	/** show the player when he lacks to be able to activate the ultimate */
+	/** show the player current value of ultimate */
 	void UpdateUltimateDisplay(const float CurrentUltimateValue, const float MaxUltimateValue);
 
 	void SetBackgroundVisibilityOnUltimate(bool bIsUsingUltimate);

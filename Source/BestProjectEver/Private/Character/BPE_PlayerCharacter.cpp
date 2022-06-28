@@ -591,7 +591,7 @@ void ABPE_PlayerCharacter::PlayUltimateEffects()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::Reload()
 {
-	if(AreGameplayInputsEnabled() && IsValid(CurrentWeapon) && CarriedAmmo > 0)
+	if(AreGameplayInputsEnabled() && CarriedAmmo > 0)
 	{
 		if(HasAuthority())
 		{

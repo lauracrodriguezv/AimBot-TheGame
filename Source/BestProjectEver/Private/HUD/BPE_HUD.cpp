@@ -175,7 +175,7 @@ void ABPE_HUD::UpdatePauseMenu(EPauseState PauseState)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_HUD::UpdateCurrentWeaponInformation(const ABPE_Weapon* CurrentWeapon)
 {
-	if(IsValid(CharacterOverlay))
+	if(IsValid(CharacterOverlay) && IsValid(CurrentWeapon))
 	{
 		CharacterOverlay->UpdateWeaponIcons(CurrentWeapon->GetDefaultColorType());
 		CharacterOverlay->UpdateCurrentWeaponAmmo(CurrentWeapon->GetCurrentAmmo(), CurrentWeapon->GetMagCapacity());

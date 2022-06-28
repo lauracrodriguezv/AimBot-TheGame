@@ -109,7 +109,7 @@ protected:
 	UPROPERTY(ReplicatedUsing=OnRep_CurrentAmmo, BlueprintReadOnly, Category="Ammo")
 	int32 CurrentAmmo;
 
-	/** Max ammunition weapon can carried */
+	/** Max ammunition weapon can hold */
 	UPROPERTY(EditAnywhere, Category="Ammo")
 	int32 MagCapacity;
 
@@ -288,7 +288,7 @@ protected:
 	//Ammo
 
 	/** [server] update current weapon ammo
-	 * @param Ammo ammunition reloaded to current weapon or removed
+	 * @param Ammo ammunition reloaded or removed to current weapon
 	 */
 	void UpdateAmmo(const int32 Ammo = -1);
 	
@@ -313,7 +313,7 @@ public:
 	void OnDropped();
 
 	/** [server] update current weapon ammo
-	 * @param AmmoReloaded ammunition reloaded to current weapon or removed
+	 * @param AmmoReloaded ammunition reloaded or removed to current weapon
 	 */
 	void OnReloading(const int32 AmmoReloaded);
 	
@@ -336,7 +336,7 @@ public:
 	/** Weapon does not have ammo */
 	bool IsEmpty() const;
 
-	/** Weapon has all ammunition it can carried */
+	/** Weapon has all ammunition it can hold */
 	bool IsMagFull() const;
 	
 	//------------------------------------------------------------------------------------------------------------------

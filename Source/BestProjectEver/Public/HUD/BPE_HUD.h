@@ -125,7 +125,7 @@ protected:
 
 	/** Update ammo value text
 	 * @param CurrentAmmo The total ammo current weapon has
-	 * @param MagCapacity The max total ammo current weapon can holding 
+	 * @param MagCapacity The max total ammo current weapon can hold
 	 */
 	UFUNCTION()
 	void UpdateWeaponAmmo(const int32 CurrentAmmo, const int32 MagCapacity);

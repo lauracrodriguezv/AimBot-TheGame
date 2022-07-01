@@ -18,6 +18,8 @@ class USoundCue;
 class UMaterialInstanceConstant;
 class USoundBase;
 class ABPE_PlayerCharacter;
+class ABPE_Enemy;
+class UBPE_PromptWidget;
 
 UENUM(BlueprintType)
 enum class EWeaponState : uint8
@@ -86,6 +88,12 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<ABPE_PlayerCharacter> PlayerOwner;
+
+	UPROPERTY(Transient)
+	TObjectPtr<ABPE_Enemy> EnemyOwner;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UBPE_PromptWidget> PromptWidget;
 	
 	/** current weapon state */
 	UPROPERTY(ReplicatedUsing=OnRep_WeaponState)
@@ -152,6 +160,9 @@ protected:
 
 	/** Handle for efficient management of Firing timer */
 	FTimerHandle TimerHandle_AutoFire;
+	
+	/** Handle for efficient management of Hiding widget */
+	FTimerHandle TimerHandle_HideWidget;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Animation
@@ -274,6 +285,11 @@ protected:
 
 	/** [server and client] on owner is set */ 
 	void OnSetNewOwner();
+
+	FVector GetShootTraceEnd();
+
+	UFUNCTION()
+	void HidePickupWidget();
 	
 	//------------------------------------------------------------------------------------------------------------------
 	//Effects 

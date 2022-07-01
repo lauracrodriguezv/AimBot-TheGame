@@ -28,7 +28,7 @@ protected:
 	float CurrentHealth;
 
 	/** actor who applied damage in any way to this actor */
-	UPROPERTY(Transient)
+	UPROPERTY(Replicated, Transient)
 	TObjectPtr<AActor> DamageCauserActor;
 	
 public:	
@@ -77,4 +77,6 @@ public:
 	bool IsDead() const { return bIsDead; }
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	AActor* GetDamageCauser() const { return DamageCauserActor; }
 };

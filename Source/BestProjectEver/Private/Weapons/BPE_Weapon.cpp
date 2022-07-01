@@ -3,11 +3,13 @@
 
 #include "Weapons/BPE_Weapon.h"
 
+#include "AIController.h"
 #include "BestProjectEver/BestProjectEver.h"
 #include "Character/BPE_Enemy.h"
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Core/GameModes/BPE_LobbyGameMode.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "ImageWriteQueue/Public/ImagePixelData.h"
@@ -15,6 +17,9 @@
 #include "Weapons/BPE_Casing.h"
 #include "Weapons/BPE_Projectile.h"
 #include "Sound/SoundCue.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "HUD/Widgets/BPE_PromptWidget.h"
+#include "HUD/Widgets/BPE_PromptWidget.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 ABPE_Weapon::ABPE_Weapon()
@@ -52,7 +57,7 @@ ABPE_Weapon::ABPE_Weapon()
 	bIsAutomatic = false;
 
 	ZoomedFOV = 30.0f;
-	ZoomInterpSpeed = 20.0f;
+	ZoomInterpSpeed = 15.0f;
 
 	ShootType = EShootType::LineTrace;
 	MinDistanceToImpactPoint = 300.0f;
@@ -101,6 +106,11 @@ void ABPE_Weapon::InitializeReferences()
 	TimeBetweenShots = 60.0f / RoundsPerMinute;
 
 	CurrentAmmo = MagCapacity;
+	
+	if(IsValid(PickupWidget->GetUserWidgetObject()))
+	{
+		PromptWidget = Cast<UBPE_PromptWidget>(PickupWidget->GetUserWidgetObject());
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -268,8 +278,8 @@ void ABPE_Weapon::UpdatePhysicsProperties(ECollisionEnabled::Type MeshTypeCollis
 void ABPE_Weapon::Fire()
 {
 	FHitResult HitResult;
-
 	TraceUnderCrosshairs(HitResult);
+	
 	const FVector MuzzleLocation = HitResult.TraceStart;
 	Multicast_PlayMuzzleFireEffects(MuzzleLocation);
 	
@@ -386,8 +396,16 @@ void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult)
 		const FVector TraceDirection = EyeRotation.Vector();
 		/** This additional distance is to prevent the shoot hit something behind the character */
 		TraceStart += TraceDirection * (DistanceToPlayer + ExtraDistance);
-		
-		const FVector TraceEnd = EyeLocation + (TraceDirection * ShotDistance);
+
+		FVector TraceEnd;
+		if(IsValid(EnemyOwner))
+		{
+			TraceEnd = GetShootTraceEnd();
+		}
+		else
+		{
+			TraceEnd = EyeLocation + (TraceDirection * ShotDistance);
+		}
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(OwnerCharacter);
@@ -396,6 +414,27 @@ void ABPE_Weapon::TraceUnderCrosshairs(FHitResult& OutHitResult)
 
 		GetWorld()->LineTraceSingleByChannel(OutHitResult, TraceStart, TraceEnd, ECC_Weapon, QueryParams);
 	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+FVector ABPE_Weapon::GetShootTraceEnd()
+{
+	AAIController* AIController = Cast<AAIController>(EnemyOwner->GetController());
+	if(IsValid(AIController))
+	{
+		const UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent();
+		if(IsValid(BlackboardComponent))
+		{
+			const AActor* Target = Cast<AActor>(BlackboardComponent->GetValueAsObject("TargetReference"));
+			if(IsValid(Target))
+			{
+				const uint8 RandomShoot = FMath::RandRange(0, 200);
+				return Target->GetActorLocation() + (FMath::VRand() * RandomShoot);
+			}
+		}
+	}
+	return FVector();
+	
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -431,11 +470,11 @@ void ABPE_Weapon::HandleReFiring()
 	else
 	{
 		GetWorldTimerManager().ClearTimer(TimerHandle_AutoFire);
-	}
 
-	if(IsEmpty() && IsValid(PlayerOwner))
-	{
-		PlayerOwner->TryReload();
+		if(IsValid(PlayerOwner) && IsEmpty())
+		{
+			PlayerOwner->TryReload();
+		}
 	}
 }
 
@@ -476,6 +515,7 @@ void ABPE_Weapon::OnSetNewOwner()
 {
 	OwnerCharacter = Cast<ABPE_BaseCharacter>(Owner);
 	PlayerOwner = Cast<ABPE_PlayerCharacter>(Owner);
+	EnemyOwner = Cast<ABPE_Enemy>(Owner);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -502,10 +542,17 @@ void ABPE_Weapon::OnDropped()
 	SetOwner(nullptr);
 	SetState(EWeaponState::Idle);
 	CurrentColorType = DefaultColorType;
-	
-	if(IsValid(WeaponMesh))
+
+	if(GetWorld()->GetAuthGameMode<AGameModeBase>()->IsA(ABPE_LobbyGameMode::StaticClass()))
 	{
-		WeaponMesh->AddImpulse(FMath::VRand() * ImpulseOnDropped, NAME_None, true);
+		OnStopInteraction();
+	}
+	else
+	{
+		if(IsValid(WeaponMesh))
+		{
+			WeaponMesh->AddImpulse(FMath::VRand() * ImpulseOnDropped, NAME_None, true);
+		}	
 	}
 }
 
@@ -612,6 +659,28 @@ void ABPE_Weapon::SetWidgetVisibility(bool bShowWidget)
 	if(IsValid(PickupWidget))
 	{
 		PickupWidget->SetVisibility(bShowWidget);
+		GetWorldTimerManager().SetTimer(TimerHandle_HideWidget, this, &ABPE_Weapon::HidePickupWidget, 4.0f);
+	}
+
+	if(IsValid(PromptWidget))
+	{
+		if(IsEmpty())
+		{
+			PromptWidget->SetPromptInformation(FString("Empty"));	
+		}
+		else
+		{
+			PromptWidget->SetPromptInformation((FString("Current ammo: ") + FString::FromInt(CurrentAmmo)));
+		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_Weapon::HidePickupWidget()
+{
+	if(IsValid(PickupWidget))
+	{
+		PickupWidget->SetVisibility(false);
 	}
 }
 

@@ -117,6 +117,10 @@ protected:
 	UFUNCTION()
 	void AddResultsOverlay();
 
+	/** Remove Results overlay widget to the viewport */
+	UFUNCTION()
+	void RemoveResultsOverlay();
+
 	/** update player score on player state score changed */
 	UFUNCTION()
 	void UpdateScore(const float Score);

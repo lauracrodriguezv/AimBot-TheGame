@@ -58,6 +58,11 @@ void ABPE_HUD::BindDelegates()
 			PlayerStateReference->OnScoreChanged.AddDynamic(this, &ABPE_HUD::UpdateScore);
 		}
 	}
+
+	if(IsValid(PlayerStateReference))
+	{
+		UpdateScore(PlayerStateReference->GetScore());
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -241,6 +246,7 @@ void ABPE_HUD::UpdateOverlay(const FName NewMatchState)
 	MatchState = NewMatchState;
 	if (MatchState == MatchState::WaitingToStart)
 	{
+		RemoveResultsOverlay();
 		AddAnnouncementOverlay();
 	}
 	else if (MatchState == MatchState::InProgress)
@@ -288,6 +294,15 @@ void ABPE_HUD::AddResultsOverlay()
 			ResultsOverlay->ShowMatchResult(GameStateReference->GetMatchResult());
 			ResultsOverlay->ShowTopScoringPlayers(GameStateReference->GetTopScoringPlayers());	
 		}
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_HUD::RemoveResultsOverlay()
+{
+	if(IsValid(ResultsOverlay))
+	{
+		ResultsOverlay->RemoveFromParent();
 	}
 }
 

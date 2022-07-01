@@ -75,7 +75,7 @@ void ABPE_GameplayGameMode::HandleCooldownTime()
 {
 	if(TimeLeft <= 0.0f)
 	{
-		GetWorld()->ServerTravel(FString("/Game/Maps/Gameplay?listen"));
+		GetWorld()->ServerTravel(FString("/Game/Maps/GameplayMap?listen"));
 	}
 }
 

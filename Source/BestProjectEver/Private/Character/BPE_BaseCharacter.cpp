@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/PawnNoiseEmitterComponent.h"
 #include "Core/GameModes/BPE_GameplayGameMode.h"
+#include "Core/GameModes/BPE_LobbyGameMode.h"
 #include "GameElements/BPE_HealingArea.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
@@ -45,11 +46,17 @@ void ABPE_BaseCharacter::BeginPlay()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_BaseCharacter::HandleCharacterDeath(AActor* DamagedActor, AController* InstigatedBy, AActor* DamageCauser)
 {
-	ABPE_GameplayGameMode* GameplayGameMode = GetWorld()->GetAuthGameMode<ABPE_GameplayGameMode>();
-	if(IsValid(GameplayGameMode))
-	{		
+	if(IsValid( GetWorld()->GetAuthGameMode<ABPE_GameplayGameMode>()))
+	{
+		ABPE_GameplayGameMode* GameplayGameMode = GetWorld()->GetAuthGameMode<ABPE_GameplayGameMode>();
 		GameplayGameMode->OnCharacterDeath(InstigatedBy, GetController(), this);
-	}	
+	}
+	else if(IsValid(GetWorld()->GetAuthGameMode<ABPE_LobbyGameMode>()))
+	{
+		ABPE_LobbyGameMode* LobbyGameMode = GetWorld()->GetAuthGameMode<ABPE_LobbyGameMode>();
+		LobbyGameMode->OnCharacterDeath(InstigatedBy, GetController(), this);
+	}
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------

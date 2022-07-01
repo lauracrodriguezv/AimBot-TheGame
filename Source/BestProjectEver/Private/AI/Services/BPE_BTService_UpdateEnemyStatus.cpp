@@ -36,7 +36,7 @@ void UBPE_BTService_UpdateEnemyStatus::TickNode(UBehaviorTreeComponent& OwnerCom
 			TArray<AActor*> PerceivedActors;
 			AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Hearing::StaticClass(), PerceivedActors);
 
-			if(!PerceivedActors.IsEmpty())
+			if(!PerceivedActors.IsEmpty() && EnemyOwner->CanInvestigate())
 			{
 				EnemyOwner->SetEnemyStatus(EEnemyStatus::Investigating);
 			}

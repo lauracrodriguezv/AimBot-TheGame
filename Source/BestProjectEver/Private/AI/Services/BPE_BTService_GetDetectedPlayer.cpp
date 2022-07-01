@@ -6,7 +6,9 @@
 #include "Character/BPE_Enemy.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Components/BPE_HealthComponent.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISense_Damage.h"
 #include "Perception/AISense_Hearing.h"
 #include "Perception/AISense_Sight.h"
 
@@ -26,49 +28,98 @@ void UBPE_BTService_GetDetectedTarget::TickNode(UBehaviorTreeComponent& OwnerCom
 
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent();
-
-	const ABPE_Enemy* EnemyOwner = nullptr;
-	if(IsValid(AIController))
-	{
-		EnemyOwner = Cast<ABPE_Enemy>(AIController->GetPawn());
-	}
 	
-	if(IsValid(EnemyOwner))
+	TArray<AActor*> PerceivedTargets;
+
+	if(!TrySetSeenTarget(AIController, PerceivedTargets, BlackboardComponent))
 	{
-		TArray<AActor*> PerceivedActors;
-		
-		AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Sight::StaticClass(), PerceivedActors);
-		if(PerceivedActors.IsEmpty())
-		{			
-			AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Hearing::StaticClass(), PerceivedActors);
-			if(PerceivedActors.IsEmpty())
+		if(!TryGetDamageCauserLocation(AIController, PerceivedTargets, BlackboardComponent))
+		{
+			if(!TryGetHeardLocation(AIController, PerceivedTargets, BlackboardComponent))
 			{
 				ResetBlackboardKeysValues(BlackboardComponent);
-			}
-			else
-			{
-				SetBlackboardKeyValues(BlackboardComponent, PerceivedActors);
-			}
-		}
-		else
-		{
-			SetBlackboardKeyValues(BlackboardComponent, PerceivedActors);
+			}	
 		}
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void UBPE_BTService_GetDetectedTarget::SetBlackboardKeyValues(UBlackboardComponent* BlackboardComponent, const TArray<AActor*>& PerceivedActors) const
+bool UBPE_BTService_GetDetectedTarget::TrySetSeenTarget(AAIController* AIController, TArray<AActor*>& PerceivedTargets,
+	UBlackboardComponent* BlackboardComponent)
 {
-	for (AActor* PerceivedActor : PerceivedActors)
+	if(IsValid(AIController))
 	{
-		if(IsValid(PerceivedActor) && IsValid(BlackboardComponent))
+		AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Sight::StaticClass(), PerceivedTargets);
+		if(!PerceivedTargets.IsEmpty())
 		{
-			BlackboardComponent->SetValueAsObject(TargetReferenceName, PerceivedActor);
-			BlackboardComponent->SetValueAsVector(TargetLocationName, PerceivedActor->GetActorLocation());
-			break;
-		}
+			for (AActor* PerceivedActor : PerceivedTargets)
+			{
+				if(IsValid(PerceivedActor) && IsValid(BlackboardComponent))
+				{
+					BlackboardComponent->SetValueAsObject(TargetReferenceName, PerceivedActor);
+					BlackboardComponent->SetValueAsVector(TargetLocationName, PerceivedActor->GetActorLocation());
+					break;
+				}
+			}
+			return true;
+		}	
 	}
+	return false;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool UBPE_BTService_GetDetectedTarget::TryGetHeardLocation(AAIController* AIController, TArray<AActor*>& PerceivedTargets,
+	UBlackboardComponent* BlackboardComponent)
+{
+	if(IsValid(AIController))
+	{
+		AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Hearing::StaticClass(), PerceivedTargets);
+		if(!PerceivedTargets.IsEmpty())
+		{
+			for (AActor* PerceivedActor : PerceivedTargets)
+			{
+				if(IsValid(PerceivedActor) && IsValid(BlackboardComponent))
+				{
+					BlackboardComponent->SetValueAsVector(TargetLocationName, PerceivedActor->GetActorLocation());
+					break;
+				}
+			}
+			return true;
+		}	
+	}
+	return false;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+bool UBPE_BTService_GetDetectedTarget::TryGetDamageCauserLocation(AAIController* AIController, TArray<AActor*>& PerceivedTargets,
+	UBlackboardComponent* BlackboardComponent)
+{
+	if(IsValid(AIController))
+	{
+		AIController->GetAIPerceptionComponent()->GetKnownPerceivedActors(UAISense_Damage::StaticClass(), PerceivedTargets);
+		if(!PerceivedTargets.IsEmpty())
+		{
+			for (AActor* PerceivedActor : PerceivedTargets)
+			{
+				if(IsValid(PerceivedActor) && IsValid(BlackboardComponent))
+				{
+					const ABPE_Enemy* Enemy = Cast<ABPE_Enemy>(AIController->GetPawn());
+					if(IsValid(Enemy))
+					{
+						AActor* DamageCauser = Enemy->GetHealthComponent()->GetDamageCauser();
+						if(IsValid(DamageCauser))
+						{
+							BlackboardComponent->SetValueAsObject(TargetReferenceName, DamageCauser);
+							BlackboardComponent->SetValueAsVector(TargetLocationName, DamageCauser->GetActorLocation());	
+						}
+					}
+					break;
+				}
+			}
+			return true;
+		}	
+	}
+	return false;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

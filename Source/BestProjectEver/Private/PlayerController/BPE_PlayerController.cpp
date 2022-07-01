@@ -5,6 +5,7 @@
 
 #include "Character/BPE_PlayerCharacter.h"
 #include "Core/GameModes/BPE_GameplayGameMode.h"
+#include "Core/GameModes/BPE_LobbyGameMode.h"
 #include "Core/GameState/BPE_GameState.h"
 #include "HUD/BPE_HUD.h"
 #include "Kismet/GameplayStatics.h"
@@ -36,19 +37,34 @@ void ABPE_PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetPlayerName();
-	
-	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
-	if(IsValid(GameStateReference))
+#if WITH_EDITOR
+	InitializeReferences();
+#endif
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void ABPE_PlayerController::InitializeReferences()
+{
+	if(!IsValid(GameStateReference))
 	{
-		GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_PlayerController::OnMatchStateChanged);
+		GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
+		if(IsValid(GameStateReference))
+		{
+			GameStateReference->OnMatchStateSet.AddDynamic(this, &ABPE_PlayerController::OnMatchStateChanged);
+		}	
 	}
+
+	//SetPlayerName();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+
+#if !WITH_EDITOR
+	InitializeReferences();
+#endif
 	
 	if(HasAuthority())
 	{
@@ -61,7 +77,6 @@ void ABPE_PlayerController::OnPossess(APawn* InPawn)
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerController::SetPlayerName()
 {
-	GameStateReference = Cast<ABPE_GameState>(GetWorld()->GetGameState());
 	if(IsValid(GameStateReference) && IsValid(PlayerState))
 	{
 		PlayerState->SetPlayerName(FString("Player ") + FString::FromInt(GameStateReference->PlayerArray.IndexOfByKey(PlayerState) + 1));
@@ -128,10 +143,15 @@ void ABPE_PlayerController::BeginCooldownState()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerController::RequestRespawn()
 {
-	ABPE_GameplayGameMode* GameplayGameMode = GetWorld()->GetAuthGameMode<ABPE_GameplayGameMode>();
-	if(IsValid(GameplayGameMode))
+	if(IsValid(GetWorld()->GetAuthGameMode<ABPE_GameplayGameMode>()))
 	{
+		ABPE_GameplayGameMode* GameplayGameMode = GetWorld()->GetAuthGameMode<ABPE_GameplayGameMode>();
 		GameplayGameMode->RespawnPlayer(this,GetPawn());
+	}
+	else if (IsValid(GetWorld()->GetAuthGameMode<ABPE_LobbyGameMode>()))
+	{
+		ABPE_LobbyGameMode* LobbyGameMode = GetWorld()->GetAuthGameMode<ABPE_LobbyGameMode>();
+		LobbyGameMode->RespawnPlayer(this,GetPawn());
 	}
 }
 

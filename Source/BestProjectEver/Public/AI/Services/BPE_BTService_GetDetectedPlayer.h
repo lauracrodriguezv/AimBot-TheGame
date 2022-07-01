@@ -37,6 +37,12 @@ protected:
 	/** update blackboard keys */
 	void SetBlackboardKeyValues(UBlackboardComponent* BlackboardComponent, const TArray<AActor*>& PerceivedActors) const;
 
+	bool TrySetSeenTarget(AAIController* AIController, TArray<AActor*>& PerceivedTargets, UBlackboardComponent* BlackboardComponent);
+
+	bool TryGetHeardLocation(AAIController* AIController, TArray<AActor*>& PerceivedTargets, UBlackboardComponent* BlackboardComponent);
+
+	bool TryGetDamageCauserLocation(AAIController* AIController, TArray<AActor*>& PerceivedTargets, UBlackboardComponent* BlackboardComponent);
+	
 	/** reset blackboard keys */
 	void ResetBlackboardKeysValues(UBlackboardComponent* BlackboardComponent) const;
 

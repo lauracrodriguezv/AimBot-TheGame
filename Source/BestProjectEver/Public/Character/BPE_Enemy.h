@@ -40,6 +40,8 @@ struct FEnemyParameterOnNewState
 class ABPE_PathFollowing;
 class ABPE_Weapon;
 class UBPE_FollowSplineComponent;
+class UWidgetComponent;
+class UBPE_EnemyHealthBar;
 
 UCLASS()
 class BESTPROJECTEVER_API ABPE_Enemy : public ABPE_BaseCharacter, public IBPE_InteractWithColorType, public IBPE_FollowSplinePath, public IBPE_Damagable
@@ -56,6 +58,13 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	TObjectPtr<UBPE_FollowSplineComponent> FollowSplineComponent;
+
+	/** press E for pickup */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="User Interface")
+	TObjectPtr<UWidgetComponent> HealthWidgetComponent;
+
+	UPROPERTY(Transient)
+	UBPE_EnemyHealthBar* HealthBarWidget;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Enemy Type
@@ -165,6 +174,8 @@ public:
 
 	/** set by the AI controller if an actor is perceived */
 	void SetTargetViewLocation(const FVector& TargetLocation) { TargetViewLocation = TargetLocation; }
+
+	bool CanInvestigate() const;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//Color Type

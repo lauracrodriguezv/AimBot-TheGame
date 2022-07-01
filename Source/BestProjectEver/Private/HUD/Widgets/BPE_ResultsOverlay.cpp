@@ -44,7 +44,7 @@ void UBPE_ResultsOverlay::TravelToShowroom()
 {
 	if(IsValid(PlayerControllerReference))
 	{
-		PlayerControllerReference->Server_TravelToMap("/Game/Maps/Showroom?listen");	
+		PlayerControllerReference->Server_TravelToMap("/Game/Maps/Lobby?listen");	
 	}
 }
 
@@ -98,11 +98,11 @@ void UBPE_ResultsOverlay::ShowTopScoringPlayers(const TArray<APlayerState*>& Top
 	}
 	else if (TopScoringPlayers.Num() > 1)
 	{
-		Text = FString("It's a tie!!");
+		Text = FString("You both get the same score!!");
 	}
 	else if(TopScoringPlayers.IsEmpty())
 	{
-		Text = FString("You didn't kill any enemy :(");
+		Text = FString("You didn't get the top score :(");
 	}
 
 	if(IsValid(TopScoringPlayersText))

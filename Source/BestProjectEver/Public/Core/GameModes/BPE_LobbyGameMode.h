@@ -6,6 +6,7 @@
 #include "GameFramework/GameMode.h"
 #include "BPE_LobbyGameMode.generated.h"
 
+class ABPE_BaseCharacter;
 /**
  * 
  */
@@ -24,4 +25,10 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 	bool TravelToMap(const FString& InURL, bool bAbsolute = false, bool bShouldSkipGameNotify = false);
+
+	/** notify about kills */
+	void OnCharacterDeath(AController* KillerController, AController* KilledController, ABPE_BaseCharacter* KilledCharacter);
+
+	/** tries to spawn the player's pawn, at the location returned by FindPlayerStart */
+	void RespawnPlayer(AController* KilledController, APawn* KilledCharacter);
 };

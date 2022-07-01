@@ -50,6 +50,8 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+
+	void InitializeReferences();
 	
 	virtual void OnPossess(APawn* InPawn) override;
 

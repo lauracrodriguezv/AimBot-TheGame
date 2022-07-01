@@ -8,6 +8,7 @@
 
 class UTextBlock;
 class UButton;
+class ABPE_PlayerController;
 
 /**
  * 
@@ -19,7 +20,8 @@ class BESTPROJECTEVER_API UBPE_PauseMenu : public UUserWidget
 
 protected:
 
-	virtual void NativeConstruct() override;
+	UPROPERTY(Transient)
+	TObjectPtr<ABPE_PlayerController> PlayerControllerReference;
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> PauseTittleText;
@@ -27,12 +29,31 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ResumeButton;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> MainMenuButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> ShowroomButton;
+
 protected:
 
+	virtual void NativeConstruct() override;
+	
 	UFUNCTION()
 	void ResumeGame();
+
+	/** Enable buttons depending on network role */
+	void InitializeButtons();
+
+	/** User server travel if has authority or client travel if it is a client */
+	UFUNCTION()
+	void TravelToShowroom();
+
+	/** User server travel if has authority or client travel if it is a client */
+	UFUNCTION()
+	void TravelToMainMenu();
 	
 public:
 
-	void SetPauseMenuInformation(bool BWasPauseRequestByOwner);
+	void SetPauseMenuInformation(bool bWasPauseRequestByOwner);
 };

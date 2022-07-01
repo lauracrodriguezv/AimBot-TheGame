@@ -91,5 +91,6 @@ void UBPE_HealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UBPE_HealthComponent, CurrentHealth);
 	DOREPLIFETIME(UBPE_HealthComponent, bIsDead);
+	DOREPLIFETIME(UBPE_HealthComponent, DamageCauserActor);
 }
 

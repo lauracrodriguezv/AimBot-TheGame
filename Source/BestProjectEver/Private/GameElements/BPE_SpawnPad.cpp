@@ -150,6 +150,7 @@ void ABPE_SpawnPad::SpawnActor()
 			/** this range was set taking into account that there are just three colors in the enum */
 			const uint8 RandomColor = FMath::RandRange(0, 2);
 			ActorWithColorType->SetDefaultColorType(static_cast<EColorType>(RandomColor));
+			ActorWithColorType->SetCurrentColorType(static_cast<EColorType>(RandomColor));
 		}
 	}
 }

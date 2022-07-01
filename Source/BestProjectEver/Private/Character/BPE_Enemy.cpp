@@ -6,12 +6,16 @@
 #include "Character/BPE_PlayerCharacter.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BPE_FollowSplineComponent.h"
+#include "Components/BPE_HealthComponent.h"
 #include "Engine/TextRenderActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapons/BPE_Weapon.h"
 #include "Core/GameModes/BPE_LobbyGameMode.h"
+#include "Components/WidgetComponent.h"
+#include "HUD/Widgets/BPE_EnemyHealthBar.h"
+#include "HUD/Widgets/BPE_PromptWidget.h"
 
 ABPE_Enemy::ABPE_Enemy()
 {
@@ -24,6 +28,9 @@ ABPE_Enemy::ABPE_Enemy()
 	DestroyDelay = 2.0f;
 	
 	FollowSplineComponent = CreateDefaultSubobject<UBPE_FollowSplineComponent>(TEXT("FollowSplineComponent"));
+
+	HealthWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
+	HealthWidgetComponent->SetupAttachment(RootComponent);
 
 	XPValue = 10.0f;
 }
@@ -43,6 +50,17 @@ void ABPE_Enemy::BeginPlay()
 	if(HasAuthority())
 	{
 		SpawnWeapon();
+	}
+
+	if(IsValid(HealthWidgetComponent->GetUserWidgetObject()))
+	{
+		HealthBarWidget = Cast<UBPE_EnemyHealthBar>(HealthWidgetComponent->GetUserWidgetObject());
+		HealthComponent->OnHealthChangeDelegate.AddDynamic(HealthBarWidget, &UBPE_EnemyHealthBar::UpdateHealthDisplay);
+	}
+
+	if(IsValid(HealthBarWidget) && BodyMaterialColor.Contains(DefaultColorType))
+	{
+		HealthBarWidget->SetHealthBarColor(BodyMaterialColor[DefaultColorType]);
 	}
 }
 
@@ -88,6 +106,12 @@ void ABPE_Enemy::OnSetEnemyStatus()
 		GetCharacterMovement()->MaxWalkSpeed = Speed;
 	}
 	UpdateMaterialOnEnemyStatus();
+
+	if(IsValid(HealthBarWidget))
+	{
+		const ESlateVisibility HealthBarVisibility = EnemyStatus == EEnemyStatus::Combat ? ESlateVisibility::Visible : ESlateVisibility::Collapsed;
+		HealthBarWidget->SetVisibility(HealthBarVisibility);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------	
@@ -190,6 +214,12 @@ void ABPE_Enemy::SetDefaultColorType(const EColorType NewColorType)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+bool ABPE_Enemy::CanInvestigate() const
+{
+	return EnemyStatus != EEnemyStatus::Combat;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void ABPE_Enemy::OnColorTypeChanged(const EColorType ColorType)
 {
 	if(IsValid(GetMesh()) && BodyMaterialColor.Contains(ColorType))
@@ -226,12 +256,8 @@ void ABPE_Enemy::OnStopInteraction()
 		Multicast_UpdateMeshPhysics();
 		GetMesh()->AddImpulse(FMath::VRand() * ImpulseOnStopInteraction, NAME_None, true);
 	}
-
-	if(IsValid(CurrentWeapon))
-	{
-		CurrentWeapon->OnStopInteraction();
-		CurrentWeapon = nullptr;
-	}
+	
+	DropWeapon();
 	
 	SetLifeSpan(DestroyDelay);
 }

@@ -43,7 +43,7 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 
 	bIsAiming = false;
 	DefaultWalkSpeed = 600.0f;
-	AimWalkSpeed = 100.0f;
+	AimWalkSpeed = 200.0f;
 	ZoomOutInterpSpeed =  20.0f;
 
 	Team = ETeam::Player;
@@ -117,6 +117,8 @@ void ABPE_PlayerCharacter::OnMatchStateChange(const FName MatchState)
 void ABPE_PlayerCharacter::HandleCharacterDeath(AActor* KilledActor, AController* InstigatedBy, AActor* Killer)
 {
 	Super::HandleCharacterDeath(KilledActor, InstigatedBy, Killer);
+
+	GetCharacterMovement()->StopMovementImmediately();
 	
 	if(!Inventory.IsEmpty())
 	{
@@ -284,7 +286,10 @@ bool ABPE_PlayerCharacter::Server_StartFire_Validate()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnStartFire()
 {
-	CurrentWeapon->StartFire();
+	if(IsValid(CurrentWeapon))
+	{
+		CurrentWeapon->StartFire();	
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -302,7 +307,10 @@ bool ABPE_PlayerCharacter::Server_StopFire_Validate()
 //----------------------------------------------------------------------------------------------------------------------
 void ABPE_PlayerCharacter::OnStopFire()
 {
-	CurrentWeapon->StopFire();
+	if(IsValid(CurrentWeapon))
+	{
+		CurrentWeapon->StopFire();
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -583,7 +591,7 @@ void ABPE_PlayerCharacter::PlayUltimateEffects()
 		if(IsValid(UltimateEffect))
 		{
 			const FVector UltimateEffectSpawnPoint(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 200.0f);
-			UltimateParticleComponent = UGameplayStatics::SpawnEmitterAttached(UltimateEffect, GetMesh(), NAME_None, UltimateEffectSpawnPoint);
+			UltimateParticleComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), UltimateEffect, UltimateEffectSpawnPoint);
 		}
 
 		if(IsValid(UltimateSound))
@@ -993,11 +1001,15 @@ FVector ABPE_PlayerCharacter::GetPawnViewLocation() const
 //----------------------------------------------------------------------------------------------------------------------
 bool ABPE_PlayerCharacter::AreGameplayInputsEnabled() const
 {
-	if(IsValid(GetHealthComponent()) && IsValid(PlayerControllerReference))
+	if(Cast<ABPE_GameplayGameMode>(GetWorld()->GetAuthGameMode()))
 	{
-		return !GetHealthComponent()->IsDead() && PlayerControllerReference->AreGameplayInputsEnabled();
+		if(IsValid(GetHealthComponent()) && IsValid(PlayerControllerReference))
+		{
+			return !GetHealthComponent()->IsDead() && PlayerControllerReference->AreGameplayInputsEnabled();
+		}
 	}
-	return false;
+	
+	return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

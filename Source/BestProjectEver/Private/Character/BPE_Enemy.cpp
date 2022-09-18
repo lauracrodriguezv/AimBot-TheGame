@@ -49,7 +49,7 @@ void ABPE_Enemy::BeginPlay()
 	Super::BeginPlay();
 	if(HasAuthority())
 	{
-		SpawnWeapon();
+		//SpawnWeapon();
 	}
 
 	if(IsValid(HealthWidgetComponent->GetUserWidgetObject()))

@@ -32,7 +32,7 @@ ABPE_PlayerCharacter::ABPE_PlayerCharacter()
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
 
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = false; 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
@@ -939,7 +939,7 @@ void ABPE_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("TurnRate", this, &ABPE_PlayerCharacter::TurnAtRate);
-	PlayerInputComponent->BindAxis("LookUp", this, &ABPE_PlayerCharacter::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("LookingUp", this, &ABPE_PlayerCharacter::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ABPE_PlayerCharacter::LookUpAtRate);
 
 	PlayerInputComponent->BindAction("Jump",IE_Pressed, this, &ACharacter::Jump);

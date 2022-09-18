@@ -38,7 +38,7 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (AutoCreateRefTerm="InMatchType"))
 	void SetUpMenu(UPARAM(DisplayName="Max Public Connections") int32 InMaxPublicConnections = 4,
 	               UPARAM(DisplayName="Match Type") const FString& InMatchType = TEXT("FreeForAll"),
-	               UPARAM(DisplayName="Path to Lobby") const FString& InPathToLobby = TEXT("/Game/ThirdPerson/Maps/Lobby"));
+	               UPARAM(DisplayName="Path to Lobby") const FString& InPathToLobby = TEXT("/Game/ThirdPerson/Maps/RemMap"));
 
 protected:
 	virtual bool Initialize() override;
